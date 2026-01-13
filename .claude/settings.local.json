@@ -12,7 +12,9 @@
       "Bash(node test-api.js:*)",
       "Bash(node migrar-datos.js:*)",
       "Bash(node:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)"
     ]
   }
 }
