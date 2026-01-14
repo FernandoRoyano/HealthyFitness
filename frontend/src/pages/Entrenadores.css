@@ -1,0 +1,82 @@
+/* Estilos responsive para modales de Entrenadores */
+
+/* Modal responsive */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justifyContent: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content-responsive {
+  background-color: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 8px;
+    align-items: flex-start;
+    padding-top: 20px;
+  }
+
+  .modal-content-responsive {
+    max-width: 100%;
+    max-height: calc(100vh - 40px);
+    border-radius: 12px;
+  }
+
+  /* Ajustar padding de los formularios en móvil */
+  .modal-content-responsive form {
+    padding: 16px !important;
+  }
+
+  .modal-content-responsive .modal-header {
+    padding: 16px !important;
+  }
+
+  .modal-content-responsive .modal-footer {
+    padding: 16px !important;
+  }
+
+  /* Hacer inputs y selects más accesibles en móvil */
+  .modal-content-responsive input,
+  .modal-content-responsive select,
+  .modal-content-responsive textarea {
+    font-size: 16px !important; /* Prevenir zoom en iOS */
+    padding: 12px !important;
+  }
+
+  /* Botones más grandes en móvil */
+  .modal-content-responsive button[type="submit"],
+  .modal-content-responsive button[type="button"] {
+    padding: 14px 20px !important;
+    font-size: 16px !important;
+    min-height: 44px; /* Touch target mínimo */
+  }
+}
+
+/* Tabla responsive */
+@media (max-width: 768px) {
+  .entrenadores-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .entrenadores-table table {
+    min-width: 600px;
+  }
+}
