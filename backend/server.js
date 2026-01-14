@@ -16,9 +16,30 @@ connectDB();
 
 // Configurar CORS
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? process.env.FRONTEND_URL || '*'
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin: function (origin, callback) {
+    // Permitir todas las peticiones en producción si FRONTEND_URL es '*'
+    if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL === '*') {
+      callback(null, true);
+    }
+    // Permitir URLs específicas en producción
+    else if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
+      const allowedOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim());
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    }
+    // Desarrollo: permitir localhost
+    else {
+      const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true); // En desarrollo, permitir todo
+      }
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
