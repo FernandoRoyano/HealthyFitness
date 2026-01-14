@@ -1,0 +1,29 @@
+/* Estilos responsive para Layout */
+.user-name {
+  font-size: clamp(13px, 3vw, 15px);
+  color: #000000;
+  font-weight: 600;
+  font-family: 'Niramit', sans-serif;
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .user-name {
+    display: block;
+  }
+}
+
+/* Mejorar navegación en móvil */
+@media (max-width: 768px) {
+  .nav-links {
+    width: 100%;
+    order: 3;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+  }
+
+  .nav-link {
+    font-size: 13px !important;
+    padding: 6px 10px !important;
+  }
+}
