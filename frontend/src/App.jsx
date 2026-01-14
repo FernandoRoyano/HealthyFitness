@@ -11,6 +11,7 @@ import CalendarioGerente from './pages/CalendarioGerente';
 import CalendarioReservas from './pages/CalendarioReservas';
 import Entrenadores from './pages/Entrenadores';
 import AprobacionesCambios from './pages/AprobacionesCambios';
+import SolicitudesCambio from './pages/SolicitudesCambio';
 
 function App() {
   return (
@@ -94,6 +95,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <AprobacionesCambios />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/solicitudes"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <SolicitudesCambio />
                 </Layout>
               </ProtectedRoute>
             }

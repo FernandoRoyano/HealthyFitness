@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { solicitudesCambioAPI } from '../services/api';
 import './Layout.css';
 
 function Layout({ children }) {
@@ -8,6 +9,7 @@ function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
 
   const handleLogout = () => {
     logout();
@@ -22,6 +24,25 @@ function Layout({ children }) {
 
   const closeMenu = () => {
     setMenuOpen(false);
+  };
+
+  // Cargar contador de solicitudes pendientes (solo para gerentes)
+  useEffect(() => {
+    if (usuario?.rol === 'gerente') {
+      cargarContadorSolicitudes();
+      // Actualizar cada 30 segundos
+      const interval = setInterval(cargarContadorSolicitudes, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [usuario]);
+
+  const cargarContadorSolicitudes = async () => {
+    try {
+      const { data } = await solicitudesCambioAPI.contarPendientes();
+      setSolicitudesPendientes(data.count);
+    } catch (error) {
+      console.error('Error al cargar contador:', error);
+    }
   };
 
   return (
@@ -112,6 +133,21 @@ function Layout({ children }) {
                   }}
                 >
                   Entrenadores
+                </Link>
+                <Link
+                  to="/solicitudes"
+                  className="nav-link"
+                  onClick={closeMenu}
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/solicitudes') && styles.navLinkActive),
+                    position: 'relative'
+                  }}
+                >
+                  Solicitudes
+                  {solicitudesPendientes > 0 && (
+                    <span style={styles.badge}>{solicitudesPendientes}</span>
+                  )}
                 </Link>
               </>
             ) : (
@@ -250,6 +286,19 @@ const styles = {
     borderRadius: '3px',
     transition: 'all 0.3s ease',
     transformOrigin: 'center'
+  },
+  badge: {
+    position: 'absolute',
+    top: '-8px',
+    right: '-8px',
+    backgroundColor: '#dc3545',
+    color: 'white',
+    borderRadius: '10px',
+    padding: '2px 6px',
+    fontSize: '11px',
+    fontWeight: '600',
+    minWidth: '18px',
+    textAlign: 'center'
   }
 };
 

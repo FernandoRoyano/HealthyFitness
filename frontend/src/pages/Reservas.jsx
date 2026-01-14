@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { reservasAPI, clientesAPI } from '../services/api';
+import { reservasAPI, clientesAPI, solicitudesCambioAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 function Reservas() {
@@ -10,6 +10,8 @@ function Reservas() {
   const [error, setError] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [reservaEditando, setReservaEditando] = useState(null);
+  const [mostrarModalSolicitud, setMostrarModalSolicitud] = useState(false);
+  const [reservaSolicitud, setReservaSolicitud] = useState(null);
   const [formulario, setFormulario] = useState({
     cliente: '',
     fecha: '',
@@ -19,6 +21,13 @@ function Reservas() {
     estado: 'pendiente',
     notas: '',
     duracion: 60
+  });
+  const [formularioSolicitud, setFormularioSolicitud] = useState({
+    tipoCambio: 'puntual',
+    fecha: '',
+    horaInicio: '',
+    horaFin: '',
+    motivoCambio: ''
   });
 
   useEffect(() => {
@@ -124,6 +133,68 @@ function Reservas() {
       cancelada: '#dc3545'
     };
     return colores[estado] || '#6c757d';
+  };
+
+  const handleSolicitarCambio = (reserva) => {
+    setReservaSolicitud(reserva);
+    setFormularioSolicitud({
+      tipoCambio: 'puntual',
+      fecha: new Date(reserva.fecha).toISOString().split('T')[0],
+      horaInicio: reserva.horaInicio,
+      horaFin: reserva.horaFin,
+      motivoCambio: ''
+    });
+    setMostrarModalSolicitud(true);
+  };
+
+  const handleChangeSolicitud = (e) => {
+    setFormularioSolicitud({
+      ...formularioSolicitud,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmitSolicitud = async (e) => {
+    e.preventDefault();
+    try {
+      const datos = {
+        reservaOriginal: reservaSolicitud._id,
+        entrenador: usuario._id,
+        cliente: reservaSolicitud.cliente._id,
+        tipoCambio: formularioSolicitud.tipoCambio,
+        datosOriginales: {
+          fecha: reservaSolicitud.fecha,
+          horaInicio: reservaSolicitud.horaInicio,
+          horaFin: reservaSolicitud.horaFin
+        },
+        datosPropuestos: {
+          fecha: formularioSolicitud.fecha,
+          horaInicio: formularioSolicitud.horaInicio,
+          horaFin: formularioSolicitud.horaFin
+        },
+        motivoCambio: formularioSolicitud.motivoCambio
+      };
+
+      await solicitudesCambioAPI.crear(datos);
+      setMostrarModalSolicitud(false);
+      setReservaSolicitud(null);
+      setError('');
+      alert('Solicitud de cambio enviada correctamente');
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al crear solicitud');
+    }
+  };
+
+  const cerrarModalSolicitud = () => {
+    setMostrarModalSolicitud(false);
+    setReservaSolicitud(null);
+    setFormularioSolicitud({
+      tipoCambio: 'puntual',
+      fecha: '',
+      horaInicio: '',
+      horaFin: '',
+      motivoCambio: ''
+    });
   };
 
   if (cargando) return <div style={styles.container}>Cargando...</div>;
@@ -271,6 +342,104 @@ function Reservas() {
         </div>
       )}
 
+      {mostrarModalSolicitud && reservaSolicitud && (
+        <div style={styles.modal}>
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h2>Solicitar Cambio de Reserva</h2>
+              <button onClick={cerrarModalSolicitud} style={styles.closeButton}>×</button>
+            </div>
+            <form onSubmit={handleSubmitSolicitud} style={styles.form}>
+              <div style={styles.infoBox}>
+                <h3 style={styles.infoBoxTitle}>Reserva Original</h3>
+                <p><strong>Cliente:</strong> {reservaSolicitud.cliente.nombre} {reservaSolicitud.cliente.apellido}</p>
+                <p><strong>Fecha:</strong> {formatearFecha(reservaSolicitud.fecha)}</p>
+                <p><strong>Horario:</strong> {reservaSolicitud.horaInicio} - {reservaSolicitud.horaFin}</p>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Tipo de Cambio*</label>
+                <select
+                  name="tipoCambio"
+                  value={formularioSolicitud.tipoCambio}
+                  onChange={handleChangeSolicitud}
+                  required
+                  style={styles.input}
+                >
+                  <option value="puntual">Cambio Puntual (una sola sesión)</option>
+                  <option value="permanente">Cambio Permanente (todas las sesiones futuras)</option>
+                  <option value="cancelacion">Cancelación Puntual</option>
+                  <option value="suspension">Suspensión Temporal</option>
+                </select>
+              </div>
+
+              {(formularioSolicitud.tipoCambio === 'puntual' || formularioSolicitud.tipoCambio === 'permanente') && (
+                <>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Nueva Fecha*</label>
+                    <input
+                      type="date"
+                      name="fecha"
+                      value={formularioSolicitud.fecha}
+                      onChange={handleChangeSolicitud}
+                      required
+                      style={styles.input}
+                    />
+                  </div>
+
+                  <div style={styles.formRow}>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Nueva Hora Inicio*</label>
+                      <input
+                        type="time"
+                        name="horaInicio"
+                        value={formularioSolicitud.horaInicio}
+                        onChange={handleChangeSolicitud}
+                        required
+                        style={styles.input}
+                      />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Nueva Hora Fin*</label>
+                      <input
+                        type="time"
+                        name="horaFin"
+                        value={formularioSolicitud.horaFin}
+                        onChange={handleChangeSolicitud}
+                        required
+                        style={styles.input}
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Motivo del Cambio*</label>
+                <textarea
+                  name="motivoCambio"
+                  value={formularioSolicitud.motivoCambio}
+                  onChange={handleChangeSolicitud}
+                  rows="4"
+                  required
+                  placeholder="Explica el motivo de la solicitud..."
+                  style={{...styles.input, resize: 'vertical'}}
+                />
+              </div>
+
+              <div style={styles.formActions}>
+                <button type="button" onClick={cerrarModalSolicitud} style={styles.buttonSecondary}>
+                  Cancelar
+                </button>
+                <button type="submit" style={styles.buttonPrimary}>
+                  Enviar Solicitud
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div style={styles.reservasList}>
         {reservas.length === 0 ? (
           <p style={styles.empty}>No hay reservas registradas</p>
@@ -320,6 +489,12 @@ function Reservas() {
               </div>
 
               <div style={styles.reservaActions}>
+                <button
+                  onClick={() => handleSolicitarCambio(reserva)}
+                  style={styles.buttonWarning}
+                >
+                  Solicitar Cambio
+                </button>
                 <button
                   onClick={() => handleEditar(reserva)}
                   style={styles.buttonEdit}
@@ -392,6 +567,15 @@ const styles = {
     fontSize: '14px',
     color: 'white',
     backgroundColor: '#dc3545',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer'
+  },
+  buttonWarning: {
+    padding: '8px 16px',
+    fontSize: '14px',
+    color: 'white',
+    backgroundColor: '#ffc107',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer'
@@ -538,6 +722,19 @@ const styles = {
     color: '#666',
     backgroundColor: 'white',
     borderRadius: '8px'
+  },
+  infoBox: {
+    backgroundColor: '#f8f9fa',
+    padding: '15px',
+    borderRadius: '8px',
+    marginBottom: '15px',
+    border: '1px solid #dee2e6'
+  },
+  infoBoxTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    marginBottom: '10px',
+    color: '#333'
   }
 };
 
