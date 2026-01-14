@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Layout.css';
@@ -6,6 +7,7 @@ function Layout({ children }) {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -14,17 +16,39 @@ function Layout({ children }) {
 
   const isActive = (path) => location.pathname === path;
 
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+  };
+
   return (
     <div style={styles.container}>
       <nav style={styles.navbar}>
         <div style={styles.navContent}>
-          <Link to="/dashboard" style={styles.logo}>
+          <Link to="/dashboard" style={styles.logo} onClick={closeMenu}>
             HealthyFitness
           </Link>
-          <div className="nav-links" style={styles.navLinks}>
+
+          {/* Botón hamburguesa - solo visible en móvil */}
+          <button
+            className="hamburger-button"
+            onClick={toggleMenu}
+            style={styles.hamburger}
+            aria-label="Toggle menu"
+          >
+            <span style={{...styles.hamburgerLine, transform: menuOpen ? 'rotate(45deg) translateY(8px)' : 'none'}}></span>
+            <span style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}}></span>
+            <span style={{...styles.hamburgerLine, transform: menuOpen ? 'rotate(-45deg) translateY(-8px)' : 'none'}}></span>
+          </button>
+
+          <div className={`nav-links ${menuOpen ? 'open' : ''}`} style={styles.navLinks}>
             <Link
               to="/dashboard"
               className="nav-link"
+              onClick={closeMenu}
               style={{
                 ...styles.navLink,
                 ...(isActive('/dashboard') && styles.navLinkActive)
@@ -34,6 +58,8 @@ function Layout({ children }) {
             </Link>
             <Link
               to="/clientes"
+              className="nav-link"
+              onClick={closeMenu}
               style={{
                 ...styles.navLink,
                 ...(isActive('/clientes') && styles.navLinkActive)
@@ -43,6 +69,8 @@ function Layout({ children }) {
             </Link>
             <Link
               to="/reservas"
+              className="nav-link"
+              onClick={closeMenu}
               style={{
                 ...styles.navLink,
                 ...(isActive('/reservas') && styles.navLinkActive)
@@ -52,6 +80,8 @@ function Layout({ children }) {
             </Link>
             <Link
               to="/calendario-reservas"
+              className="nav-link"
+              onClick={closeMenu}
               style={{
                 ...styles.navLink,
                 ...(isActive('/calendario-reservas') && styles.navLinkActive)
@@ -63,6 +93,8 @@ function Layout({ children }) {
               <>
                 <Link
                   to="/calendario-gerente"
+                  className="nav-link"
+                  onClick={closeMenu}
                   style={{
                     ...styles.navLink,
                     ...(isActive('/calendario-gerente') && styles.navLinkActive)
@@ -72,6 +104,8 @@ function Layout({ children }) {
                 </Link>
                 <Link
                   to="/entrenadores"
+                  className="nav-link"
+                  onClick={closeMenu}
                   style={{
                     ...styles.navLink,
                     ...(isActive('/entrenadores') && styles.navLinkActive)
@@ -83,6 +117,8 @@ function Layout({ children }) {
             ) : (
               <Link
                 to="/calendario"
+                className="nav-link"
+                onClick={closeMenu}
                 style={{
                   ...styles.navLink,
                   ...(isActive('/calendario') && styles.navLinkActive)
@@ -194,6 +230,26 @@ const styles = {
   main: {
     minHeight: 'calc(100vh - 60px)',
     padding: '0'
+  },
+  hamburger: {
+    display: 'none',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    width: '32px',
+    height: '32px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px',
+    zIndex: 101
+  },
+  hamburgerLine: {
+    width: '24px',
+    height: '3px',
+    backgroundColor: '#75b760',
+    borderRadius: '3px',
+    transition: 'all 0.3s ease',
+    transformOrigin: 'center'
   }
 };
 
