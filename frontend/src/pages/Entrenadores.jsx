@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usersAPI } from '../services/api';
+import './Entrenadores.css';
 
 function Entrenadores() {
   const [entrenadores, setEntrenadores] = useState([]);
@@ -231,8 +232,8 @@ function Entrenadores() {
       </div>
 
       {mostrarFormulario && (
-        <div style={styles.modal}>
-          <div style={styles.modalContent}>
+        <div className="modal-overlay" style={styles.modal}>
+          <div className="modal-content-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
               <h2>Actualizar Perfil de Entrenador</h2>
               <button onClick={cerrarFormulario} style={styles.closeButton}>×</button>
@@ -292,8 +293,8 @@ function Entrenadores() {
       )}
 
       {mostrarModalCrear && (
-        <div style={styles.modal}>
-          <div style={styles.modalContent}>
+        <div className="modal-overlay" style={styles.modal}>
+          <div className="modal-content-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
               <h2>Crear Nuevo Entrenador</h2>
               <button onClick={cerrarModalCrear} style={styles.closeButton}>×</button>
@@ -370,8 +371,8 @@ function Entrenadores() {
       )}
 
       {mostrarModalReasignar && (
-        <div style={styles.modal}>
-          <div style={styles.modalContent}>
+        <div className="modal-overlay" style={styles.modal}>
+          <div className="modal-content-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
               <h2>Reasignar Clientes</h2>
               <button onClick={cerrarModalReasignar} style={styles.closeButton}>×</button>
@@ -432,8 +433,8 @@ function Entrenadores() {
       )}
 
       {mostrarModalPassword && entrenadorPassword && (
-        <div style={styles.modal}>
-          <div style={styles.modalContent}>
+        <div className="modal-overlay" style={styles.modal}>
+          <div className="modal-content-responsive" style={styles.modalContent}>
             <div style={styles.modalHeader}>
               <h2>Resetear Contraseña</h2>
               <button onClick={cerrarModalPassword} style={styles.closeButton}>×</button>
