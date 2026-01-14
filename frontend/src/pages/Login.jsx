@@ -92,80 +92,92 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fafafa',
     padding: '20px'
   },
   card: {
     backgroundColor: 'white',
-    padding: '40px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    padding: '50px 40px',
+    borderRadius: '12px',
+    boxShadow: '0px 0px 50px -10px rgba(0,0,0,0.15)',
     width: '100%',
-    maxWidth: '400px'
+    maxWidth: '420px',
+    border: '1px solid #e4e4e9'
   },
   title: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: '10px',
-    textAlign: 'center'
+    fontSize: '42px',
+    fontWeight: '700',
+    color: '#75b760',
+    marginBottom: '8px',
+    textAlign: 'center',
+    fontFamily: 'Niramit, sans-serif',
+    letterSpacing: '-0.5px'
   },
   subtitle: {
-    fontSize: '18px',
-    color: '#666',
-    marginBottom: '30px',
-    textAlign: 'center'
+    fontSize: '20px',
+    color: '#666666',
+    marginBottom: '40px',
+    textAlign: 'center',
+    fontFamily: 'Niramit, sans-serif',
+    fontWeight: '400'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '20px'
+    gap: '24px'
   },
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px'
+    gap: '10px'
   },
   label: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: '#333'
+    fontSize: '15px',
+    fontWeight: '600',
+    color: '#000000',
+    fontFamily: 'Niramit, sans-serif'
   },
   input: {
-    padding: '10px 12px',
-    fontSize: '14px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    outline: 'none'
+    padding: '14px 16px',
+    fontSize: '16px',
+    border: '1px solid #e4e4e9',
+    borderRadius: '8px',
+    outline: 'none',
+    transition: 'all 0.2s ease',
+    fontFamily: 'Lora, serif'
   },
   button: {
-    padding: '12px',
-    fontSize: '16px',
-    fontWeight: '500',
+    padding: '16px',
+    fontSize: '18px',
+    fontWeight: '700',
     color: 'white',
-    backgroundColor: '#007bff',
+    backgroundColor: '#75b760',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '9999px',
     cursor: 'pointer',
-    marginTop: '10px'
+    marginTop: '12px',
+    transition: 'all 0.3s ease',
+    fontFamily: 'Niramit, sans-serif',
+    boxShadow: '0 4px 12px rgba(117, 183, 96, 0.3)'
   },
   error: {
-    padding: '10px',
+    padding: '14px',
     backgroundColor: '#fee',
     color: '#c00',
-    borderRadius: '4px',
+    borderRadius: '8px',
     marginBottom: '20px',
-    fontSize: '14px'
+    fontSize: '14px',
+    border: '1px solid #fcc'
   },
   helpText: {
-    marginTop: '20px',
-    padding: '12px',
-    backgroundColor: '#f8f9fa',
-    borderLeft: '4px solid #007bff',
-    fontSize: '13px',
+    marginTop: '24px',
+    padding: '16px',
+    backgroundColor: '#f8fdf6',
+    borderLeft: '4px solid #75b760',
+    fontSize: '14px',
     color: '#555',
-    lineHeight: '1.5',
-    borderRadius: '4px'
+    lineHeight: '1.6',
+    borderRadius: '6px'
   }
 };
 
