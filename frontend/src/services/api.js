@@ -71,3 +71,11 @@ export const solicitudesCambioAPI = {
   cancelar: (id) => api.delete(`/solicitudes-cambio/${id}`),
   contarPendientes: () => api.get('/solicitudes-cambio/pendientes/count')
 };
+
+export const notificacionesAPI = {
+  obtenerTodas: (params) => api.get('/notificaciones', { params }),
+  contarNoLeidas: () => api.get('/notificaciones/no-leidas/count'),
+  marcarComoLeida: (id) => api.put(`/notificaciones/${id}/leida`),
+  marcarTodasComoLeidas: () => api.put('/notificaciones/marcar-todas-leidas'),
+  eliminar: (id) => api.delete(`/notificaciones/${id}`)
+};
