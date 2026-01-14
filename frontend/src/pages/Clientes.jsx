@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { clientesAPI, usersAPI } from '../services/api';
+import Papa from 'papaparse';
 
 function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -8,6 +9,13 @@ function Clientes() {
   const [error, setError] = useState('');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [clienteEditando, setClienteEditando] = useState(null);
+  const [mostrarImportar, setMostrarImportar] = useState(false);
+  const [archivoCSV, setArchivoCSV] = useState(null);
+  const [previewCSV, setPreviewCSV] = useState(null);
+  const [entrenadorImportar, setEntrenadorImportar] = useState('');
+  const [importando, setImportando] = useState(false);
+  const [resultadoImportacion, setResultadoImportacion] = useState(null);
+  const fileInputRef = useRef(null);
   const [formulario, setFormulario] = useState({
     nombre: '',
     apellido: '',
@@ -128,18 +136,77 @@ function Clientes() {
     });
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setArchivoCSV(file);
+      // Preview del CSV
+      Papa.parse(file, {
+        header: true,
+        preview: 5, // Mostrar solo las primeras 5 filas
+        complete: (results) => {
+          setPreviewCSV(results.data);
+        }
+      });
+    }
+  };
+
+  const handleImportarCSV = async () => {
+    if (!archivoCSV || !entrenadorImportar) {
+      setError('Debe seleccionar un archivo CSV y un entrenador');
+      return;
+    }
+
+    setImportando(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('archivo', archivoCSV);
+      formData.append('entrenadorId', entrenadorImportar);
+
+      const { data } = await clientesAPI.importar(formData);
+      setResultadoImportacion(data);
+      cargarClientes();
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al importar clientes');
+    } finally {
+      setImportando(false);
+    }
+  };
+
+  const cerrarModalImportar = () => {
+    setMostrarImportar(false);
+    setArchivoCSV(null);
+    setPreviewCSV(null);
+    setEntrenadorImportar('');
+    setResultadoImportacion(null);
+    setError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   if (cargando) return <div style={styles.container}>Cargando...</div>;
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.title}>Gestión de Clientes</h1>
-        <button
-          onClick={() => setMostrarFormulario(true)}
-          style={styles.buttonPrimary}
-        >
-          + Nuevo Cliente
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button
+            onClick={() => setMostrarImportar(true)}
+            style={styles.buttonSecondary}
+          >
+            📥 Importar CSV
+          </button>
+          <button
+            onClick={() => setMostrarFormulario(true)}
+            style={styles.buttonPrimary}
+          >
+            + Nuevo Cliente
+          </button>
+        </div>
       </div>
 
       {error && <div style={styles.error}>{error}</div>}
@@ -338,6 +405,152 @@ function Clientes() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {mostrarImportar && (
+        <div style={styles.modal} onClick={cerrarModalImportar}>
+          <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2>Importar Clientes desde CSV</h2>
+              <button onClick={cerrarModalImportar} style={styles.closeButton}>×</button>
+            </div>
+            <div style={styles.form}>
+              {!resultadoImportacion ? (
+                <>
+                  <div style={styles.importInfo}>
+                    <h3 style={{ marginBottom: '10px', fontSize: '16px' }}>Formato del archivo CSV</h3>
+                    <p style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
+                      El archivo debe incluir al menos estas columnas (en cualquier orden):
+                    </p>
+                    <ul style={{ marginLeft: '20px', fontSize: '14px', color: '#666' }}>
+                      <li><strong>nombre</strong> o <strong>name</strong> (requerido)</li>
+                      <li><strong>apellido</strong>, <strong>lastname</strong> o <strong>surname</strong> (requerido)</li>
+                      <li><strong>email</strong> o <strong>correo</strong> (requerido)</li>
+                      <li><strong>telefono</strong>, <strong>phone</strong> o <strong>teléfono</strong> (requerido)</li>
+                    </ul>
+                    <p style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
+                      Campos opcionales: fechaNacimiento, genero, direccion, objetivos, condicionesMedicas, peso, altura, nivelActividad, notas
+                    </p>
+                  </div>
+
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Seleccionar archivo CSV*</label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileChange}
+                      style={styles.inputFile}
+                    />
+                  </div>
+
+                  {previewCSV && (
+                    <div style={styles.preview}>
+                      <h4 style={{ marginBottom: '10px', fontSize: '14px' }}>Vista previa (primeras 5 filas)</h4>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={styles.previewTable}>
+                          <thead>
+                            <tr>
+                              {Object.keys(previewCSV[0] || {}).map(key => (
+                                <th key={key} style={styles.previewTh}>{key}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewCSV.map((row, idx) => (
+                              <tr key={idx}>
+                                {Object.values(row).map((value, i) => (
+                                  <td key={i} style={styles.previewTd}>{value || '-'}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Asignar a entrenador*</label>
+                    <select
+                      value={entrenadorImportar}
+                      onChange={(e) => setEntrenadorImportar(e.target.value)}
+                      style={styles.input}
+                    >
+                      <option value="">Seleccionar entrenador</option>
+                      {entrenadores.map((entrenador) => (
+                        <option key={entrenador._id} value={entrenador._id}>
+                          {entrenador.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={styles.formActions}>
+                    <button type="button" onClick={cerrarModalImportar} style={styles.buttonSecondary}>
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleImportarCSV}
+                      style={styles.buttonPrimary}
+                      disabled={importando || !archivoCSV || !entrenadorImportar}
+                    >
+                      {importando ? 'Importando...' : 'Importar'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={styles.resultadoImportacion}>
+                    <h3 style={{ color: '#28a745', marginBottom: '15px' }}>
+                      ✓ Importación completada
+                    </h3>
+                    <p style={{ fontSize: '14px', marginBottom: '15px' }}>
+                      {resultadoImportacion.mensaje}
+                    </p>
+
+                    {resultadoImportacion.clientesImportados.length > 0 && (
+                      <div style={{ marginBottom: '15px' }}>
+                        <h4 style={{ fontSize: '14px', marginBottom: '8px' }}>
+                          Clientes importados ({resultadoImportacion.clientesImportados.length}):
+                        </h4>
+                        <div style={styles.listaClientes}>
+                          {resultadoImportacion.clientesImportados.map((cliente, idx) => (
+                            <div key={idx} style={styles.clienteItem}>
+                              ✓ {cliente.nombre} {cliente.apellido} - {cliente.email}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {resultadoImportacion.errores && resultadoImportacion.errores.length > 0 && (
+                      <div>
+                        <h4 style={{ fontSize: '14px', marginBottom: '8px', color: '#dc3545' }}>
+                          Errores ({resultadoImportacion.errores.length}):
+                        </h4>
+                        <div style={styles.listaErrores}>
+                          {resultadoImportacion.errores.map((err, idx) => (
+                            <div key={idx} style={styles.errorItem}>
+                              Línea {err.linea}: {err.error}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={styles.formActions}>
+                    <button type="button" onClick={cerrarModalImportar} style={styles.buttonPrimary}>
+                      Cerrar
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -550,6 +763,74 @@ const styles = {
     padding: '40px',
     textAlign: 'center',
     color: '#666'
+  },
+  importInfo: {
+    backgroundColor: '#f8f9fa',
+    padding: '15px',
+    borderRadius: '6px',
+    marginBottom: '15px'
+  },
+  inputFile: {
+    padding: '8px',
+    fontSize: '14px',
+    border: '1px solid #ddd',
+    borderRadius: '4px'
+  },
+  preview: {
+    backgroundColor: '#f8f9fa',
+    padding: '15px',
+    borderRadius: '6px',
+    maxHeight: '300px',
+    overflowY: 'auto'
+  },
+  previewTable: {
+    width: '100%',
+    fontSize: '12px',
+    borderCollapse: 'collapse'
+  },
+  previewTh: {
+    padding: '8px',
+    textAlign: 'left',
+    backgroundColor: '#e9ecef',
+    borderBottom: '2px solid #dee2e6',
+    fontWeight: 'bold',
+    whiteSpace: 'nowrap'
+  },
+  previewTd: {
+    padding: '8px',
+    borderBottom: '1px solid #dee2e6',
+    whiteSpace: 'nowrap'
+  },
+  resultadoImportacion: {
+    padding: '20px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '6px'
+  },
+  listaClientes: {
+    maxHeight: '200px',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    padding: '10px',
+    borderRadius: '4px',
+    border: '1px solid #dee2e6'
+  },
+  clienteItem: {
+    padding: '6px 0',
+    fontSize: '13px',
+    color: '#28a745'
+  },
+  listaErrores: {
+    maxHeight: '200px',
+    overflowY: 'auto',
+    backgroundColor: 'white',
+    padding: '10px',
+    borderRadius: '4px',
+    border: '1px solid #dee2e6'
+  },
+  errorItem: {
+    padding: '6px 0',
+    fontSize: '13px',
+    color: '#dc3545'
   }
 };
 
