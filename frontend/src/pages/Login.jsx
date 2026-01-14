@@ -93,11 +93,11 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fafafa',
-    padding: '20px'
+    padding: '16px'
   },
   card: {
     backgroundColor: 'white',
-    padding: '50px 40px',
+    padding: 'clamp(24px, 5vw, 50px) clamp(20px, 5vw, 40px)',
     borderRadius: '12px',
     boxShadow: '0px 0px 50px -10px rgba(0,0,0,0.15)',
     width: '100%',
@@ -105,7 +105,7 @@ const styles = {
     border: '1px solid #e4e4e9'
   },
   title: {
-    fontSize: '42px',
+    fontSize: 'clamp(28px, 8vw, 42px)',
     fontWeight: '700',
     color: '#75b760',
     marginBottom: '8px',
