@@ -106,69 +106,85 @@ function Layout({ children }) {
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#f5f5f5'
+    backgroundColor: '#fafafa'
   },
   navbar: {
     backgroundColor: 'white',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
     position: 'sticky',
     top: 0,
-    zIndex: 100
+    zIndex: 100,
+    borderBottom: '1px solid #e4e4e9'
   },
   navContent: {
     maxWidth: '1400px',
     margin: '0 auto',
-    padding: '0 20px',
+    padding: '0 16px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: '64px'
+    height: '70px',
+    flexWrap: 'wrap',
+    gap: '12px'
   },
   logo: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    color: '#007bff',
-    textDecoration: 'none'
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#75b760',
+    textDecoration: 'none',
+    fontFamily: 'Niramit, sans-serif',
+    letterSpacing: '-0.5px'
   },
   navLinks: {
     display: 'flex',
-    gap: '20px',
+    gap: '8px',
     flex: 1,
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    padding: '8px 0'
   },
   navLink: {
     textDecoration: 'none',
-    color: '#666',
-    fontSize: '16px',
-    padding: '8px 16px',
-    borderRadius: '4px',
-    transition: 'all 0.2s'
+    color: '#666666',
+    fontSize: '15px',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    transition: 'all 0.2s ease',
+    fontFamily: 'Niramit, sans-serif',
+    fontWeight: '600',
+    whiteSpace: 'nowrap'
   },
   navLinkActive: {
-    color: '#007bff',
-    backgroundColor: '#e7f3ff'
+    color: '#75b760',
+    backgroundColor: '#f8fdf6'
   },
   userSection: {
     display: 'flex',
     alignItems: 'center',
-    gap: '15px'
+    gap: '12px',
+    flexWrap: 'wrap'
   },
   userName: {
-    fontSize: '14px',
-    color: '#333',
-    fontWeight: '500'
+    fontSize: '15px',
+    color: '#000000',
+    fontWeight: '600',
+    fontFamily: 'Niramit, sans-serif'
   },
   logoutButton: {
-    padding: '8px 16px',
-    fontSize: '14px',
-    color: '#666',
+    padding: '10px 20px',
+    fontSize: '15px',
+    color: '#666666',
     backgroundColor: 'transparent',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    cursor: 'pointer'
+    border: '1px solid #e4e4e9',
+    borderRadius: '9999px',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    fontFamily: 'Niramit, sans-serif',
+    fontWeight: '600'
   },
   main: {
-    minHeight: 'calc(100vh - 64px)'
+    minHeight: 'calc(100vh - 70px)',
+    padding: '0'
   }
 };
 
