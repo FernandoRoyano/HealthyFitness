@@ -1,5 +1,6 @@
 import SolicitudCambio from '../models/SolicitudCambio.js';
 import Reserva from '../models/Reserva.js';
+import { crearNotificacion, notificarGerentes } from './notificacionController.js';
 
 // Crear solicitud de cambio (Entrenador)
 export const crearSolicitudCambio = async (req, res) => {
@@ -79,6 +80,14 @@ export const crearSolicitudCambio = async (req, res) => {
       .populate('reservaOriginal')
       .populate('entrenador', 'nombre email')
       .populate('cliente', 'nombre apellido email');
+
+    // Notificar a todos los gerentes
+    await notificarGerentes(
+      'solicitud_nueva',
+      'Nueva solicitud de cambio',
+      `${reserva.entrenador.nombre} solicita cambiar la sesión de ${reserva.cliente.nombre} ${reserva.cliente.apellido}`,
+      { tipo: 'solicitud', id: solicitudCambio._id }
+    );
 
     res.status(201).json(solicitudCompleta);
   } catch (error) {
@@ -222,6 +231,15 @@ export const aprobarSolicitud = async (req, res) => {
       .populate('cliente', 'nombre apellido email')
       .populate('revisadoPor', 'nombre email');
 
+    // Notificar al entrenador que la solicitud fue aprobada
+    await crearNotificacion(
+      solicitud.entrenador._id,
+      'solicitud_aprobada',
+      'Solicitud aprobada',
+      `Tu solicitud de cambio para ${solicitud.cliente.nombre} ${solicitud.cliente.apellido} fue aprobada`,
+      { tipo: 'solicitud', id: solicitud._id }
+    );
+
     res.json({
       mensaje: 'Solicitud aprobada y reserva actualizada',
       solicitud: solicitudActualizada
@@ -268,6 +286,15 @@ export const rechazarSolicitud = async (req, res) => {
       .populate('entrenador', 'nombre email')
       .populate('cliente', 'nombre apellido email')
       .populate('revisadoPor', 'nombre email');
+
+    // Notificar al entrenador que la solicitud fue rechazada
+    await crearNotificacion(
+      solicitudActualizada.entrenador._id,
+      'solicitud_rechazada',
+      'Solicitud rechazada',
+      `Tu solicitud de cambio para ${solicitudActualizada.cliente.nombre} ${solicitudActualizada.cliente.apellido} fue rechazada. Motivo: ${motivoRechazo || 'Sin motivo'}`,
+      { tipo: 'solicitud', id: solicitud._id }
+    );
 
     res.json({
       mensaje: 'Solicitud rechazada',

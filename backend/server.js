@@ -7,6 +7,7 @@ import clienteRoutes from './src/routes/clienteRoutes.js';
 import reservaRoutes from './src/routes/reservaRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
 import solicitudCambioRoutes from './src/routes/solicitudCambioRoutes.js';
+import notificacionRoutes from './src/routes/notificacionRoutes.js';
 
 dotenv.config();
 
@@ -57,6 +58,7 @@ app.use('/api/clientes', clienteRoutes);
 app.use('/api/reservas', reservaRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/solicitudes-cambio', solicitudCambioRoutes);
+app.use('/api/notificaciones', notificacionRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;

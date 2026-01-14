@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { solicitudesCambioAPI } from '../services/api';
+import { solicitudesCambioAPI, notificacionesAPI } from '../services/api';
+import NotificationCenter from './NotificationCenter';
 import './Layout.css';
 
 function Layout({ children }) {
@@ -10,6 +11,8 @@ function Layout({ children }) {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
+  const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
+  const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
 
   const handleLogout = () => {
     logout();
@@ -43,6 +46,34 @@ function Layout({ children }) {
     } catch (error) {
       console.error('Error al cargar contador:', error);
     }
+  };
+
+  // Cargar contador de notificaciones no leídas
+  useEffect(() => {
+    if (usuario) {
+      cargarContadorNotificaciones();
+      // Actualizar cada 30 segundos
+      const interval = setInterval(cargarContadorNotificaciones, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [usuario]);
+
+  const cargarContadorNotificaciones = async () => {
+    try {
+      const { data } = await notificacionesAPI.contarNoLeidas();
+      setNotificacionesNoLeidas(data.count);
+    } catch (error) {
+      console.error('Error al cargar notificaciones:', error);
+    }
+  };
+
+  const handleToggleNotificaciones = () => {
+    setMostrarNotificaciones(!mostrarNotificaciones);
+  };
+
+  const handleCerrarNotificaciones = () => {
+    setMostrarNotificaciones(false);
+    cargarContadorNotificaciones(); // Recargar contador al cerrar
   };
 
   return (
@@ -165,6 +196,18 @@ function Layout({ children }) {
             )}
           </div>
           <div style={styles.userSection}>
+            {/* Campana de notificaciones */}
+            <button
+              onClick={handleToggleNotificaciones}
+              style={styles.notificationButton}
+              aria-label="Notificaciones"
+            >
+              🔔
+              {notificacionesNoLeidas > 0 && (
+                <span style={styles.notificationBadge}>{notificacionesNoLeidas}</span>
+              )}
+            </button>
+
             <span className="user-name" style={styles.userName}>{usuario?.nombre}</span>
             <button onClick={handleLogout} style={styles.logoutButton}>
               Cerrar Sesión
@@ -172,6 +215,13 @@ function Layout({ children }) {
           </div>
         </div>
       </nav>
+
+      {/* Centro de notificaciones */}
+      <NotificationCenter
+        mostrar={mostrarNotificaciones}
+        onCerrar={handleCerrarNotificaciones}
+      />
+
       <main style={styles.main}>{children}</main>
     </div>
   );
@@ -298,6 +348,32 @@ const styles = {
     fontSize: '11px',
     fontWeight: '600',
     minWidth: '18px',
+    textAlign: 'center'
+  },
+  notificationButton: {
+    position: 'relative',
+    background: 'transparent',
+    border: 'none',
+    fontSize: '24px',
+    cursor: 'pointer',
+    padding: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '50%',
+    transition: 'background-color 0.2s'
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: '4px',
+    right: '4px',
+    backgroundColor: '#75b760',
+    color: 'white',
+    borderRadius: '10px',
+    padding: '2px 5px',
+    fontSize: '10px',
+    fontWeight: '600',
+    minWidth: '16px',
     textAlign: 'center'
   }
 };
