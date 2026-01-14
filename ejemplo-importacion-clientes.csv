@@ -1,0 +1,6 @@
+nombre,apellido,email,telefono,fechaNacimiento,genero,direccion,objetivos,peso,altura,nivelActividad
+María,López,maria.lopez@example.com,+34 600 111 222,15/05/1990,femenino,"Calle Mayor 10, Madrid",Pérdida de peso y tonificación,75,165,sedentario
+Juan,Martínez,juan.martinez@example.com,+34 611 222 333,20/08/1985,masculino,"Avenida Principal 25, Barcelona",Ganar masa muscular,80,178,moderado
+Laura,García,laura.garcia@example.com,+34 622 333 444,10/03/1995,femenino,"Plaza España 5, Valencia",Mejorar resistencia cardiovascular,62,170,ligero
+Carlos,Rodríguez,carlos.rodriguez@example.com,+34 633 444 555,05/12/1988,masculino,"Calle Sol 15, Sevilla",Preparación para maratón,70,175,muy-activo
+Ana,Fernández,ana.fernandez@example.com,+34 644 555 666,25/07/1992,femenino,"Avenida Libertad 30, Bilbao",Tonificación y flexibilidad,65,168,moderado

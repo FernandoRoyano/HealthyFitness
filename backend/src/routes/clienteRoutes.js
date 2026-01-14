@@ -4,7 +4,9 @@ import {
   obtenerClientePorId,
   crearCliente,
   actualizarCliente,
-  eliminarCliente
+  eliminarCliente,
+  importarClientes,
+  uploadMiddleware
 } from '../controllers/clienteController.js';
 import { proteger } from '../middleware/authMiddleware.js';
 
@@ -15,6 +17,8 @@ router.use(proteger);
 router.route('/')
   .get(obtenerClientes)
   .post(crearCliente);
+
+router.post('/importar', uploadMiddleware, importarClientes);
 
 router.route('/:id')
   .get(obtenerClientePorId)
