@@ -174,15 +174,17 @@ function Entrenadores() {
           <h1 style={styles.title}>Gestión de Entrenadores</h1>
           <p style={styles.subtitle}>Administra los perfiles de los entrenadores de HealthyFitness</p>
         </div>
-        <div style={styles.headerButtons}>
+        <div className="button-group" style={styles.headerButtons}>
           <button
             onClick={() => setMostrarModalCrear(true)}
+            className="btn-primary-custom"
             style={styles.buttonPrimary}
           >
             + Nuevo Entrenador
           </button>
           <button
             onClick={() => setMostrarModalReasignar(true)}
+            className="btn-secondary-custom"
             style={styles.buttonSecondary}
           >
             Reasignar Clientes
@@ -283,7 +285,7 @@ function Entrenadores() {
                 <button type="button" onClick={cerrarFormulario} style={styles.buttonCancelForm}>
                   Cancelar
                 </button>
-                <button type="submit" style={styles.buttonPrimary}>
+                <button type="submit" className="btn-primary-custom" style={styles.buttonPrimary}>
                   Actualizar Perfil
                 </button>
               </div>
@@ -361,7 +363,7 @@ function Entrenadores() {
                 <button type="button" onClick={cerrarModalCrear} style={styles.buttonCancelForm}>
                   Cancelar
                 </button>
-                <button type="submit" style={styles.buttonPrimary}>
+                <button type="submit" className="btn-primary-custom" style={styles.buttonPrimary}>
                   Crear Entrenador
                 </button>
               </div>
@@ -423,7 +425,7 @@ function Entrenadores() {
                 <button type="button" onClick={cerrarModalReasignar} style={styles.buttonCancelForm}>
                   Cancelar
                 </button>
-                <button type="submit" style={styles.buttonPrimary}>
+                <button type="submit" className="btn-primary-custom" style={styles.buttonPrimary}>
                   Reasignar Clientes
                 </button>
               </div>
@@ -467,7 +469,7 @@ function Entrenadores() {
                 <button type="button" onClick={cerrarModalPassword} style={styles.buttonCancelForm}>
                   Cancelar
                 </button>
-                <button type="submit" style={styles.buttonPrimary}>
+                <button type="submit" className="btn-primary-custom" style={styles.buttonPrimary}>
                   Actualizar Contraseña
                 </button>
               </div>
