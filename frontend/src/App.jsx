@@ -12,6 +12,9 @@ import CalendarioReservas from './pages/CalendarioReservas';
 import Entrenadores from './pages/Entrenadores';
 import AprobacionesCambios from './pages/AprobacionesCambios';
 import SolicitudesCambio from './pages/SolicitudesCambio';
+import PlantillasSemanales from './pages/PlantillasSemanales';
+import CalendarioDual from './pages/CalendarioDual';
+import Productos from './pages/Productos';
 
 function App() {
   return (
@@ -105,6 +108,36 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <SolicitudesCambio />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/plantillas"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <PlantillasSemanales />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/calendario-dual"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <CalendarioDual />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/productos"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Productos />
                 </Layout>
               </ProtectedRoute>
             }

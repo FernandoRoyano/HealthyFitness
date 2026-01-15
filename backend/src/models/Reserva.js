@@ -40,6 +40,21 @@ const reservaSchema = new mongoose.Schema({
   duracion: {
     type: Number,
     default: 60
+  },
+  // Campos para integración con plantillas semanales
+  origen: {
+    type: String,
+    enum: ['manual', 'plantilla'],
+    default: 'manual'
+  },
+  plantillaOrigen: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PlantillaSemanal',
+    default: null
+  },
+  esPlanificada: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true

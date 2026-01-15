@@ -79,3 +79,37 @@ export const notificacionesAPI = {
   marcarTodasComoLeidas: () => api.put('/notificaciones/marcar-todas-leidas'),
   eliminar: (id) => api.delete(`/notificaciones/${id}`)
 };
+
+export const plantillasAPI = {
+  obtenerTodas: (params) => api.get('/plantillas', { params }),
+  obtenerPorId: (id) => api.get(`/plantillas/${id}`),
+  obtenerPlantillaBase: (mes, año) => api.get(`/plantillas/base/${mes}/${año}`),
+  crear: (datos) => api.post('/plantillas', datos),
+  actualizar: (id, datos) => api.put(`/plantillas/${id}`, datos),
+  eliminar: (id) => api.delete(`/plantillas/${id}`),
+  duplicar: (id, datos) => api.post(`/plantillas/${id}/duplicar`, datos),
+  aplicar: (id) => api.post(`/plantillas/${id}/aplicar`),
+  añadirSesion: (id, datos) => api.post(`/plantillas/${id}/sesiones`, datos),
+  actualizarSesion: (id, sesionId, datos) => api.put(`/plantillas/${id}/sesiones/${sesionId}`, datos),
+  eliminarSesion: (id, sesionId) => api.delete(`/plantillas/${id}/sesiones/${sesionId}`)
+};
+
+export const productosAPI = {
+  // Consultas
+  obtenerTodos: (params) => api.get('/productos', { params }),
+  obtenerPorId: (id) => api.get(`/productos/${id}`),
+  obtenerTarifas: (id) => api.get(`/productos/${id}/tarifas`),
+  obtenerPrecio: (params) => api.get('/productos/precio', { params }),
+  obtenerTablaPrecios: (soloActivos = true) => api.get('/productos/tabla-precios', { params: { soloActivos } }),
+
+  // Modificaciones (solo gerente)
+  crear: (datos) => api.post('/productos', datos),
+  actualizar: (id, datos) => api.put(`/productos/${id}`, datos),
+  eliminar: (id) => api.delete(`/productos/${id}`),
+  guardarTarifa: (id, datos) => api.post(`/productos/${id}/tarifas`, datos),
+  guardarTodasTarifas: (id, tarifas) => api.put(`/productos/${id}/tarifas`, { tarifas }),
+  eliminarTarifa: (id, tarifaId) => api.delete(`/productos/${id}/tarifas/${tarifaId}`),
+
+  // Inicialización
+  inicializar: () => api.post('/productos/inicializar')
+};
