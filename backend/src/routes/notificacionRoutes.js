@@ -1,11 +1,11 @@
 import express from 'express';
 import * as notificacionController from '../controllers/notificacionController.js';
-import { autenticar } from '../middleware/auth.js';
+import { proteger } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Todas las rutas requieren autenticación
-router.use(autenticar);
+router.use(proteger);
 
 // Obtener notificaciones del usuario
 router.get('/', notificacionController.obtenerNotificaciones);
