@@ -5,7 +5,7 @@ import User from '../models/User.js';
 export const obtenerNotificaciones = async (req, res) => {
   try {
     const { leida, limite = 50 } = req.query;
-    const filtro = { usuario: req.usuario.id };
+    const filtro = { usuario: req.usuario._id };
 
     if (leida !== undefined) {
       filtro.leida = leida === 'true';
@@ -26,7 +26,7 @@ export const obtenerNotificaciones = async (req, res) => {
 export const contarNoLeidas = async (req, res) => {
   try {
     const count = await Notificacion.countDocuments({
-      usuario: req.usuario.id,
+      usuario: req.usuario._id,
       leida: false
     });
 
@@ -41,7 +41,7 @@ export const contarNoLeidas = async (req, res) => {
 export const marcarComoLeida = async (req, res) => {
   try {
     const notificacion = await Notificacion.findOneAndUpdate(
-      { _id: req.params.id, usuario: req.usuario.id },
+      { _id: req.params.id, usuario: req.usuario._id },
       { leida: true },
       { new: true }
     );
@@ -61,7 +61,7 @@ export const marcarComoLeida = async (req, res) => {
 export const marcarTodasComoLeidas = async (req, res) => {
   try {
     await Notificacion.updateMany(
-      { usuario: req.usuario.id, leida: false },
+      { usuario: req.usuario._id, leida: false },
       { leida: true }
     );
 
@@ -77,7 +77,7 @@ export const eliminarNotificacion = async (req, res) => {
   try {
     const notificacion = await Notificacion.findOneAndDelete({
       _id: req.params.id,
-      usuario: req.usuario.id
+      usuario: req.usuario._id
     });
 
     if (!notificacion) {
