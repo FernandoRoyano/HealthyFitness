@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { clientesAPI, usersAPI } from '../services/api';
 import Papa from 'papaparse';
+import './Clientes.css';
 
 function Clientes() {
   const [clientes, setClientes] = useState([]);
@@ -191,9 +192,9 @@ function Clientes() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
+      <div className="clientes-header" style={styles.header}>
         <h1 style={styles.title}>Gestión de Clientes</h1>
-        <div style={{ display: 'flex', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
           <button
             onClick={() => setMostrarImportar(true)}
             style={styles.buttonSecondary}
@@ -555,7 +556,8 @@ function Clientes() {
         </div>
       )}
 
-      <div style={styles.table}>
+      {/* Vista de tabla para desktop */}
+      <div className="desktop-table" style={styles.table}>
         {clientes.length === 0 ? (
           <p style={styles.empty}>No hay clientes registrados</p>
         ) : (
@@ -598,6 +600,54 @@ function Clientes() {
           </table>
         )}
       </div>
+
+      {/* Vista de cards para móvil */}
+      <div className="mobile-cards" style={styles.mobileCards}>
+        {clientes.length === 0 ? (
+          <p style={styles.empty}>No hay clientes registrados</p>
+        ) : (
+          clientes.map((cliente) => (
+            <div key={cliente._id} style={styles.clienteCard}>
+              <div style={styles.clienteCardHeader}>
+                <h3 style={styles.clienteNombre}>{cliente.nombre} {cliente.apellido}</h3>
+                {cliente.entrenador?.nombre && (
+                  <span style={styles.entrenadorBadge}>{cliente.entrenador.nombre}</span>
+                )}
+              </div>
+              <div style={styles.clienteCardBody}>
+                <div style={styles.clienteInfo}>
+                  <span style={styles.clienteLabel}>📧 Email:</span>
+                  <span style={styles.clienteValue}>{cliente.email}</span>
+                </div>
+                <div style={styles.clienteInfo}>
+                  <span style={styles.clienteLabel}>📱 Teléfono:</span>
+                  <span style={styles.clienteValue}>{cliente.telefono}</span>
+                </div>
+                {cliente.objetivos && (
+                  <div style={styles.clienteInfo}>
+                    <span style={styles.clienteLabel}>🎯 Objetivos:</span>
+                    <span style={styles.clienteValue}>{cliente.objetivos}</span>
+                  </div>
+                )}
+              </div>
+              <div style={styles.clienteCardActions}>
+                <button
+                  onClick={() => handleEditar(cliente)}
+                  style={styles.buttonEditMobile}
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleEliminar(cliente._id)}
+                  style={styles.buttonDeleteMobile}
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
@@ -612,10 +662,12 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '30px'
+    marginBottom: '30px',
+    flexWrap: 'wrap',
+    gap: '15px'
   },
   title: {
-    fontSize: '28px',
+    fontSize: 'clamp(22px, 5vw, 28px)',
     fontWeight: 'bold',
     color: '#333'
   },
@@ -831,6 +883,91 @@ const styles = {
     padding: '6px 0',
     fontSize: '13px',
     color: '#dc3545'
+  },
+  // Estilos para cards móviles
+  mobileCards: {
+    display: 'none',
+    flexDirection: 'column',
+    gap: '15px'
+  },
+  clienteCard: {
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    overflow: 'hidden'
+  },
+  clienteCardHeader: {
+    padding: '15px',
+    backgroundColor: '#f8f9fa',
+    borderBottom: '1px solid #e9ecef',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '10px'
+  },
+  clienteNombre: {
+    margin: 0,
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1a1a1a'
+  },
+  entrenadorBadge: {
+    backgroundColor: '#75b760',
+    color: 'white',
+    padding: '4px 10px',
+    borderRadius: '20px',
+    fontSize: '12px',
+    fontWeight: '500'
+  },
+  clienteCardBody: {
+    padding: '15px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px'
+  },
+  clienteInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px'
+  },
+  clienteLabel: {
+    fontSize: '12px',
+    color: '#666',
+    fontWeight: '500'
+  },
+  clienteValue: {
+    fontSize: '14px',
+    color: '#333',
+    wordBreak: 'break-word'
+  },
+  clienteCardActions: {
+    padding: '15px',
+    borderTop: '1px solid #e9ecef',
+    display: 'flex',
+    gap: '10px'
+  },
+  buttonEditMobile: {
+    flex: 1,
+    padding: '10px 16px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: 'white',
+    backgroundColor: '#28a745',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer'
+  },
+  buttonDeleteMobile: {
+    flex: 1,
+    padding: '10px 16px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: 'white',
+    backgroundColor: '#dc3545',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer'
   }
 };
 

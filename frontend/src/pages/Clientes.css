@@ -1,0 +1,57 @@
+/* Clientes.css - Estilos responsivos */
+
+/* Por defecto: mostrar tabla, ocultar cards */
+.desktop-table {
+  display: block;
+}
+
+.mobile-cards {
+  display: none !important;
+}
+
+/* Header responsive */
+@media (max-width: 640px) {
+  .clientes-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch !important;
+  }
+
+  .clientes-header h1 {
+    font-size: 22px !important;
+    text-align: center;
+  }
+
+  .clientes-header > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .clientes-header button {
+    width: 100%;
+  }
+}
+
+/* Móvil: ocultar tabla, mostrar cards */
+@media (max-width: 768px) {
+  .desktop-table {
+    display: none !important;
+  }
+
+  .mobile-cards {
+    display: flex !important;
+  }
+}
+
+/* Ajustes para tablets pequeñas */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .desktop-table table {
+    font-size: 13px;
+  }
+
+  .desktop-table th,
+  .desktop-table td {
+    padding: 8px !important;
+  }
+}
