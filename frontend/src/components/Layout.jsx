@@ -180,19 +180,65 @@ function Layout({ children }) {
                     <span style={styles.badge}>{solicitudesPendientes}</span>
                   )}
                 </Link>
+                <Link
+                  to="/plantillas"
+                  className="nav-link"
+                  onClick={closeMenu}
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/plantillas') && styles.navLinkActive)
+                  }}
+                >
+                  Plantillas
+                </Link>
+                <Link
+                  to="/calendario-dual"
+                  className="nav-link"
+                  onClick={closeMenu}
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/calendario-dual') && styles.navLinkActive)
+                  }}
+                >
+                  Cal. Dual
+                </Link>
+                <Link
+                  to="/productos"
+                  className="nav-link"
+                  onClick={closeMenu}
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/productos') && styles.navLinkActive)
+                  }}
+                >
+                  Tarifas
+                </Link>
               </>
             ) : (
-              <Link
-                to="/calendario"
-                className="nav-link"
-                onClick={closeMenu}
-                style={{
-                  ...styles.navLink,
-                  ...(isActive('/calendario') && styles.navLinkActive)
-                }}
-              >
-                Mi Calendario
-              </Link>
+              <>
+                <Link
+                  to="/calendario"
+                  className="nav-link"
+                  onClick={closeMenu}
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/calendario') && styles.navLinkActive)
+                  }}
+                >
+                  Mi Calendario
+                </Link>
+                <Link
+                  to="/calendario-dual"
+                  className="nav-link"
+                  onClick={closeMenu}
+                  style={{
+                    ...styles.navLink,
+                    ...(isActive('/calendario-dual') && styles.navLinkActive)
+                  }}
+                >
+                  Base vs Real
+                </Link>
+              </>
             )}
           </div>
           <div style={styles.userSection}>
