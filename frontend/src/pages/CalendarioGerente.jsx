@@ -161,8 +161,8 @@ function CalendarioGerente() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>Gestión de Calendarios</h1>
-          <p style={styles.subtitle}>Vista general de todos los entrenadores</p>
+          <h1 style={styles.title}>Agenda de Reservas</h1>
+          <p style={styles.subtitle}>Gestiona las citas reales de cada entrenador</p>
         </div>
       </div>
 

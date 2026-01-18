@@ -161,8 +161,8 @@ const CalendarioDual = () => {
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h1 style={styles.title}>Calendario Dual</h1>
-        <p style={styles.subtitle}>Plantilla Base vs Horario Real</p>
+        <h1 style={styles.title}>Comparar Horarios</h1>
+        <p style={styles.subtitle}>Revisa qué se cumplió del horario base</p>
       </div>
 
       {error && (
