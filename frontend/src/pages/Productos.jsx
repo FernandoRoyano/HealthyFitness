@@ -39,7 +39,9 @@ const Productos = () => {
   const getMaxSesiones = (diasSemana) => {
     if (diasSemana === 1) return 5;
     if (diasSemana === 2) return 9;
-    return 13; // 3 o más días
+    if (diasSemana === 3) return 13;
+    if (diasSemana === 4) return 18;
+    return 22; // 5 días
   };
 
   // Función para contar cuántas veces cae cada día de la semana en un mes
