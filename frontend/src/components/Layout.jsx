@@ -9,7 +9,7 @@ function Layout({ children }) {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
@@ -21,19 +21,18 @@ function Layout({ children }) {
 
   const isActive = (path) => location.pathname === path;
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
-  const closeMenu = () => {
-    setMenuOpen(false);
+  const closeSidebar = () => {
+    setSidebarOpen(false);
   };
 
   // Cargar contador de solicitudes pendientes (solo para gerentes)
   useEffect(() => {
     if (usuario?.rol === 'gerente') {
       cargarContadorSolicitudes();
-      // Actualizar cada 30 segundos
       const interval = setInterval(cargarContadorSolicitudes, 30000);
       return () => clearInterval(interval);
     }
@@ -52,7 +51,6 @@ function Layout({ children }) {
   useEffect(() => {
     if (usuario) {
       cargarContadorNotificaciones();
-      // Actualizar cada 30 segundos
       const interval = setInterval(cargarContadorNotificaciones, 30000);
       return () => clearInterval(interval);
     }
@@ -73,355 +71,129 @@ function Layout({ children }) {
 
   const handleCerrarNotificaciones = () => {
     setMostrarNotificaciones(false);
-    cargarContadorNotificaciones(); // Recargar contador al cerrar
+    cargarContadorNotificaciones();
   };
 
+  // Menú items según rol
+  const menuItems = [
+    { path: '/dashboard', label: 'Inicio', icon: '🏠' },
+    { path: '/clientes', label: 'Clientes', icon: '👥' },
+    { path: '/reservas', label: 'Reservas', icon: '📅' },
+    { path: '/calendario-reservas', label: 'Calendario', icon: '📊' },
+  ];
+
+  const menuGerente = [
+    { path: '/calendario-gerente', label: 'Calendarios', icon: '📆' },
+    { path: '/entrenadores', label: 'Entrenadores', icon: '🏋️' },
+    {
+      path: '/solicitudes',
+      label: 'Solicitudes',
+      icon: '📋',
+      badge: solicitudesPendientes
+    },
+    { path: '/plantillas', label: 'Plantillas', icon: '📝' },
+    { path: '/calendario-dual', label: 'Base vs Real', icon: '🔄' },
+    { path: '/productos', label: 'Tarifas', icon: '💰' },
+  ];
+
+  const menuEntrenador = [
+    { path: '/calendario', label: 'Mi Calendario', icon: '📆' },
+    { path: '/calendario-dual', label: 'Base vs Real', icon: '🔄' },
+  ];
+
+  const allMenuItems = usuario?.rol === 'gerente'
+    ? [...menuItems, ...menuGerente]
+    : [...menuItems, ...menuEntrenador];
+
   return (
-    <div style={styles.container}>
-      <nav style={styles.navbar}>
-        <div style={styles.navContent}>
-          <Link to="/dashboard" style={styles.logo} onClick={closeMenu}>
+    <div className="layout-container">
+      {/* Overlay para cerrar sidebar en móvil */}
+      <div
+        className={`sidebar-overlay ${sidebarOpen ? 'visible' : ''}`}
+        onClick={closeSidebar}
+      />
+
+      {/* Sidebar */}
+      <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <Link to="/dashboard" className="sidebar-logo" onClick={closeSidebar}>
             HealthyFitness
           </Link>
+        </div>
 
-          {/* Botón hamburguesa - solo visible en móvil */}
+        <nav className="sidebar-nav">
+          {allMenuItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+              onClick={closeSidebar}
+            >
+              <span className="sidebar-icon">{item.icon}</span>
+              <span className="sidebar-label">{item.label}</span>
+              {item.badge > 0 && (
+                <span className="sidebar-badge">{item.badge}</span>
+              )}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="sidebar-user">
+            <span className="sidebar-user-icon">👤</span>
+            <span className="sidebar-user-name">{usuario?.nombre}</span>
+          </div>
+          <button onClick={handleLogout} className="sidebar-logout">
+            Cerrar Sesión
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content area */}
+      <div className="main-wrapper">
+        {/* Header superior */}
+        <header className="top-header">
           <button
-            className="hamburger-button"
-            onClick={toggleMenu}
-            style={styles.hamburger}
+            className="hamburger-btn"
+            onClick={toggleSidebar}
             aria-label="Toggle menu"
           >
-            <span style={{...styles.hamburgerLine, transform: menuOpen ? 'rotate(45deg) translateY(8px)' : 'none'}}></span>
-            <span style={{...styles.hamburgerLine, opacity: menuOpen ? 0 : 1}}></span>
-            <span style={{...styles.hamburgerLine, transform: menuOpen ? 'rotate(-45deg) translateY(-8px)' : 'none'}}></span>
+            <span className={`hamburger-line ${sidebarOpen ? 'open' : ''}`}></span>
+            <span className={`hamburger-line ${sidebarOpen ? 'open' : ''}`}></span>
+            <span className={`hamburger-line ${sidebarOpen ? 'open' : ''}`}></span>
           </button>
 
-          <div className={`nav-links ${menuOpen ? 'open' : ''}`} style={styles.navLinks}>
-            <Link
-              to="/dashboard"
-              className="nav-link"
-              onClick={closeMenu}
-              style={{
-                ...styles.navLink,
-                ...(isActive('/dashboard') && styles.navLinkActive)
-              }}
-            >
-              Inicio
-            </Link>
-            <Link
-              to="/clientes"
-              className="nav-link"
-              onClick={closeMenu}
-              style={{
-                ...styles.navLink,
-                ...(isActive('/clientes') && styles.navLinkActive)
-              }}
-            >
-              Clientes
-            </Link>
-            <Link
-              to="/reservas"
-              className="nav-link"
-              onClick={closeMenu}
-              style={{
-                ...styles.navLink,
-                ...(isActive('/reservas') && styles.navLinkActive)
-              }}
-            >
-              Reservas
-            </Link>
-            <Link
-              to="/calendario-reservas"
-              className="nav-link"
-              onClick={closeMenu}
-              style={{
-                ...styles.navLink,
-                ...(isActive('/calendario-reservas') && styles.navLinkActive)
-              }}
-            >
-              Calendario Excel
-            </Link>
-            {usuario?.rol === 'gerente' ? (
-              <>
-                <Link
-                  to="/calendario-gerente"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/calendario-gerente') && styles.navLinkActive)
-                  }}
-                >
-                  Calendarios
-                </Link>
-                <Link
-                  to="/entrenadores"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/entrenadores') && styles.navLinkActive)
-                  }}
-                >
-                  Entrenadores
-                </Link>
-                <Link
-                  to="/solicitudes"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/solicitudes') && styles.navLinkActive),
-                    position: 'relative'
-                  }}
-                >
-                  Solicitudes
-                  {solicitudesPendientes > 0 && (
-                    <span style={styles.badge}>{solicitudesPendientes}</span>
-                  )}
-                </Link>
-                <Link
-                  to="/plantillas"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/plantillas') && styles.navLinkActive)
-                  }}
-                >
-                  Plantillas
-                </Link>
-                <Link
-                  to="/calendario-dual"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/calendario-dual') && styles.navLinkActive)
-                  }}
-                >
-                  Cal. Dual
-                </Link>
-                <Link
-                  to="/productos"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/productos') && styles.navLinkActive)
-                  }}
-                >
-                  Tarifas
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/calendario"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/calendario') && styles.navLinkActive)
-                  }}
-                >
-                  Mi Calendario
-                </Link>
-                <Link
-                  to="/calendario-dual"
-                  className="nav-link"
-                  onClick={closeMenu}
-                  style={{
-                    ...styles.navLink,
-                    ...(isActive('/calendario-dual') && styles.navLinkActive)
-                  }}
-                >
-                  Base vs Real
-                </Link>
-              </>
-            )}
+          <div className="header-title">
+            {allMenuItems.find(item => isActive(item.path))?.label || 'HealthyFitness'}
           </div>
-          <div style={styles.userSection}>
-            {/* Campana de notificaciones */}
+
+          <div className="header-actions">
             <button
               onClick={handleToggleNotificaciones}
-              style={styles.notificationButton}
+              className="notification-btn"
               aria-label="Notificaciones"
             >
               🔔
               {notificacionesNoLeidas > 0 && (
-                <span style={styles.notificationBadge}>{notificacionesNoLeidas}</span>
+                <span className="notification-badge">{notificacionesNoLeidas}</span>
               )}
             </button>
-
-            <span className="user-name" style={styles.userName}>{usuario?.nombre}</span>
-            <button onClick={handleLogout} style={styles.logoutButton}>
-              Cerrar Sesión
-            </button>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      {/* Centro de notificaciones */}
-      <NotificationCenter
-        mostrar={mostrarNotificaciones}
-        onCerrar={handleCerrarNotificaciones}
-      />
+        {/* Centro de notificaciones */}
+        <NotificationCenter
+          mostrar={mostrarNotificaciones}
+          onCerrar={handleCerrarNotificaciones}
+        />
 
-      <main style={styles.main}>{children}</main>
+        {/* Contenido principal */}
+        <main className="main-content">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    minHeight: '100vh',
-    backgroundColor: '#fafafa'
-  },
-  navbar: {
-    backgroundColor: 'white',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-    borderBottom: '1px solid #e4e4e9'
-  },
-  navContent: {
-    maxWidth: '1400px',
-    margin: '0 auto',
-    padding: '8px 12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: '60px',
-    flexWrap: 'wrap',
-    gap: '8px'
-  },
-  logo: {
-    fontSize: 'clamp(18px, 5vw, 24px)',
-    fontWeight: '700',
-    color: '#75b760',
-    textDecoration: 'none',
-    fontFamily: 'Niramit, sans-serif',
-    letterSpacing: '-0.5px',
-    flexShrink: 0
-  },
-  navLinks: {
-    display: 'flex',
-    gap: '4px',
-    flex: 1,
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    padding: '4px 0',
-    minWidth: '200px'
-  },
-  navLink: {
-    textDecoration: 'none',
-    color: '#666666',
-    fontSize: 'clamp(13px, 3vw, 15px)',
-    padding: '8px 12px',
-    borderRadius: '8px',
-    transition: 'all 0.2s ease',
-    fontFamily: 'Niramit, sans-serif',
-    fontWeight: '600',
-    whiteSpace: 'nowrap'
-  },
-  navLinkActive: {
-    color: '#75b760',
-    backgroundColor: '#f8fdf6'
-  },
-  userSection: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    flexWrap: 'wrap',
-    flexShrink: 0
-  },
-  userName: {
-    fontSize: 'clamp(13px, 3vw, 15px)',
-    color: '#000000',
-    fontWeight: '600',
-    fontFamily: 'Niramit, sans-serif',
-    display: 'none', // Ocultar nombre en móvil para ahorrar espacio
-    '@media (min-width: 640px)': {
-      display: 'block'
-    }
-  },
-  logoutButton: {
-    padding: '8px 16px',
-    fontSize: 'clamp(13px, 3vw, 15px)',
-    color: '#666666',
-    backgroundColor: 'transparent',
-    border: '1px solid #e4e4e9',
-    borderRadius: '9999px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    fontFamily: 'Niramit, sans-serif',
-    fontWeight: '600'
-  },
-  main: {
-    minHeight: 'calc(100vh - 60px)',
-    padding: '0'
-  },
-  hamburger: {
-    display: 'none',
-    flexDirection: 'column',
-    justifyContent: 'space-around',
-    width: '32px',
-    height: '32px',
-    background: 'transparent',
-    border: 'none',
-    cursor: 'pointer',
-    padding: '4px',
-    zIndex: 101
-  },
-  hamburgerLine: {
-    width: '24px',
-    height: '3px',
-    backgroundColor: '#75b760',
-    borderRadius: '3px',
-    transition: 'all 0.3s ease',
-    transformOrigin: 'center'
-  },
-  badge: {
-    position: 'absolute',
-    top: '-8px',
-    right: '-8px',
-    backgroundColor: '#dc3545',
-    color: 'white',
-    borderRadius: '10px',
-    padding: '2px 6px',
-    fontSize: '11px',
-    fontWeight: '600',
-    minWidth: '18px',
-    textAlign: 'center'
-  },
-  notificationButton: {
-    position: 'relative',
-    background: 'transparent',
-    border: 'none',
-    fontSize: '24px',
-    cursor: 'pointer',
-    padding: '8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: '50%',
-    transition: 'background-color 0.2s'
-  },
-  notificationBadge: {
-    position: 'absolute',
-    top: '4px',
-    right: '4px',
-    backgroundColor: '#75b760',
-    color: 'white',
-    borderRadius: '10px',
-    padding: '2px 5px',
-    fontSize: '10px',
-    fontWeight: '600',
-    minWidth: '16px',
-    textAlign: 'center'
-  }
-};
 
 export default Layout;

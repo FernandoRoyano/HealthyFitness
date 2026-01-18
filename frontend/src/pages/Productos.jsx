@@ -10,12 +10,123 @@ const Productos = () => {
   const [preciosEditados, setPreciosEditados] = useState({});
   const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
-  // Para calcular precio
+  // Para calcular precio unitario
   const [calculadora, setCalculadora] = useState({
     tipo: 'individual',
     diasSemana: 1,
     resultado: null
   });
+
+  // Para calcular coste mensual
+  const [calculadoraMensual, setCalculadoraMensual] = useState({
+    tipo: 'individual',
+    mes: new Date().getMonth(),
+    anio: new Date().getFullYear(),
+    diasSeleccionados: [], // 0=Lunes, 1=Martes, etc.
+    modoManual: false, // true = introducir sesiones manualmente
+    sesionesManual: '',
+    diasSemanaManual: 1, // para calcular el precio unitario en modo manual
+    resultado: null
+  });
+
+  const nombresDias = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  const nombresMeses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  // Función para contar cuántas veces cae cada día de la semana en un mes
+  const contarDiasEnMes = (anio, mes, diasSemana) => {
+    const primerDia = new Date(anio, mes, 1);
+    const ultimoDia = new Date(anio, mes + 1, 0);
+    const totalDias = ultimoDia.getDate();
+
+    let conteo = {};
+    diasSemana.forEach(d => conteo[d] = 0);
+
+    for (let dia = 1; dia <= totalDias; dia++) {
+      const fecha = new Date(anio, mes, dia);
+      // getDay() devuelve 0=Domingo, 1=Lunes, etc.
+      // Convertimos a 0=Lunes, 1=Martes, etc.
+      const diaSemana = (fecha.getDay() + 6) % 7;
+      if (diasSemana.includes(diaSemana)) {
+        conteo[diaSemana]++;
+      }
+    }
+
+    return conteo;
+  };
+
+  const handleToggleDia = (diaIndex) => {
+    setCalculadoraMensual(prev => {
+      const nuevos = prev.diasSeleccionados.includes(diaIndex)
+        ? prev.diasSeleccionados.filter(d => d !== diaIndex)
+        : [...prev.diasSeleccionados, diaIndex].sort((a, b) => a - b);
+      return { ...prev, diasSeleccionados: nuevos, resultado: null };
+    });
+  };
+
+  const handleCalcularMensual = async () => {
+    // Validación según modo
+    if (calculadoraMensual.modoManual) {
+      const sesiones = parseInt(calculadoraMensual.sesionesManual);
+      if (!sesiones || sesiones <= 0) {
+        setError('Introduce un número de sesiones válido');
+        return;
+      }
+    } else {
+      if (calculadoraMensual.diasSeleccionados.length === 0) {
+        setError('Selecciona al menos un día de la semana');
+        return;
+      }
+    }
+
+    try {
+      // Obtener precio unitario según cantidad de días por semana
+      const diasParaPrecio = calculadoraMensual.modoManual
+        ? calculadoraMensual.diasSemanaManual
+        : calculadoraMensual.diasSeleccionados.length;
+
+      const { data } = await productosAPI.obtenerPrecio({
+        tipo: calculadoraMensual.tipo,
+        dias_semana: diasParaPrecio
+      });
+
+      let totalSesiones, desglose;
+
+      if (calculadoraMensual.modoManual) {
+        // Modo manual: usar el número introducido
+        totalSesiones = parseInt(calculadoraMensual.sesionesManual);
+        desglose = null;
+      } else {
+        // Modo automático: contar sesiones en el mes
+        const conteo = contarDiasEnMes(
+          calculadoraMensual.anio,
+          calculadoraMensual.mes,
+          calculadoraMensual.diasSeleccionados
+        );
+        totalSesiones = Object.values(conteo).reduce((a, b) => a + b, 0);
+        desglose = conteo;
+      }
+
+      const totalMes = totalSesiones * data.precio;
+
+      setCalculadoraMensual(prev => ({
+        ...prev,
+        resultado: {
+          producto: data.producto_nombre,
+          precioUnitario: data.precio,
+          rangoAplicado: data.rango_aplicado,
+          desglose,
+          totalSesiones,
+          totalMes
+        }
+      }));
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al calcular precio mensual');
+      setCalculadoraMensual(prev => ({ ...prev, resultado: null }));
+    }
+  };
 
   const tiposProducto = {
     individual: 'Sesión Individual',
@@ -327,7 +438,7 @@ const Productos = () => {
                 onChange={(e) => setCalculadora({ ...calculadora, diasSemana: parseInt(e.target.value), resultado: null })}
                 style={styles.select}
               >
-                {[1, 2, 3, 4, 5, 6, 7].map(d => (
+                {[1, 2, 3, 4, 5].map(d => (
                   <option key={d} value={d}>{d} {d === 1 ? 'día' : 'días'}</option>
                 ))}
               </select>
@@ -364,14 +475,204 @@ const Productos = () => {
         </div>
       </div>
 
+      {/* Calculadora mensual */}
+      <div style={styles.section}>
+        <h2 style={styles.sectionTitle}>Calculadora Mensual</h2>
+        <p style={styles.sectionDesc}>
+          Calcula el coste total del mes según los días de entrenamiento
+        </p>
+
+        <div style={styles.mensualContainer}>
+          <div style={styles.mensualForm}>
+            {/* Tipo de servicio */}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Tipo de Servicio</label>
+              <select
+                value={calculadoraMensual.tipo}
+                onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, tipo: e.target.value, resultado: null })}
+                style={styles.select}
+              >
+                {Object.entries(tiposProducto).map(([key, value]) => (
+                  <option key={key} value={key}>{value}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Toggle modo manual */}
+            <div style={styles.modoToggleContainer}>
+              <button
+                type="button"
+                onClick={() => setCalculadoraMensual({ ...calculadoraMensual, modoManual: false, resultado: null })}
+                style={{
+                  ...styles.modoToggleBtn,
+                  ...(calculadoraMensual.modoManual ? {} : styles.modoToggleBtnActivo)
+                }}
+              >
+                Por días del calendario
+              </button>
+              <button
+                type="button"
+                onClick={() => setCalculadoraMensual({ ...calculadoraMensual, modoManual: true, resultado: null })}
+                style={{
+                  ...styles.modoToggleBtn,
+                  ...(calculadoraMensual.modoManual ? styles.modoToggleBtnActivo : {})
+                }}
+              >
+                Introducir sesiones
+              </button>
+            </div>
+
+            {!calculadoraMensual.modoManual ? (
+              <>
+                {/* Mes y Año */}
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Mes</label>
+                    <select
+                      value={calculadoraMensual.mes}
+                      onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, mes: parseInt(e.target.value), resultado: null })}
+                      style={styles.select}
+                    >
+                      {nombresMeses.map((nombre, index) => (
+                        <option key={index} value={index}>{nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Año</label>
+                    <select
+                      value={calculadoraMensual.anio}
+                      onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, anio: parseInt(e.target.value), resultado: null })}
+                      style={styles.selectSmall}
+                    >
+                      {[2024, 2025, 2026, 2027].map(a => (
+                        <option key={a} value={a}>{a}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Días de la semana */}
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Días de entrenamiento (selecciona los días)</label>
+                  <div style={styles.diasContainer}>
+                    {nombresDias.slice(0, 5).map((nombre, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleToggleDia(index)}
+                        style={{
+                          ...styles.diaButton,
+                          ...(calculadoraMensual.diasSeleccionados.includes(index) ? styles.diaButtonActivo : {})
+                        }}
+                      >
+                        {nombre.slice(0, 3)}
+                      </button>
+                    ))}
+                  </div>
+                  {calculadoraMensual.diasSeleccionados.length > 0 && (
+                    <div style={styles.diasResumen}>
+                      {calculadoraMensual.diasSeleccionados.length} día{calculadoraMensual.diasSeleccionados.length > 1 ? 's' : ''}/semana: {calculadoraMensual.diasSeleccionados.map(d => nombresDias[d]).join(', ')}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Modo manual: introducir número de sesiones */}
+                <div style={styles.formRow}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Número de sesiones</label>
+                    <input
+                      type="number"
+                      value={calculadoraMensual.sesionesManual}
+                      onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, sesionesManual: e.target.value, resultado: null })}
+                      placeholder="Ej: 8"
+                      style={styles.inputManual}
+                      min="1"
+                    />
+                  </div>
+
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Días/semana (para precio)</label>
+                    <select
+                      value={calculadoraMensual.diasSemanaManual}
+                      onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, diasSemanaManual: parseInt(e.target.value), resultado: null })}
+                      style={styles.selectSmall}
+                    >
+                      {[1, 2, 3, 4, 5].map(d => (
+                        <option key={d} value={d}>{d} día{d > 1 ? 's' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={styles.modoManualInfo}>
+                  El precio unitario se calcula según los días/semana seleccionados
+                </div>
+              </>
+            )}
+
+            <button onClick={handleCalcularMensual} style={styles.calcButton}>
+              Calcular Total
+            </button>
+          </div>
+
+          {/* Resultado mensual */}
+          {calculadoraMensual.resultado && (
+            <div style={styles.resultadoMensualContainer}>
+              <div style={styles.resultadoHeader}>
+                {calculadoraMensual.modoManual
+                  ? 'Cálculo Manual'
+                  : `${nombresMeses[calculadoraMensual.mes]} ${calculadoraMensual.anio}`
+                }
+              </div>
+              <div style={styles.resultadoBody}>
+                <div style={styles.resultadoRow}>
+                  <span>Producto:</span>
+                  <strong>{calculadoraMensual.resultado.producto}</strong>
+                </div>
+                <div style={styles.resultadoRow}>
+                  <span>Precio/sesión ({calculadoraMensual.resultado.rangoAplicado}):</span>
+                  <strong>{calculadoraMensual.resultado.precioUnitario}€</strong>
+                </div>
+
+                {calculadoraMensual.resultado.desglose && (
+                  <div style={styles.desgloseContainer}>
+                    <div style={styles.desgloseTitle}>Desglose de sesiones:</div>
+                    {Object.entries(calculadoraMensual.resultado.desglose).map(([diaIndex, cantidad]) => (
+                      <div key={diaIndex} style={styles.desgloseRow}>
+                        <span>{nombresDias[diaIndex]}:</span>
+                        <span>{cantidad} sesiones</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={styles.resultadoRow}>
+                  <span>Total sesiones:</span>
+                  <strong>{calculadoraMensual.resultado.totalSesiones}</strong>
+                </div>
+
+                <div style={styles.resultadoTotal}>
+                  <span>TOTAL:</span>
+                  <span style={styles.precioGrande}>{calculadoraMensual.resultado.totalMes.toFixed(2)}€</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Info de uso */}
       <div style={styles.infoSection}>
         <h3>Información</h3>
         <ul style={styles.infoList}>
           <li>Los precios se aplican por sesión individual</li>
           <li>El rango de días determina el precio: 1 día, 2 días o 3+ días por semana</li>
+          <li>La calculadora mensual cuenta las sesiones reales según el calendario del mes</li>
           <li>Los productos inactivos no aparecerán en las consultas de facturación</li>
-          <li>Modifica los precios sin tocar código usando el botón "Editar"</li>
         </ul>
       </div>
     </div>
@@ -673,6 +974,135 @@ const styles = {
     margin: 0,
     paddingLeft: '20px',
     lineHeight: '1.8'
+  },
+  // Estilos calculadora mensual
+  mensualContainer: {
+    display: 'flex',
+    gap: '30px',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start'
+  },
+  mensualForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '20px',
+    flex: 1,
+    minWidth: '300px'
+  },
+  formRow: {
+    display: 'flex',
+    gap: '15px',
+    flexWrap: 'wrap'
+  },
+  selectSmall: {
+    padding: '10px 15px',
+    borderRadius: '6px',
+    border: '1px solid #ddd',
+    fontSize: '14px',
+    minWidth: '100px'
+  },
+  diasContainer: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+    marginTop: '8px'
+  },
+  diaButton: {
+    padding: '10px 16px',
+    border: '2px solid #ddd',
+    borderRadius: '8px',
+    backgroundColor: '#fff',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+    transition: 'all 0.2s ease'
+  },
+  diaButtonActivo: {
+    backgroundColor: '#75b760',
+    borderColor: '#75b760',
+    color: '#fff'
+  },
+  diasResumen: {
+    marginTop: '10px',
+    fontSize: '13px',
+    color: '#666',
+    fontStyle: 'italic'
+  },
+  resultadoMensualContainer: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    minWidth: '320px',
+    maxWidth: '400px'
+  },
+  desgloseContainer: {
+    backgroundColor: '#fff',
+    borderRadius: '6px',
+    padding: '12px',
+    marginTop: '10px',
+    marginBottom: '10px'
+  },
+  desgloseTitle: {
+    fontSize: '13px',
+    fontWeight: '600',
+    marginBottom: '8px',
+    color: '#333'
+  },
+  desgloseRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontSize: '13px',
+    padding: '4px 0',
+    color: '#555'
+  },
+  resultadoTotal: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: '15px',
+    paddingTop: '15px',
+    borderTop: '3px solid #75b760',
+    fontWeight: '600'
+  },
+  // Toggle modo calendario/manual
+  modoToggleContainer: {
+    display: 'flex',
+    gap: '0',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    border: '1px solid #ddd',
+    backgroundColor: '#f5f5f5'
+  },
+  modoToggleBtn: {
+    flex: 1,
+    padding: '10px 16px',
+    border: 'none',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#666',
+    transition: 'all 0.2s ease'
+  },
+  modoToggleBtnActivo: {
+    backgroundColor: '#75b760',
+    color: '#fff'
+  },
+  inputManual: {
+    padding: '10px 15px',
+    borderRadius: '6px',
+    border: '1px solid #ddd',
+    fontSize: '14px',
+    width: '120px'
+  },
+  modoManualInfo: {
+    fontSize: '13px',
+    color: '#666',
+    fontStyle: 'italic',
+    backgroundColor: '#f8f9fa',
+    padding: '10px 12px',
+    borderRadius: '6px',
+    borderLeft: '3px solid #75b760'
   }
 };
 
