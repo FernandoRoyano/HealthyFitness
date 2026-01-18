@@ -3,7 +3,7 @@ import { plantillasAPI, reservasAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 const CalendarioDual = () => {
-  const { user } = useAuth();
+  const { usuario } = useAuth();
   const [plantillaBase, setPlantillaBase] = useState(null);
   const [reservasReales, setReservasReales] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ const CalendarioDual = () => {
       const reservasRes = await reservasAPI.obtenerTodas({
         fechaInicio: inicioSemana.toISOString(),
         fechaFin: finSemana.toISOString(),
-        entrenador: user.rol === 'entrenador' ? user._id : undefined
+        entrenador: usuario.rol === 'entrenador' ? usuario._id : undefined
       });
 
       setReservasReales(reservasRes.data);
@@ -96,7 +96,7 @@ const CalendarioDual = () => {
     return plantillaBase.sesiones.find(s =>
       s.diaSemana === diaSemana &&
       s.horaInicio === hora &&
-      (user.rol === 'gerente' || s.entrenador?._id === user._id || s.entrenador === user._id)
+      (usuario.rol === 'gerente' || s.entrenador?._id === usuario._id || s.entrenador === usuario._id)
     );
   };
 
@@ -108,7 +108,7 @@ const CalendarioDual = () => {
       const reservaFecha = new Date(r.fecha).toISOString().split('T')[0];
       return reservaFecha === fechaStr &&
              r.horaInicio === hora &&
-             (user.rol === 'gerente' || r.entrenador?._id === user._id || r.entrenador === user._id);
+             (usuario.rol === 'gerente' || r.entrenador?._id === usuario._id || r.entrenador === usuario._id);
     });
   };
 
@@ -388,7 +388,7 @@ const CalendarioDual = () => {
       {!plantillaBase && (
         <div style={styles.noPlantilla}>
           No hay plantilla base definida para {new Date(añoActual, mesActual - 1).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}.
-          {user.rol === 'gerente' && ' Crea una desde la sección de Plantillas Semanales.'}
+          {usuario.rol === 'gerente' && ' Crea una desde la sección de Plantillas Semanales.'}
         </div>
       )}
 
@@ -418,7 +418,7 @@ const CalendarioDual = () => {
             <div style={styles.estadistica}>
               <span style={styles.estadisticaNumero}>
                 {plantillaBase.sesiones.filter(s =>
-                  user.rol === 'gerente' || s.entrenador?._id === user._id || s.entrenador === user._id
+                  usuario.rol === 'gerente' || s.entrenador?._id === usuario._id || s.entrenador === usuario._id
                 ).length}
               </span>
               <span style={styles.estadisticaLabel}>En Plantilla Base</span>
