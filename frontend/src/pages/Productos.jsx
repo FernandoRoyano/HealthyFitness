@@ -35,6 +35,13 @@ const Productos = () => {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
+  // Máximo de sesiones por mes según frecuencia semanal
+  const getMaxSesiones = (diasSemana) => {
+    if (diasSemana === 1) return 5;
+    if (diasSemana === 2) return 9;
+    return 13; // 3 o más días
+  };
+
   // Función para contar cuántas veces cae cada día de la semana en un mes
   const contarDiasEnMes = (anio, mes, diasSemana) => {
     const primerDia = new Date(anio, mes, 1);
@@ -72,6 +79,12 @@ const Productos = () => {
       const sesiones = parseInt(calculadoraMensual.sesionesManual);
       if (!sesiones || sesiones <= 0) {
         setError('Introduce un número de sesiones válido');
+        return;
+      }
+      // Validar máximo según frecuencia
+      const max = getMaxSesiones(calculadoraMensual.diasSemanaManual);
+      if (sesiones > max) {
+        setError(`Máximo ${max} sesiones al mes para ${calculadoraMensual.diasSemanaManual} día(s) por semana`);
         return;
       }
     } else {
@@ -584,14 +597,20 @@ const Productos = () => {
                 <div style={styles.formRow}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Número de sesiones</label>
-                    <input
-                      type="number"
-                      value={calculadoraMensual.sesionesManual}
-                      onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, sesionesManual: e.target.value, resultado: null })}
-                      placeholder="Ej: 8"
-                      style={styles.inputManual}
-                      min="1"
-                    />
+                    <div style={styles.inputWithHint}>
+                      <input
+                        type="number"
+                        value={calculadoraMensual.sesionesManual}
+                        onChange={(e) => setCalculadoraMensual({ ...calculadoraMensual, sesionesManual: e.target.value, resultado: null })}
+                        placeholder="Ej: 8"
+                        style={styles.inputManual}
+                        min="1"
+                        max={getMaxSesiones(calculadoraMensual.diasSemanaManual)}
+                      />
+                      <span style={styles.maxHint}>
+                        máx. {getMaxSesiones(calculadoraMensual.diasSemanaManual)}
+                      </span>
+                    </div>
                   </div>
 
                   <div style={styles.formGroup}>
@@ -609,7 +628,7 @@ const Productos = () => {
                 </div>
 
                 <div style={styles.modoManualInfo}>
-                  El precio unitario se calcula según los días/semana seleccionados
+                  El precio unitario se calcula según los días/semana seleccionados (máx. {getMaxSesiones(calculadoraMensual.diasSemanaManual)} sesiones/mes)
                 </div>
               </>
             )}
@@ -1094,6 +1113,19 @@ const styles = {
     border: '1px solid #ddd',
     fontSize: '14px',
     width: '120px'
+  },
+  inputWithHint: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px'
+  },
+  maxHint: {
+    fontSize: '12px',
+    color: '#888',
+    fontWeight: '500',
+    backgroundColor: '#f0f0f0',
+    padding: '4px 8px',
+    borderRadius: '4px'
   },
   modoManualInfo: {
     fontSize: '13px',
