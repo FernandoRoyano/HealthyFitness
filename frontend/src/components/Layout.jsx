@@ -83,22 +83,22 @@ function Layout({ children }) {
   ];
 
   const menuGerente = [
-    { path: '/calendario-gerente', label: 'Calendarios', icon: '📆' },
+    { path: '/calendario-gerente', label: 'Agenda', icon: '📅' },
+    { path: '/plantillas', label: 'Horario Base', icon: '📋' },
+    { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
     { path: '/entrenadores', label: 'Entrenadores', icon: '🏋️' },
     {
       path: '/solicitudes',
       label: 'Solicitudes',
-      icon: '📋',
+      icon: '📬',
       badge: solicitudesPendientes
     },
-    { path: '/plantillas', label: 'Plantillas', icon: '📝' },
-    { path: '/calendario-dual', label: 'Base vs Real', icon: '🔄' },
     { path: '/productos', label: 'Tarifas', icon: '💰' },
   ];
 
   const menuEntrenador = [
     { path: '/calendario', label: 'Mi Calendario', icon: '📆' },
-    { path: '/calendario-dual', label: 'Base vs Real', icon: '🔄' },
+    { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'

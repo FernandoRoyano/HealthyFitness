@@ -281,8 +281,8 @@ const PlantillasSemanales = () => {
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <h1 style={styles.title}>Plantillas Semanales</h1>
-        <p style={styles.subtitle}>Planifica el horario semanal de cada entrenador</p>
+        <h1 style={styles.title}>Horario Base Semanal</h1>
+        <p style={styles.subtitle}>Define el horario ideal de cada entrenador</p>
       </div>
 
       {/* Alertas */}
