@@ -1,0 +1,768 @@
+/* Vacaciones.css - Estilos del módulo de vacaciones */
+
+.vacaciones-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.vacaciones-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: #666;
+}
+
+/* Header */
+.vacaciones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.vacaciones-header h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.btn-nueva-solicitud {
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background-color: #75b760;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-nueva-solicitud:hover {
+  background-color: #5a9a47;
+}
+
+/* Resumen de días */
+.resumen-container {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.resumen-titulo {
+  font-size: 18px;
+  color: #333;
+  margin: 0 0 20px 0;
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.resumen-card {
+  text-align: center;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  border-left: 4px solid #75b760;
+}
+
+.resumen-card.estival {
+  border-left-color: #ffc107;
+}
+
+.resumen-card.no-estival {
+  border-left-color: #17a2b8;
+}
+
+.resumen-numero {
+  font-size: 36px;
+  font-weight: bold;
+  color: #75b760;
+  line-height: 1;
+}
+
+.resumen-card.estival .resumen-numero {
+  color: #ffc107;
+}
+
+.resumen-card.no-estival .resumen-numero {
+  color: #17a2b8;
+}
+
+.resumen-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-top: 8px;
+}
+
+.resumen-subtexto {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* Filtros */
+.filtros-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.filtros-estado {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filtro-btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  background-color: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filtro-btn:hover {
+  border-color: #75b760;
+  color: #75b760;
+}
+
+.filtro-btn.activo {
+  color: #75b760;
+  border-color: #75b760;
+  background-color: #f8fdf6;
+}
+
+.filtros-secundarios {
+  display: flex;
+  gap: 10px;
+}
+
+.filtro-select {
+  padding: 10px 15px;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.filtro-select:focus {
+  outline: none;
+  border-color: #75b760;
+}
+
+/* Mensajes */
+.error-mensaje {
+  padding: 14px;
+  background-color: #fee;
+  color: #c00;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border: 1px solid #fcc;
+}
+
+/* Tabla Desktop */
+.vacaciones-tabla {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.vacaciones-tabla table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vacaciones-tabla th {
+  background: #f8f9fa;
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.vacaciones-tabla td {
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #333;
+}
+
+.vacaciones-tabla .fila-clickeable {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.vacaciones-tabla .fila-clickeable:hover {
+  background-color: #f8fdf6;
+}
+
+.tabla-vacia {
+  text-align: center;
+  color: #999;
+  padding: 40px !important;
+}
+
+.entrenador-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.entrenador-info.large {
+  gap: 15px;
+}
+
+.entrenador-foto {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.entrenador-foto-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #75b760;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.periodo-fechas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.periodo-separador {
+  color: #75b760;
+  font-weight: bold;
+}
+
+.dias-cell {
+  font-weight: 600;
+  text-align: center;
+}
+
+.tipo-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tipo-badge.estival {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.tipo-badge.no_estival {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.estado-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.motivo-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #666;
+}
+
+.fecha-cell {
+  color: #666;
+  white-space: nowrap;
+}
+
+/* Cards Mobile */
+.vacaciones-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.cards-vacio {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+}
+
+.vacacion-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+
+.vacacion-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-fechas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.card-info {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dias-badge {
+  background: #e9ecef;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.card-motivo {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #333;
+}
+
+.modal-close {
+  font-size: 28px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+  padding: 0;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Formulario */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: #75b760;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.preview-dias {
+  display: flex;
+  gap: 20px;
+  padding: 15px;
+  background: #f8fdf6;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.preview-item strong {
+  font-size: 24px;
+  color: #75b760;
+}
+
+.preview-item span {
+  font-size: 12px;
+  color: #666;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.btn-cancelar {
+  flex: 1;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar:hover {
+  border-color: #999;
+}
+
+.btn-guardar {
+  flex: 1;
+  padding: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: #75b760;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-guardar:hover:not(:disabled) {
+  background: #5a9a47;
+}
+
+.btn-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Detalles */
+.detalle-grupo {
+  margin-bottom: 20px;
+}
+
+.detalle-grupo strong {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.detalle-grupo p {
+  margin: 0;
+  color: #333;
+}
+
+.detalle-grupo.rechazo p {
+  color: #dc3545;
+}
+
+.texto-secundario {
+  font-size: 13px;
+  color: #999 !important;
+  margin-top: 4px !important;
+}
+
+.detalle-fechas {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.detalle-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.dias-grande {
+  font-size: 28px;
+  font-weight: bold;
+  color: #75b760;
+}
+
+/* Acciones */
+.acciones-container {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.botones-accion {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-aprobar {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: #28a745;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-aprobar:hover:not(:disabled) {
+  background: #218838;
+}
+
+.btn-rechazar {
+  flex: 1;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: #dc3545;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-rechazar:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.btn-aprobar:disabled,
+.btn-rechazar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-cancelar-solicitud {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #dc3545;
+  background: white;
+  border: 2px solid #dc3545;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancelar-solicitud:hover {
+  background: #dc3545;
+  color: white;
+}
+
+/* Responsive */
+.desktop-only {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .vacaciones-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vacaciones-header h1 {
+    font-size: 22px;
+    text-align: center;
+  }
+
+  .btn-nueva-solicitud {
+    width: 100%;
+  }
+
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtros-estado {
+    overflow-x: auto;
+    padding-bottom: 5px;
+    flex-wrap: nowrap;
+  }
+
+  .filtro-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .filtros-secundarios {
+    flex-direction: column;
+  }
+
+  .filtro-select {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-dias {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .detalle-row {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .botones-accion {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .vacaciones-container {
+    padding: 15px;
+  }
+
+  .modal-content {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+
+  .modal-header {
+    padding: 15px;
+  }
+
+  .modal-body {
+    padding: 15px;
+  }
+}

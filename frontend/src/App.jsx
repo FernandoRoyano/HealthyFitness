@@ -15,6 +15,7 @@ import SolicitudesCambio from './pages/SolicitudesCambio';
 import PlantillasSemanales from './pages/PlantillasSemanales';
 import CalendarioDual from './pages/CalendarioDual';
 import Productos from './pages/Productos';
+import Vacaciones from './pages/Vacaciones';
 
 function App() {
   return (
@@ -138,6 +139,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Productos />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vacaciones"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Vacaciones />
                 </Layout>
               </ProtectedRoute>
             }

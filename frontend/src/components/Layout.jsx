@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { solicitudesCambioAPI, notificacionesAPI } from '../services/api';
+import { solicitudesCambioAPI, notificacionesAPI, vacacionesAPI } from '../services/api';
 import NotificationCenter from './NotificationCenter';
 import './Layout.css';
 
@@ -11,6 +11,7 @@ function Layout({ children }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [solicitudesPendientes, setSolicitudesPendientes] = useState(0);
+  const [vacacionesPendientes, setVacacionesPendientes] = useState(0);
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
 
@@ -33,7 +34,11 @@ function Layout({ children }) {
   useEffect(() => {
     if (usuario?.rol === 'gerente') {
       cargarContadorSolicitudes();
-      const interval = setInterval(cargarContadorSolicitudes, 30000);
+      cargarContadorVacaciones();
+      const interval = setInterval(() => {
+        cargarContadorSolicitudes();
+        cargarContadorVacaciones();
+      }, 30000);
       return () => clearInterval(interval);
     }
   }, [usuario]);
@@ -44,6 +49,15 @@ function Layout({ children }) {
       setSolicitudesPendientes(data.count);
     } catch (error) {
       console.error('Error al cargar contador:', error);
+    }
+  };
+
+  const cargarContadorVacaciones = async () => {
+    try {
+      const { data } = await vacacionesAPI.contarPendientes();
+      setVacacionesPendientes(data.count);
+    } catch (error) {
+      console.error('Error al cargar contador vacaciones:', error);
     }
   };
 
@@ -93,12 +107,19 @@ function Layout({ children }) {
       icon: '📬',
       badge: solicitudesPendientes
     },
+    {
+      path: '/vacaciones',
+      label: 'Vacaciones',
+      icon: '🏖️',
+      badge: vacacionesPendientes
+    },
     { path: '/productos', label: 'Tarifas', icon: '💰' },
   ];
 
   const menuEntrenador = [
     { path: '/calendario', label: 'Mi Calendario', icon: '📆' },
     { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
+    { path: '/vacaciones', label: 'Mis Vacaciones', icon: '🏖️' },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'

@@ -1,4 +1,20 @@
 import Reserva from '../models/Reserva.js';
+import Vacacion from '../models/Vacacion.js';
+
+// Función auxiliar para verificar si un entrenador tiene vacaciones en una fecha
+const verificarVacacionesEnFecha = async (entrenadorId, fecha) => {
+  const fechaConsulta = new Date(fecha);
+  fechaConsulta.setHours(0, 0, 0, 0);
+
+  const vacacion = await Vacacion.findOne({
+    entrenador: entrenadorId,
+    estado: 'aprobado',
+    fechaInicio: { $lte: fechaConsulta },
+    fechaFin: { $gte: fechaConsulta }
+  });
+
+  return vacacion;
+};
 
 export const obtenerReservas = async (req, res) => {
   try {
@@ -54,6 +70,16 @@ export const crearReserva = async (req, res) => {
   try {
     const { fecha, horaInicio, horaFin, entrenador } = req.body;
 
+    // Verificar si el entrenador tiene vacaciones aprobadas en esa fecha
+    const vacacion = await verificarVacacionesEnFecha(entrenador, fecha);
+    if (vacacion) {
+      const fechaInicioVac = new Date(vacacion.fechaInicio).toLocaleDateString('es-ES');
+      const fechaFinVac = new Date(vacacion.fechaFin).toLocaleDateString('es-ES');
+      return res.status(400).json({
+        mensaje: `El entrenador tiene vacaciones aprobadas del ${fechaInicioVac} al ${fechaFinVac}`
+      });
+    }
+
     const reservaExiste = await Reserva.findOne({
       fecha: new Date(fecha),
       entrenador,
@@ -96,6 +122,16 @@ export const actualizarReserva = async (req, res) => {
         horaFin: req.body.horaFin || reserva.horaFin,
         entrenador: req.body.entrenador || reserva.entrenador
       };
+
+      // Verificar si el entrenador tiene vacaciones aprobadas en la nueva fecha
+      const vacacion = await verificarVacacionesEnFecha(entrenador, fecha);
+      if (vacacion) {
+        const fechaInicioVac = new Date(vacacion.fechaInicio).toLocaleDateString('es-ES');
+        const fechaFinVac = new Date(vacacion.fechaFin).toLocaleDateString('es-ES');
+        return res.status(400).json({
+          mensaje: `El entrenador tiene vacaciones aprobadas del ${fechaInicioVac} al ${fechaFinVac}`
+        });
+      }
 
       const reservaExiste = await Reserva.findOne({
         _id: { $ne: req.params.id },

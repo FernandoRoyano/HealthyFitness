@@ -1,7 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import connectDB from './src/config/database.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import authRoutes from './src/routes/authRoutes.js';
 import clienteRoutes from './src/routes/clienteRoutes.js';
 import reservaRoutes from './src/routes/reservaRoutes.js';
@@ -10,6 +15,7 @@ import solicitudCambioRoutes from './src/routes/solicitudCambioRoutes.js';
 import notificacionRoutes from './src/routes/notificacionRoutes.js';
 import plantillaRoutes from './src/routes/plantillaRoutes.js';
 import productoRoutes from './src/routes/productoRoutes.js';
+import vacacionRoutes from './src/routes/vacacionRoutes.js';
 
 dotenv.config();
 
@@ -51,6 +57,9 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Servir archivos estáticos desde la carpeta uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.get('/', (req, res) => {
   res.json({ mensaje: 'API Centro de Entrenamiento Personal' });
 });
@@ -63,6 +72,7 @@ app.use('/api/solicitudes-cambio', solicitudCambioRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
 app.use('/api/plantillas', plantillaRoutes);
 app.use('/api/productos', productoRoutes);
+app.use('/api/vacaciones', vacacionRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
@@ -77,4 +87,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Servidor ejecutándose en puerto ${PORT}`);
+  console.log('Rutas de clientes cargadas: /api/clientes');
+  console.log('Rutas de usuarios cargadas: /api/users');
 });
