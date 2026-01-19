@@ -979,6 +979,41 @@
   max-width: 500px;
 }
 
+.buscando-suscripcion {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+.info-suscripcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin: 0 24px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.info-suscripcion.con-suscripcion {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 1px solid #86efac;
+  color: #166534;
+}
+
+.info-suscripcion.sin-suscripcion {
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+
+.suscripcion-icono {
+  font-weight: bold;
+  font-size: 16px;
+}
+
 .form-row-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
