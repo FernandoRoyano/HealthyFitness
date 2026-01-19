@@ -791,6 +791,44 @@
   display: none;
 }
 
+/* Tablet */
+@media (max-width: 1024px) {
+  .vacaciones-container {
+    padding: 16px;
+  }
+
+  .vacaciones-header h1 {
+    font-size: 24px;
+  }
+
+  .resumen-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .resumen-card {
+    padding: 16px;
+  }
+
+  .resumen-numero {
+    font-size: 28px;
+  }
+
+  .vacaciones-tabla th,
+  .vacaciones-tabla td {
+    padding: 12px 10px;
+    font-size: 13px;
+  }
+
+  .motivo-cell {
+    max-width: 150px;
+  }
+
+  .preview-balance-grid {
+    gap: 20px;
+  }
+}
+
 @media (max-width: 768px) {
   .desktop-only {
     display: none !important;
