@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { productosAPI } from '../services/api';
+import './Productos.css';
 
 const Productos = () => {
   const [tablaPrecios, setTablaPrecios] = useState([]);
@@ -248,7 +249,7 @@ const Productos = () => {
 
   return (
     <div style={styles.container}>
-      <div style={styles.header}>
+      <div className="productos-header" style={styles.header}>
         <div>
           <h1 style={styles.title}>Productos y Tarifas</h1>
           <p style={styles.subtitle}>Gestión de servicios y precios por días/semana</p>
@@ -275,9 +276,9 @@ const Productos = () => {
       )}
 
       {/* Tabla de precios */}
-      <div style={styles.section}>
+      <div className="productos-section" style={styles.section}>
         <div style={styles.sectionHeader}>
-          <h2 style={styles.sectionTitle}>Tabla de Precios</h2>
+          <h2 className="productos-section-title" style={styles.sectionTitle}>Tabla de Precios</h2>
           <label style={styles.checkboxLabel}>
             <input
               type="checkbox"
@@ -294,145 +295,271 @@ const Productos = () => {
             <p>Haz clic en "Inicializar Productos" para crear los servicios y tarifas por defecto.</p>
           </div>
         ) : (
-          <div style={styles.tableContainer}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Producto</th>
-                  <th style={styles.th}>Tipo</th>
-                  <th style={{ ...styles.th, textAlign: 'center' }}>1 día/sem</th>
-                  <th style={{ ...styles.th, textAlign: 'center' }}>2 días/sem</th>
-                  <th style={{ ...styles.th, textAlign: 'center' }}>3+ días/sem</th>
-                  <th style={{ ...styles.th, textAlign: 'center' }}>Estado</th>
-                  <th style={{ ...styles.th, textAlign: 'center' }}>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tablaPrecios.map((producto) => (
-                  <tr key={producto._id} style={!producto.activo ? styles.rowInactivo : {}}>
-                    <td style={styles.td}>
-                      <div style={styles.productoNombre}>{producto.nombre}</div>
-                      {producto.descripcion && (
-                        <div style={styles.productoDesc}>{producto.descripcion}</div>
-                      )}
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.tipoBadge}>{producto.tipo}</span>
-                    </td>
+          <>
+            {/* Vista de tabla para desktop */}
+            <div className="productos-table" style={styles.tableContainer}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Producto</th>
+                    <th style={styles.th}>Tipo</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>1 día/sem</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>2 días/sem</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>3+ días/sem</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>Estado</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tablaPrecios.map((producto) => (
+                    <tr key={producto._id} style={!producto.activo ? styles.rowInactivo : {}}>
+                      <td style={styles.td}>
+                        <div style={styles.productoNombre}>{producto.nombre}</div>
+                        {producto.descripcion && (
+                          <div style={styles.productoDesc}>{producto.descripcion}</div>
+                        )}
+                      </td>
+                      <td style={styles.td}>
+                        <span style={styles.tipoBadge}>{producto.tipo}</span>
+                      </td>
 
+                      {editando === producto._id ? (
+                        <>
+                          <td style={{ ...styles.td, textAlign: 'center' }}>
+                            <input
+                              type="number"
+                              value={preciosEditados['1']}
+                              onChange={(e) => setPreciosEditados({ ...preciosEditados, '1': e.target.value })}
+                              style={styles.precioInput}
+                              step="0.01"
+                              min="0"
+                            />
+                          </td>
+                          <td style={{ ...styles.td, textAlign: 'center' }}>
+                            <input
+                              type="number"
+                              value={preciosEditados['2']}
+                              onChange={(e) => setPreciosEditados({ ...preciosEditados, '2': e.target.value })}
+                              style={styles.precioInput}
+                              step="0.01"
+                              min="0"
+                            />
+                          </td>
+                          <td style={{ ...styles.td, textAlign: 'center' }}>
+                            <input
+                              type="number"
+                              value={preciosEditados['3+']}
+                              onChange={(e) => setPreciosEditados({ ...preciosEditados, '3+': e.target.value })}
+                              style={styles.precioInput}
+                              step="0.01"
+                              min="0"
+                            />
+                          </td>
+                        </>
+                      ) : (
+                        <>
+                          <td style={{ ...styles.td, textAlign: 'center' }}>
+                            <span style={styles.precio}>
+                              {producto.precios['1'] !== null ? `${producto.precios['1']}€` : '-'}
+                            </span>
+                          </td>
+                          <td style={{ ...styles.td, textAlign: 'center' }}>
+                            <span style={styles.precio}>
+                              {producto.precios['2'] !== null ? `${producto.precios['2']}€` : '-'}
+                            </span>
+                          </td>
+                          <td style={{ ...styles.td, textAlign: 'center' }}>
+                            <span style={styles.precio}>
+                              {producto.precios['3+'] !== null ? `${producto.precios['3+']}€` : '-'}
+                            </span>
+                          </td>
+                        </>
+                      )}
+
+                      <td style={{ ...styles.td, textAlign: 'center' }}>
+                        <span style={{
+                          ...styles.estadoBadge,
+                          backgroundColor: producto.activo ? '#d4edda' : '#f8d7da',
+                          color: producto.activo ? '#155724' : '#721c24'
+                        }}>
+                          {producto.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+
+                      <td style={{ ...styles.td, textAlign: 'center' }}>
+                        {editando === producto._id ? (
+                          <div style={styles.actionButtons}>
+                            <button
+                              onClick={() => handleGuardarPrecios(producto._id)}
+                              style={styles.saveButton}
+                            >
+                              Guardar
+                            </button>
+                            <button
+                              onClick={handleCancelarEdicion}
+                              style={styles.cancelButton}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        ) : (
+                          <div style={styles.actionButtons}>
+                            <button
+                              onClick={() => handleEditarProducto(producto)}
+                              style={styles.editButton}
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleToggleActivo(producto)}
+                              style={producto.activo ? styles.deactivateButton : styles.activateButton}
+                            >
+                              {producto.activo ? 'Desactivar' : 'Activar'}
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Vista de cards para móvil */}
+            <div className="productos-mobile-cards">
+              {tablaPrecios.map((producto) => (
+                <div key={producto._id} style={{
+                  ...styles.mobileCard,
+                  ...(producto.activo ? {} : styles.mobileCardInactivo)
+                }}>
+                  <div style={styles.mobileCardHeader}>
+                    <div>
+                      <h3 style={styles.mobileCardTitle}>{producto.nombre}</h3>
+                      {producto.descripcion && (
+                        <p style={styles.mobileCardDesc}>{producto.descripcion}</p>
+                      )}
+                    </div>
+                    <span style={{
+                      ...styles.estadoBadge,
+                      backgroundColor: producto.activo ? '#d4edda' : '#f8d7da',
+                      color: producto.activo ? '#155724' : '#721c24'
+                    }}>
+                      {producto.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+
+                  <div style={styles.mobileCardBody}>
+                    <div style={styles.mobilePreciosGrid}>
+                      {editando === producto._id ? (
+                        <>
+                          <div style={styles.mobilePrecioItem}>
+                            <span style={styles.mobilePrecioLabel}>1 día/sem</span>
+                            <input
+                              type="number"
+                              value={preciosEditados['1']}
+                              onChange={(e) => setPreciosEditados({ ...preciosEditados, '1': e.target.value })}
+                              style={styles.mobilePrecioInput}
+                              step="0.01"
+                              min="0"
+                            />
+                          </div>
+                          <div style={styles.mobilePrecioItem}>
+                            <span style={styles.mobilePrecioLabel}>2 días/sem</span>
+                            <input
+                              type="number"
+                              value={preciosEditados['2']}
+                              onChange={(e) => setPreciosEditados({ ...preciosEditados, '2': e.target.value })}
+                              style={styles.mobilePrecioInput}
+                              step="0.01"
+                              min="0"
+                            />
+                          </div>
+                          <div style={styles.mobilePrecioItem}>
+                            <span style={styles.mobilePrecioLabel}>3+ días/sem</span>
+                            <input
+                              type="number"
+                              value={preciosEditados['3+']}
+                              onChange={(e) => setPreciosEditados({ ...preciosEditados, '3+': e.target.value })}
+                              style={styles.mobilePrecioInput}
+                              step="0.01"
+                              min="0"
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div style={styles.mobilePrecioItem}>
+                            <span style={styles.mobilePrecioLabel}>1 día/sem</span>
+                            <span style={styles.mobilePrecioValor}>
+                              {producto.precios['1'] !== null ? `${producto.precios['1']}€` : '-'}
+                            </span>
+                          </div>
+                          <div style={styles.mobilePrecioItem}>
+                            <span style={styles.mobilePrecioLabel}>2 días/sem</span>
+                            <span style={styles.mobilePrecioValor}>
+                              {producto.precios['2'] !== null ? `${producto.precios['2']}€` : '-'}
+                            </span>
+                          </div>
+                          <div style={styles.mobilePrecioItem}>
+                            <span style={styles.mobilePrecioLabel}>3+ días/sem</span>
+                            <span style={styles.mobilePrecioValor}>
+                              {producto.precios['3+'] !== null ? `${producto.precios['3+']}€` : '-'}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={styles.mobileCardActions}>
                     {editando === producto._id ? (
                       <>
-                        <td style={{ ...styles.td, textAlign: 'center' }}>
-                          <input
-                            type="number"
-                            value={preciosEditados['1']}
-                            onChange={(e) => setPreciosEditados({ ...preciosEditados, '1': e.target.value })}
-                            style={styles.precioInput}
-                            step="0.01"
-                            min="0"
-                          />
-                        </td>
-                        <td style={{ ...styles.td, textAlign: 'center' }}>
-                          <input
-                            type="number"
-                            value={preciosEditados['2']}
-                            onChange={(e) => setPreciosEditados({ ...preciosEditados, '2': e.target.value })}
-                            style={styles.precioInput}
-                            step="0.01"
-                            min="0"
-                          />
-                        </td>
-                        <td style={{ ...styles.td, textAlign: 'center' }}>
-                          <input
-                            type="number"
-                            value={preciosEditados['3+']}
-                            onChange={(e) => setPreciosEditados({ ...preciosEditados, '3+': e.target.value })}
-                            style={styles.precioInput}
-                            step="0.01"
-                            min="0"
-                          />
-                        </td>
+                        <button
+                          onClick={() => handleGuardarPrecios(producto._id)}
+                          style={styles.mobileButtonSave}
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          onClick={handleCancelarEdicion}
+                          style={styles.mobileButtonCancel}
+                        >
+                          Cancelar
+                        </button>
                       </>
                     ) : (
                       <>
-                        <td style={{ ...styles.td, textAlign: 'center' }}>
-                          <span style={styles.precio}>
-                            {producto.precios['1'] !== null ? `${producto.precios['1']}€` : '-'}
-                          </span>
-                        </td>
-                        <td style={{ ...styles.td, textAlign: 'center' }}>
-                          <span style={styles.precio}>
-                            {producto.precios['2'] !== null ? `${producto.precios['2']}€` : '-'}
-                          </span>
-                        </td>
-                        <td style={{ ...styles.td, textAlign: 'center' }}>
-                          <span style={styles.precio}>
-                            {producto.precios['3+'] !== null ? `${producto.precios['3+']}€` : '-'}
-                          </span>
-                        </td>
+                        <button
+                          onClick={() => handleEditarProducto(producto)}
+                          style={styles.mobileButtonEdit}
+                        >
+                          Editar Precios
+                        </button>
+                        <button
+                          onClick={() => handleToggleActivo(producto)}
+                          style={producto.activo ? styles.mobileButtonDeactivate : styles.mobileButtonActivate}
+                        >
+                          {producto.activo ? 'Desactivar' : 'Activar'}
+                        </button>
                       </>
                     )}
-
-                    <td style={{ ...styles.td, textAlign: 'center' }}>
-                      <span style={{
-                        ...styles.estadoBadge,
-                        backgroundColor: producto.activo ? '#d4edda' : '#f8d7da',
-                        color: producto.activo ? '#155724' : '#721c24'
-                      }}>
-                        {producto.activo ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-
-                    <td style={{ ...styles.td, textAlign: 'center' }}>
-                      {editando === producto._id ? (
-                        <div style={styles.actionButtons}>
-                          <button
-                            onClick={() => handleGuardarPrecios(producto._id)}
-                            style={styles.saveButton}
-                          >
-                            Guardar
-                          </button>
-                          <button
-                            onClick={handleCancelarEdicion}
-                            style={styles.cancelButton}
-                          >
-                            Cancelar
-                          </button>
-                        </div>
-                      ) : (
-                        <div style={styles.actionButtons}>
-                          <button
-                            onClick={() => handleEditarProducto(producto)}
-                            style={styles.editButton}
-                          >
-                            Editar
-                          </button>
-                          <button
-                            onClick={() => handleToggleActivo(producto)}
-                            style={producto.activo ? styles.deactivateButton : styles.activateButton}
-                          >
-                            {producto.activo ? 'Desactivar' : 'Activar'}
-                          </button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
       {/* Calculadora de precios */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Calculadora de Precios</h2>
+      <div className="productos-section" style={styles.section}>
+        <h2 className="productos-section-title" style={styles.sectionTitle}>Calculadora de Precios</h2>
         <p style={styles.sectionDesc}>
           Consulta el precio unitario según tipo de servicio y días por semana
         </p>
 
         <div style={styles.calculadoraContainer}>
-          <div style={styles.calculadoraForm}>
+          <div className="calculadora-form" style={styles.calculadoraForm}>
             <div style={styles.formGroup}>
               <label style={styles.label}>Tipo de Servicio</label>
               <select
@@ -465,7 +592,7 @@ const Productos = () => {
           </div>
 
           {calculadora.resultado && (
-            <div style={styles.resultadoContainer}>
+            <div className="calculadora-resultado" style={styles.resultadoContainer}>
               <div style={styles.resultadoHeader}>Resultado</div>
               <div style={styles.resultadoBody}>
                 <div style={styles.resultadoRow}>
@@ -491,14 +618,14 @@ const Productos = () => {
       </div>
 
       {/* Calculadora mensual */}
-      <div style={styles.section}>
-        <h2 style={styles.sectionTitle}>Calculadora Mensual</h2>
+      <div className="productos-section" style={styles.section}>
+        <h2 className="productos-section-title" style={styles.sectionTitle}>Calculadora Mensual</h2>
         <p style={styles.sectionDesc}>
           Calcula el coste total del mes según los días de entrenamiento
         </p>
 
-        <div style={styles.mensualContainer}>
-          <div style={styles.mensualForm}>
+        <div className="mensual-container" style={styles.mensualContainer}>
+          <div className="mensual-form" style={styles.mensualForm}>
             {/* Tipo de servicio */}
             <div style={styles.formGroup}>
               <label style={styles.label}>Tipo de Servicio</label>
@@ -514,10 +641,11 @@ const Productos = () => {
             </div>
 
             {/* Toggle modo manual */}
-            <div style={styles.modoToggleContainer}>
+            <div className="modo-toggle-container" style={styles.modoToggleContainer}>
               <button
                 type="button"
                 onClick={() => setCalculadoraMensual({ ...calculadoraMensual, modoManual: false, resultado: null })}
+                className="modo-toggle-btn"
                 style={{
                   ...styles.modoToggleBtn,
                   ...(calculadoraMensual.modoManual ? {} : styles.modoToggleBtnActivo)
@@ -528,6 +656,7 @@ const Productos = () => {
               <button
                 type="button"
                 onClick={() => setCalculadoraMensual({ ...calculadoraMensual, modoManual: true, resultado: null })}
+                className="modo-toggle-btn"
                 style={{
                   ...styles.modoToggleBtn,
                   ...(calculadoraMensual.modoManual ? styles.modoToggleBtnActivo : {})
@@ -540,7 +669,7 @@ const Productos = () => {
             {!calculadoraMensual.modoManual ? (
               <>
                 {/* Mes y Año */}
-                <div style={styles.formRow}>
+                <div className="form-row" style={styles.formRow}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Mes</label>
                     <select
@@ -571,12 +700,13 @@ const Productos = () => {
                 {/* Días de la semana */}
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Días de entrenamiento (selecciona los días)</label>
-                  <div style={styles.diasContainer}>
+                  <div className="dias-container" style={styles.diasContainer}>
                     {nombresDias.slice(0, 5).map((nombre, index) => (
                       <button
                         key={index}
                         type="button"
                         onClick={() => handleToggleDia(index)}
+                        className="dia-button"
                         style={{
                           ...styles.diaButton,
                           ...(calculadoraMensual.diasSeleccionados.includes(index) ? styles.diaButtonActivo : {})
@@ -596,7 +726,7 @@ const Productos = () => {
             ) : (
               <>
                 {/* Modo manual: introducir número de sesiones */}
-                <div style={styles.formRow}>
+                <div className="form-row" style={styles.formRow}>
                   <div style={styles.formGroup}>
                     <label style={styles.label}>Número de sesiones</label>
                     <div style={styles.inputWithHint}>
@@ -642,7 +772,7 @@ const Productos = () => {
 
           {/* Resultado mensual */}
           {calculadoraMensual.resultado && (
-            <div style={styles.resultadoMensualContainer}>
+            <div className="mensual-resultado" style={styles.resultadoMensualContainer}>
               <div style={styles.resultadoHeader}>
                 {calculadoraMensual.modoManual
                   ? 'Cálculo Manual'
@@ -687,9 +817,9 @@ const Productos = () => {
       </div>
 
       {/* Info de uso */}
-      <div style={styles.infoSection}>
+      <div className="info-section" style={styles.infoSection}>
         <h3>Información</h3>
-        <ul style={styles.infoList}>
+        <ul className="info-list" style={styles.infoList}>
           <li>Los precios se aplican por sesión individual</li>
           <li>El rango de días determina el precio: 1 día, 2 días o 3+ días por semana</li>
           <li>La calculadora mensual cuenta las sesiones reales según el calendario del mes</li>
@@ -1137,6 +1267,133 @@ const styles = {
     padding: '10px 12px',
     borderRadius: '6px',
     borderLeft: '3px solid #75b760'
+  },
+  // Estilos para mobile cards
+  mobileCard: {
+    backgroundColor: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    overflow: 'hidden'
+  },
+  mobileCardInactivo: {
+    opacity: 0.6,
+    backgroundColor: '#f8f9fa'
+  },
+  mobileCardHeader: {
+    padding: '15px',
+    backgroundColor: '#f8f9fa',
+    borderBottom: '1px solid #eee',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: '10px'
+  },
+  mobileCardTitle: {
+    margin: 0,
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1a365d'
+  },
+  mobileCardDesc: {
+    margin: '4px 0 0',
+    fontSize: '12px',
+    color: '#666'
+  },
+  mobileCardBody: {
+    padding: '15px'
+  },
+  mobilePreciosGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '10px'
+  },
+  mobilePrecioItem: {
+    textAlign: 'center',
+    padding: '10px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px'
+  },
+  mobilePrecioLabel: {
+    display: 'block',
+    fontSize: '11px',
+    color: '#666',
+    marginBottom: '5px',
+    fontWeight: '500'
+  },
+  mobilePrecioValor: {
+    display: 'block',
+    fontSize: '18px',
+    fontWeight: '700',
+    color: '#c41e3a'
+  },
+  mobilePrecioInput: {
+    width: '100%',
+    padding: '8px',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    fontSize: '14px',
+    textAlign: 'center'
+  },
+  mobileCardActions: {
+    padding: '15px',
+    borderTop: '1px solid #eee',
+    display: 'flex',
+    gap: '10px'
+  },
+  mobileButtonEdit: {
+    flex: 1,
+    padding: '10px 15px',
+    backgroundColor: '#007bff',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer'
+  },
+  mobileButtonSave: {
+    flex: 1,
+    padding: '10px 15px',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer'
+  },
+  mobileButtonCancel: {
+    flex: 1,
+    padding: '10px 15px',
+    backgroundColor: '#6c757d',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer'
+  },
+  mobileButtonActivate: {
+    flex: 1,
+    padding: '10px 15px',
+    backgroundColor: '#28a745',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer'
+  },
+  mobileButtonDeactivate: {
+    flex: 1,
+    padding: '10px 15px',
+    backgroundColor: '#dc3545',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    cursor: 'pointer'
   }
 };
 
