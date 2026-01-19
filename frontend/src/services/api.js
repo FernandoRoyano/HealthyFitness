@@ -159,6 +159,7 @@ export const facturacionAPI = {
   previewFactura: (clienteId, mes, anio) =>
     api.get('/facturacion/facturas/preview', { params: { clienteId, mes, anio } }),
   generarFactura: (datos) => api.post('/facturacion/facturas', datos),
+  crearFacturaManual: (datos) => api.post('/facturacion/facturas/manual', datos),
   generarFacturasMasivas: (mes, anio) => api.post('/facturacion/facturas/masivas', { mes, anio }),
   actualizarFactura: (id, datos) => api.put(`/facturacion/facturas/${id}`, datos),
   registrarPago: (id, datos) => api.post(`/facturacion/facturas/${id}/pago`, datos),
