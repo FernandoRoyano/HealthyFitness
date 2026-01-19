@@ -55,6 +55,16 @@ function Facturacion() {
     referencia: ''
   });
 
+  // Modal de nueva factura manual
+  const [modalNuevaFactura, setModalNuevaFactura] = useState(false);
+  const [formNuevaFactura, setFormNuevaFactura] = useState({
+    clienteId: '',
+    sesiones: '',
+    precioUnitario: '',
+    descuento: '',
+    notas: ''
+  });
+
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatos();
@@ -227,6 +237,53 @@ function Facturacion() {
     }
   };
 
+  // Abrir modal nueva factura
+  const abrirModalNuevaFactura = () => {
+    setFormNuevaFactura({
+      clienteId: '',
+      sesiones: '',
+      precioUnitario: '25',
+      descuento: '',
+      notas: ''
+    });
+    setModalNuevaFactura(true);
+  };
+
+  // Crear factura manual
+  const handleCrearFacturaManual = async (e) => {
+    e.preventDefault();
+    setCargando(true);
+    setError('');
+
+    try {
+      await facturacionAPI.crearFacturaManual({
+        clienteId: formNuevaFactura.clienteId,
+        mes: mesSeleccionado,
+        anio: anioSeleccionado,
+        sesiones: parseInt(formNuevaFactura.sesiones),
+        precioUnitario: parseFloat(formNuevaFactura.precioUnitario),
+        descuento: formNuevaFactura.descuento ? parseFloat(formNuevaFactura.descuento) : 0,
+        notas: formNuevaFactura.notas
+      });
+      setMensaje('Factura creada correctamente');
+      setModalNuevaFactura(false);
+      cargarDatos();
+    } catch (err) {
+      console.error('Error al crear factura:', err);
+      setError(err.response?.data?.mensaje || 'Error al crear factura');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Calcular total preview
+  const calcularTotalPreview = () => {
+    const sesiones = parseInt(formNuevaFactura.sesiones) || 0;
+    const precio = parseFloat(formNuevaFactura.precioUnitario) || 0;
+    const descuento = parseFloat(formNuevaFactura.descuento) || 0;
+    return (sesiones * precio - descuento).toFixed(2);
+  };
+
   // Emitir factura
   const handleEmitirFactura = async (facturaId) => {
     try {
@@ -296,13 +353,22 @@ function Facturacion() {
           </div>
 
           {esGerente && (
-            <button
-              className="btn-generar"
-              onClick={handleGenerarFacturas}
-              disabled={cargando}
-            >
-              Generar Facturas del Mes
-            </button>
+            <>
+              <button
+                className="btn-nueva-factura"
+                onClick={abrirModalNuevaFactura}
+                disabled={cargando}
+              >
+                + Nueva Factura
+              </button>
+              <button
+                className="btn-generar"
+                onClick={handleGenerarFacturas}
+                disabled={cargando}
+              >
+                Generar Facturas del Mes
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -765,6 +831,107 @@ function Facturacion() {
                 </button>
                 <button type="submit" className="btn-guardar" disabled={cargando}>
                   {cargando ? 'Registrando...' : 'Registrar Pago'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nueva Factura Manual */}
+      {modalNuevaFactura && (
+        <div className="modal-overlay" onClick={() => setModalNuevaFactura(false)}>
+          <div className="modal-content modal-nueva-factura" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Nueva Factura - {MESES[mesSeleccionado - 1]} {anioSeleccionado}</h2>
+              <button className="btn-cerrar" onClick={() => setModalNuevaFactura(false)}>×</button>
+            </div>
+
+            <form onSubmit={handleCrearFacturaManual}>
+              <div className="form-grupo">
+                <label>Cliente *</label>
+                <select
+                  value={formNuevaFactura.clienteId}
+                  onChange={(e) => setFormNuevaFactura({ ...formNuevaFactura, clienteId: e.target.value })}
+                  required
+                >
+                  <option value="">Seleccionar cliente...</option>
+                  {clientes.map(c => (
+                    <option key={c._id} value={c._id}>{c.nombre} {c.apellido}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-row-2">
+                <div className="form-grupo">
+                  <label>Nº Sesiones *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formNuevaFactura.sesiones}
+                    onChange={(e) => setFormNuevaFactura({ ...formNuevaFactura, sesiones: e.target.value })}
+                    placeholder="Ej: 8"
+                    required
+                  />
+                </div>
+                <div className="form-grupo">
+                  <label>Precio/Sesión (€) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formNuevaFactura.precioUnitario}
+                    onChange={(e) => setFormNuevaFactura({ ...formNuevaFactura, precioUnitario: e.target.value })}
+                    placeholder="Ej: 25"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-grupo">
+                <label>Descuento (€) - Opcional</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formNuevaFactura.descuento}
+                  onChange={(e) => setFormNuevaFactura({ ...formNuevaFactura, descuento: e.target.value })}
+                  placeholder="Ej: 10"
+                />
+              </div>
+
+              <div className="form-grupo">
+                <label>Notas (opcional)</label>
+                <textarea
+                  value={formNuevaFactura.notas}
+                  onChange={(e) => setFormNuevaFactura({ ...formNuevaFactura, notas: e.target.value })}
+                  rows={2}
+                  placeholder="Observaciones internas..."
+                />
+              </div>
+
+              {/* Preview del total */}
+              <div className="preview-total">
+                <div className="preview-calculo">
+                  <span>{formNuevaFactura.sesiones || 0} sesiones × {formNuevaFactura.precioUnitario || 0}€</span>
+                  {formNuevaFactura.descuento && <span> - {formNuevaFactura.descuento}€ dto.</span>}
+                </div>
+                <div className="preview-resultado">
+                  <span>Total:</span>
+                  <strong>{calcularTotalPreview()}€</strong>
+                </div>
+              </div>
+
+              <div className="modal-acciones">
+                <button type="button" className="btn-cancelar" onClick={() => setModalNuevaFactura(false)}>
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn-guardar"
+                  disabled={cargando || !formNuevaFactura.clienteId || !formNuevaFactura.sesiones || !formNuevaFactura.precioUnitario}
+                >
+                  {cargando ? 'Creando...' : 'Crear Factura'}
                 </button>
               </div>
             </form>

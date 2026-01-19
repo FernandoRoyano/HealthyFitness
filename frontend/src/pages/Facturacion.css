@@ -55,6 +55,28 @@
   border-color: #75b760;
 }
 
+.btn-nueva-factura {
+  background: white;
+  color: #75b760;
+  border: 2px solid #75b760;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-nueva-factura:hover {
+  background: #75b760;
+  color: white;
+}
+
+.btn-nueva-factura:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-generar {
   background: linear-gradient(135deg, #75b760, #5fa047);
   color: white;
@@ -949,5 +971,63 @@
 
   .modal-acciones button {
     width: 100%;
+  }
+}
+
+/* ==================== MODAL NUEVA FACTURA ==================== */
+.modal-nueva-factura {
+  max-width: 500px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.preview-total {
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  border: 2px solid #75b760;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 24px;
+  text-align: center;
+}
+
+.preview-calculo {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.preview-resultado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 18px;
+}
+
+.preview-resultado span {
+  color: #333;
+}
+
+.preview-resultado strong {
+  font-size: 32px;
+  color: #75b760;
+}
+
+@media (max-width: 480px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-total {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .preview-resultado strong {
+    font-size: 28px;
   }
 }

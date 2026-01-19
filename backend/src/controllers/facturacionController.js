@@ -709,3 +709,94 @@ export const obtenerClientesSinSuscripcion = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al obtener clientes' });
   }
 };
+
+// Crear factura manual (sin necesidad de suscripción)
+export const crearFacturaManual = async (req, res) => {
+  try {
+    const { clienteId, mes, anio, sesiones, precioUnitario, descuento, notas } = req.body;
+
+    // Validaciones
+    if (!clienteId || !mes || !anio || !sesiones || !precioUnitario) {
+      return res.status(400).json({
+        mensaje: 'Faltan campos requeridos: clienteId, mes, anio, sesiones, precioUnitario'
+      });
+    }
+
+    // Validar cliente existe
+    const cliente = await Cliente.findById(clienteId);
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
+
+    // Verificar si ya existe factura para este cliente/mes/año
+    const facturaExistente = await FacturaMensual.findOne({
+      cliente: clienteId,
+      mes: parseInt(mes),
+      anio: parseInt(anio)
+    });
+
+    if (facturaExistente) {
+      return res.status(400).json({
+        mensaje: `Ya existe una factura para este cliente en ${mes}/${anio}`
+      });
+    }
+
+    // Calcular totales
+    const totalSesiones = parseInt(sesiones);
+    const precio = parseFloat(precioUnitario);
+    const subtotal = totalSesiones * precio;
+    const descuentoMonto = descuento ? parseFloat(descuento) : 0;
+    const totalAPagar = subtotal - descuentoMonto;
+
+    // Crear la factura
+    const factura = new FacturaMensual({
+      cliente: clienteId,
+      mes: parseInt(mes),
+      anio: parseInt(anio),
+      // Datos manuales (sin suscripción)
+      suscripcion: null,
+      datosSuscripcion: {
+        producto: null,
+        nombreProducto: 'Factura Manual',
+        precioUnitario: precio,
+        diasPorSemana: null,
+        diasEntrenamiento: []
+      },
+      // Sesiones
+      sesionesProgramadas: totalSesiones,
+      sesionesAcumuladasAnterior: 0,
+      sesionesAsistidas: totalSesiones,
+      sesionesNoAsistidas: 0,
+      sesionesCanceladasCentro: 0,
+      sesionesRecuperadas: 0,
+      sesionesAcumuladasSiguiente: 0,
+      totalSesionesACobrar: totalSesiones,
+      // Totales
+      subtotal: subtotal,
+      descuentos: descuentoMonto > 0 ? [{ concepto: 'Descuento', monto: descuentoMonto }] : [],
+      totalDescuentos: descuentoMonto,
+      totalAPagar: totalAPagar,
+      totalPagado: 0,
+      // Estado
+      estado: 'generada',
+      fechaGeneracion: new Date(),
+      // Notas
+      notasInternas: notas || '',
+      notasCliente: '',
+      // Registro
+      generadaPor: req.usuario._id,
+      esManual: true
+    });
+
+    await factura.save();
+
+    const facturaPopulada = await FacturaMensual.findById(factura._id)
+      .populate('cliente', 'nombre apellido email telefono numeroCuenta')
+      .populate('generadaPor', 'nombre');
+
+    res.status(201).json(facturaPopulada);
+  } catch (error) {
+    console.error('Error al crear factura manual:', error);
+    res.status(500).json({ mensaje: error.message || 'Error al crear factura manual' });
+  }
+};

@@ -16,6 +16,7 @@ import {
   // Facturas
   generarFactura,
   generarFacturasMasivas,
+  crearFacturaManual,
   obtenerFacturas,
   obtenerFacturaPorId,
   actualizarFactura,
@@ -79,6 +80,9 @@ router.get('/facturas', obtenerFacturas);
 
 // POST /api/facturacion/facturas
 router.post('/facturas', esGerente, generarFactura);
+
+// POST /api/facturacion/facturas/manual - Crear factura manual sin suscripción
+router.post('/facturas/manual', esGerente, crearFacturaManual);
 
 // POST /api/facturacion/facturas/masivas
 router.post('/facturas/masivas', esGerente, generarFacturasMasivas);
