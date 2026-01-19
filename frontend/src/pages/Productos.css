@@ -1,0 +1,121 @@
+/* Responsive para Productos y Tarifas */
+
+/* Desktop: mostrar tabla, ocultar cards */
+.productos-table {
+  display: block;
+}
+
+.productos-mobile-cards {
+  display: none;
+}
+
+/* Móvil: ocultar tabla, mostrar cards */
+@media (max-width: 768px) {
+  .productos-table {
+    display: none;
+  }
+
+  .productos-mobile-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .productos-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+
+  .productos-header h1 {
+    font-size: 22px !important;
+  }
+
+  .productos-section {
+    padding: 15px !important;
+  }
+
+  .productos-section-title {
+    font-size: 16px !important;
+  }
+
+  /* Calculadora */
+  .calculadora-form {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .calculadora-form .form-group {
+    width: 100%;
+  }
+
+  .calculadora-form select,
+  .calculadora-form button {
+    width: 100% !important;
+    min-width: auto !important;
+  }
+
+  .calculadora-resultado {
+    width: 100% !important;
+    min-width: auto !important;
+    max-width: none !important;
+  }
+
+  /* Calculadora mensual */
+  .mensual-container {
+    flex-direction: column !important;
+  }
+
+  .mensual-form {
+    min-width: auto !important;
+    width: 100%;
+  }
+
+  .mensual-resultado {
+    width: 100% !important;
+    min-width: auto !important;
+    max-width: none !important;
+  }
+
+  .modo-toggle-container {
+    flex-direction: column !important;
+  }
+
+  .modo-toggle-btn {
+    padding: 12px !important;
+  }
+
+  .dias-container {
+    justify-content: center;
+  }
+
+  .dia-button {
+    flex: 1 1 calc(33% - 10px);
+    min-width: 60px;
+    text-align: center;
+  }
+
+  .form-row {
+    flex-direction: column !important;
+  }
+
+  .form-row .form-group {
+    width: 100%;
+  }
+
+  .form-row select {
+    width: 100% !important;
+  }
+
+  /* Info section */
+  .info-section {
+    padding: 15px !important;
+  }
+
+  .info-section h3 {
+    font-size: 16px;
+  }
+
+  .info-list {
+    font-size: 14px;
+  }
+}
