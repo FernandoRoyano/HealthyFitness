@@ -117,3 +117,20 @@ export const productosAPI = {
   // Inicialización
   inicializar: () => api.post('/productos/inicializar')
 };
+
+export const vacacionesAPI = {
+  // Consultas
+  obtenerTodas: (params) => api.get('/vacaciones', { params }),
+  obtenerPorId: (id) => api.get(`/vacaciones/${id}`),
+  obtenerMiResumen: (año) => api.get('/vacaciones/mi-resumen', { params: { año } }),
+  obtenerResumenEntrenador: (entrenadorId, año) =>
+    api.get(`/vacaciones/resumen/${entrenadorId}`, { params: { año } }),
+  obtenerResumenGlobal: (año) => api.get('/vacaciones/resumen-global', { params: { año } }),
+  contarPendientes: () => api.get('/vacaciones/pendientes/count'),
+
+  // Acciones
+  crear: (datos) => api.post('/vacaciones', datos),
+  aprobar: (id) => api.put(`/vacaciones/${id}/aprobar`),
+  rechazar: (id, motivoRechazo) => api.put(`/vacaciones/${id}/rechazar`, { motivoRechazo }),
+  cancelar: (id) => api.delete(`/vacaciones/${id}`)
+};
