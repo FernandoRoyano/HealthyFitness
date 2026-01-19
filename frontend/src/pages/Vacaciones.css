@@ -477,6 +477,120 @@
   min-height: 80px;
 }
 
+/* Preview de días completo con balance */
+.preview-dias-completo {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 2px solid #e0e0e0;
+}
+
+.preview-solicitud {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #ccc;
+}
+
+.preview-solicitud h4,
+.preview-balance h4 {
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.preview-solicitud-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.preview-dias-numero {
+  font-size: 32px;
+  font-weight: bold;
+  color: #75b760;
+}
+
+.preview-dias-texto {
+  font-size: 14px;
+  color: #333;
+}
+
+.preview-balance-grid {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.preview-balance-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.balance-actual {
+  font-size: 20px;
+  font-weight: 600;
+  color: #666;
+}
+
+.balance-flecha {
+  font-size: 18px;
+  color: #75b760;
+  font-weight: bold;
+}
+
+.balance-nuevo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #75b760;
+}
+
+.balance-nuevo.negativo {
+  color: #dc3545;
+}
+
+.balance-label {
+  font-size: 13px;
+  color: #666;
+}
+
+.balance-meta {
+  font-size: 11px;
+  color: #999;
+}
+
+.preview-balance-item.estival .balance-nuevo {
+  color: #ffc107;
+}
+
+.preview-balance-item.no-estival .balance-nuevo {
+  color: #17a2b8;
+}
+
+.preview-balance-item.no-estival .balance-nuevo.negativo {
+  color: #dc3545;
+}
+
+.preview-advertencia {
+  margin-top: 15px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.preview-advertencia.error {
+  background: #fee;
+  color: #dc3545;
+  border: 1px solid #fcc;
+}
+
+/* Estilos antiguos para compatibilidad */
 .preview-dias {
   display: flex;
   gap: 20px;
@@ -736,6 +850,23 @@
   .preview-dias {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .preview-dias-completo {
+    padding: 15px;
+  }
+
+  .preview-balance-grid {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .preview-balance-item {
+    justify-content: flex-start;
+  }
+
+  .preview-dias-numero {
+    font-size: 28px;
   }
 
   .detalle-row {
