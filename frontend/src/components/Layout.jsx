@@ -113,6 +113,7 @@ function Layout({ children }) {
       icon: '🏖️',
       badge: vacacionesPendientes
     },
+    { path: '/facturacion', label: 'Facturación', icon: '💶' },
     { path: '/productos', label: 'Tarifas', icon: '💰' },
   ];
 
@@ -120,6 +121,7 @@ function Layout({ children }) {
     { path: '/calendario', label: 'Mi Calendario', icon: '📆' },
     { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
     { path: '/vacaciones', label: 'Mis Vacaciones', icon: '🏖️' },
+    { path: '/facturacion', label: 'Facturación', icon: '💶' },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'

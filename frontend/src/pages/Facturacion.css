@@ -1,0 +1,953 @@
+/* ==================== CONTENEDOR PRINCIPAL ==================== */
+.facturacion-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ==================== HEADER ==================== */
+.facturacion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-titulo h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 4px 0;
+}
+
+.header-subtitulo {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.header-controles {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.selector-periodo {
+  display: flex;
+  gap: 8px;
+}
+
+.selector-periodo select {
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.selector-periodo select:focus {
+  outline: none;
+  border-color: #75b760;
+}
+
+.btn-generar {
+  background: linear-gradient(135deg, #75b760, #5fa047);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-generar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(117, 183, 96, 0.3);
+}
+
+.btn-generar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ==================== MENSAJES ==================== */
+.mensaje-error,
+.mensaje-exito {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.mensaje-error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.mensaje-exito {
+  background: #dcfce7;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* ==================== RESUMEN CARDS ==================== */
+.resumen-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.resumen-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #f0f0f0;
+}
+
+.resumen-icono {
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #f5f5f5;
+}
+
+.total-facturado .resumen-icono {
+  background: #e0f2fe;
+}
+
+.total-cobrado .resumen-icono {
+  background: #dcfce7;
+}
+
+.pendiente .resumen-icono {
+  background: #fef3c7;
+}
+
+.facturas-count .resumen-icono {
+  background: #f3e8ff;
+}
+
+.resumen-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.resumen-valor {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.resumen-label {
+  font-size: 13px;
+  color: #666;
+}
+
+/* ==================== TABS ==================== */
+.facturacion-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0;
+}
+
+.tab {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: #75b760;
+}
+
+.tab.activo {
+  color: #75b760;
+  border-bottom-color: #75b760;
+}
+
+/* ==================== CONTENIDO TAB ==================== */
+.tab-contenido {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.cargando,
+.sin-datos {
+  padding: 48px;
+  text-align: center;
+  color: #666;
+}
+
+.sin-datos p {
+  margin: 8px 0;
+}
+
+/* ==================== TABLA FACTURAS ==================== */
+.tabla-facturas-container {
+  overflow-x: auto;
+}
+
+.tabla-facturas {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-facturas th,
+.tabla-facturas td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tabla-facturas th {
+  background: #fafafa;
+  font-weight: 600;
+  font-size: 13px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabla-facturas tbody tr:hover {
+  background: #f9fafb;
+}
+
+.cliente-nombre {
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+.total-cell {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.pagado-cell {
+  color: #16a34a;
+}
+
+/* Estados */
+.estado-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.estado-borrador {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.estado-generada {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.estado-enviada {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.estado-pagada {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.estado-parcial {
+  background: #fed7aa;
+  color: #ea580c;
+}
+
+.estado-vencida {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.estado-anulada {
+  background: #f3f4f6;
+  color: #9ca3af;
+  text-decoration: line-through;
+}
+
+/* Acciones */
+.acciones-cell {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-accion {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-ver {
+  background: #f3f4f6;
+}
+
+.btn-ver:hover {
+  background: #e5e7eb;
+}
+
+.btn-pago {
+  background: #dcfce7;
+}
+
+.btn-pago:hover {
+  background: #bbf7d0;
+}
+
+.btn-emitir {
+  background: #e0f2fe;
+}
+
+.btn-emitir:hover {
+  background: #bae6fd;
+}
+
+/* ==================== SUSCRIPCIONES ==================== */
+.lista-suscripciones {
+  padding: 24px;
+}
+
+.suscripciones-header {
+  margin-bottom: 20px;
+}
+
+.suscripciones-header h3 {
+  font-size: 18px;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.suscripciones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.suscripcion-card {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+}
+
+.suscripcion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.suscripcion-cliente {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.suscripcion-estado {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.suscripcion-estado.estado-activa {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.suscripcion-estado.estado-pausada {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.suscripcion-body {
+  margin-bottom: 12px;
+}
+
+.suscripcion-producto {
+  margin-bottom: 8px;
+  color: #75b760;
+}
+
+.suscripcion-detalles {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.suscripcion-dias {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dia-badge {
+  background: #e0f2fe;
+  color: #0284c7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.suscripcion-acumuladas {
+  margin-top: 8px;
+}
+
+.acumuladas-badge {
+  background: #fef3c7;
+  color: #d97706;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.suscripcion-acciones {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-editar-suscripcion {
+  background: none;
+  border: 1px solid #75b760;
+  color: #75b760;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-editar-suscripcion:hover {
+  background: #75b760;
+  color: white;
+}
+
+/* Clientes sin suscripción */
+.clientes-sin-suscripcion {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 24px;
+}
+
+.clientes-sin-suscripcion h4 {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.clientes-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cliente-item {
+  background: white;
+  border: 1px solid #e0e0e0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cliente-item:hover {
+  border-color: #75b760;
+  color: #75b760;
+}
+
+/* ==================== MODALES ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-suscripcion {
+  max-width: 500px;
+}
+
+.modal-factura {
+  max-width: 600px;
+}
+
+.modal-pago {
+  max-width: 400px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  color: #1a1a2e;
+  margin: 0;
+}
+
+.btn-cerrar {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-cerrar:hover {
+  background: #e5e7eb;
+}
+
+/* Forms */
+.form-grupo {
+  padding: 0 24px;
+  margin-bottom: 16px;
+}
+
+.form-grupo:first-of-type {
+  margin-top: 20px;
+}
+
+.form-grupo label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.form-grupo input,
+.form-grupo select,
+.form-grupo textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.form-grupo input:focus,
+.form-grupo select:focus,
+.form-grupo textarea:focus {
+  outline: none;
+  border-color: #75b760;
+}
+
+.dias-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dia-btn {
+  padding: 8px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.dia-btn:hover {
+  border-color: #75b760;
+}
+
+.dia-btn.seleccionado {
+  background: #75b760;
+  border-color: #75b760;
+  color: white;
+}
+
+.modal-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 20px;
+}
+
+.btn-cancelar {
+  padding: 10px 20px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-cancelar:hover {
+  background: #f3f4f6;
+}
+
+.btn-guardar {
+  padding: 10px 20px;
+  border: none;
+  background: linear-gradient(135deg, #75b760, #5fa047);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-guardar:hover {
+  transform: translateY(-1px);
+}
+
+.btn-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Detalle factura */
+.factura-detalle {
+  padding: 24px;
+}
+
+.factura-cliente {
+  margin-bottom: 16px;
+}
+
+.factura-cliente h3 {
+  font-size: 18px;
+  color: #1a1a2e;
+  margin: 0 0 4px 0;
+}
+
+.factura-cliente p {
+  margin: 2px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.factura-periodo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.factura-periodo span:first-child {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.factura-desglose {
+  margin-bottom: 20px;
+}
+
+.factura-desglose h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.tabla-desglose {
+  width: 100%;
+  font-size: 14px;
+}
+
+.tabla-desglose td {
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.tabla-desglose td:last-child {
+  text-align: right;
+  font-weight: 500;
+}
+
+.tabla-desglose .total-row td {
+  border-top: 2px solid #e0e0e0;
+  border-bottom: none;
+  padding-top: 12px;
+}
+
+.factura-totales {
+  background: #fafafa;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.total-linea {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.total-linea.descuento {
+  color: #dc2626;
+}
+
+.total-linea.total-final {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.total-linea.pagado {
+  color: #16a34a;
+}
+
+.total-linea.pendiente {
+  color: #d97706;
+  font-weight: 600;
+}
+
+.factura-pagos {
+  margin-top: 20px;
+}
+
+.factura-pagos h4 {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.factura-pagos ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.factura-pagos li {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pago-info {
+  padding: 16px 24px;
+  background: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.pago-info p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+  .facturacion-container {
+    padding: 16px;
+  }
+
+  .resumen-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .suscripciones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .facturacion-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-controles {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .selector-periodo {
+    justify-content: center;
+  }
+
+  .btn-generar {
+    width: 100%;
+  }
+
+  .resumen-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .resumen-card {
+    padding: 16px;
+  }
+
+  .resumen-icono {
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+  }
+
+  .resumen-valor {
+    font-size: 18px;
+  }
+
+  .facturacion-tabs {
+    overflow-x: auto;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    white-space: nowrap;
+  }
+
+  /* Tabla facturas responsive */
+  .tabla-facturas thead {
+    display: none;
+  }
+
+  .tabla-facturas tbody tr {
+    display: block;
+    padding: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    position: relative;
+  }
+
+  .tabla-facturas tbody td {
+    display: block;
+    padding: 4px 0;
+    border: none;
+    text-align: left;
+  }
+
+  .tabla-facturas tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #666;
+    font-size: 12px;
+    margin-right: 8px;
+  }
+
+  .tabla-facturas .acciones-cell {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+
+  .suscripciones-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+
+  .dias-selector {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .facturacion-container {
+    padding: 12px;
+  }
+
+  .header-titulo h1 {
+    font-size: 22px;
+  }
+
+  .resumen-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .resumen-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .form-grupo {
+    padding: 0 16px;
+  }
+
+  .modal-acciones {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .modal-acciones button {
+    width: 100%;
+  }
+}

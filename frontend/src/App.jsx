@@ -16,6 +16,7 @@ import PlantillasSemanales from './pages/PlantillasSemanales';
 import CalendarioDual from './pages/CalendarioDual';
 import Productos from './pages/Productos';
 import Vacaciones from './pages/Vacaciones';
+import Facturacion from './pages/Facturacion';
 
 function App() {
   return (
@@ -149,6 +150,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Vacaciones />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/facturacion"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Facturacion />
                 </Layout>
               </ProtectedRoute>
             }

@@ -134,3 +134,35 @@ export const vacacionesAPI = {
   rechazar: (id, motivoRechazo) => api.put(`/vacaciones/${id}/rechazar`, { motivoRechazo }),
   cancelar: (id) => api.delete(`/vacaciones/${id}`)
 };
+
+export const facturacionAPI = {
+  // ==================== SUSCRIPCIONES ====================
+  obtenerSuscripciones: (params) => api.get('/facturacion/suscripciones', { params }),
+  obtenerSuscripcionCliente: (clienteId) => api.get(`/facturacion/suscripciones/cliente/${clienteId}`),
+  guardarSuscripcion: (clienteId, datos) => api.post(`/facturacion/suscripciones/cliente/${clienteId}`, datos),
+  cambiarEstadoSuscripcion: (clienteId, estado) =>
+    api.put(`/facturacion/suscripciones/cliente/${clienteId}/estado`, { estado }),
+  obtenerClientesSinSuscripcion: () => api.get('/facturacion/suscripciones/clientes-sin-suscripcion'),
+
+  // ==================== ASISTENCIAS ====================
+  registrarAsistencia: (datos) => api.post('/facturacion/asistencias', datos),
+  obtenerAsistenciasMes: (clienteId, mes, anio) =>
+    api.get(`/facturacion/asistencias/cliente/${clienteId}/mes/${mes}/anio/${anio}`),
+  marcarRecuperacion: (asistenciaId, datos) =>
+    api.put(`/facturacion/asistencias/${asistenciaId}/recuperacion`, datos),
+  obtenerInasistenciasPendientes: (clienteId, params) =>
+    api.get(`/facturacion/asistencias/cliente/${clienteId}/pendientes`, { params }),
+
+  // ==================== FACTURAS ====================
+  obtenerFacturas: (params) => api.get('/facturacion/facturas', { params }),
+  obtenerFacturaPorId: (id) => api.get(`/facturacion/facturas/${id}`),
+  previewFactura: (clienteId, mes, anio) =>
+    api.get('/facturacion/facturas/preview', { params: { clienteId, mes, anio } }),
+  generarFactura: (datos) => api.post('/facturacion/facturas', datos),
+  generarFacturasMasivas: (mes, anio) => api.post('/facturacion/facturas/masivas', { mes, anio }),
+  actualizarFactura: (id, datos) => api.put(`/facturacion/facturas/${id}`, datos),
+  registrarPago: (id, datos) => api.post(`/facturacion/facturas/${id}/pago`, datos),
+  emitirFactura: (id) => api.put(`/facturacion/facturas/${id}/emitir`),
+  anularFactura: (id, motivo) => api.put(`/facturacion/facturas/${id}/anular`, { motivo }),
+  obtenerResumenMes: (mes, anio) => api.get(`/facturacion/facturas/resumen/${mes}/${anio}`)
+};
