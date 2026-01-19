@@ -36,3 +36,26 @@ h1, h2, h3, h4, h5, h6, button, .heading {
 #root {
   min-height: 100vh;
 }
+
+/* Animaciones para el Dashboard */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
