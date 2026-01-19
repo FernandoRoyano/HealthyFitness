@@ -514,18 +514,65 @@ function Vacaciones() {
                 </div>
               </div>
 
-              {/* Preview de días */}
-              {previewDias && (
-                <div className="preview-dias">
-                  <div className="preview-item">
-                    <strong>{previewDias.dias}</strong>
-                    <span>días laborables</span>
+              {/* Preview de días con cálculo de balance */}
+              {previewDias && resumen && (
+                <div className="preview-dias-completo">
+                  <div className="preview-solicitud">
+                    <h4>Esta solicitud</h4>
+                    <div className="preview-solicitud-info">
+                      <span className="preview-dias-numero">{previewDias.dias}</span>
+                      <span className="preview-dias-texto">días laborables</span>
+                      <span className={`tipo-badge ${previewDias.tipoPeriodo}`}>
+                        {getTipoPeriodoLabel(previewDias.tipoPeriodo)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="preview-item">
-                    <span className={`tipo-badge ${previewDias.tipoPeriodo}`}>
-                      {getTipoPeriodoLabel(previewDias.tipoPeriodo)}
-                    </span>
+
+                  <div className="preview-balance">
+                    <h4>Balance tras solicitud</h4>
+                    <div className="preview-balance-grid">
+                      <div className="preview-balance-item">
+                        <span className="balance-actual">{resumen.diasPendientes}</span>
+                        <span className="balance-flecha">→</span>
+                        <span className={`balance-nuevo ${resumen.diasPendientes - previewDias.dias < 0 ? 'negativo' : ''}`}>
+                          {resumen.diasPendientes - previewDias.dias}
+                        </span>
+                        <span className="balance-label">días totales</span>
+                      </div>
+
+                      {previewDias.tipoPeriodo === 'estival' ? (
+                        <div className="preview-balance-item estival">
+                          <span className="balance-actual">{resumen.estival?.usados || 0}</span>
+                          <span className="balance-flecha">→</span>
+                          <span className="balance-nuevo">{(resumen.estival?.usados || 0) + previewDias.dias}</span>
+                          <span className="balance-label">días verano usados</span>
+                          <span className="balance-meta">(mín. 15)</span>
+                        </div>
+                      ) : (
+                        <div className="preview-balance-item no-estival">
+                          <span className="balance-actual">{resumen.noEstival?.usados || 0}</span>
+                          <span className="balance-flecha">→</span>
+                          <span className={`balance-nuevo ${(resumen.noEstival?.usados || 0) + previewDias.dias > 8 ? 'negativo' : ''}`}>
+                            {(resumen.noEstival?.usados || 0) + previewDias.dias}
+                          </span>
+                          <span className="balance-label">días resto año</span>
+                          <span className="balance-meta">(máx. 8)</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Advertencias */}
+                  {resumen.diasPendientes - previewDias.dias < 0 && (
+                    <div className="preview-advertencia error">
+                      No tienes suficientes días disponibles
+                    </div>
+                  )}
+                  {previewDias.tipoPeriodo === 'no_estival' && (resumen.noEstival?.usados || 0) + previewDias.dias > 8 && (
+                    <div className="preview-advertencia error">
+                      Excedes el máximo de 8 días fuera del período estival
+                    </div>
+                  )}
                 </div>
               )}
 
