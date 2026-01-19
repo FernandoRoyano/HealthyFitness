@@ -26,6 +26,9 @@
 }
 
 .sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 20px;
   font-weight: 700;
   color: #75b760;
@@ -36,6 +39,12 @@
 
 .sidebar-logo:hover {
   color: #8bc977;
+}
+
+.sidebar-logo-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
 }
 
 /* Navegación del sidebar */

@@ -1,6 +1,14 @@
 import User from '../models/User.js';
 import Cliente from '../models/Cliente.js';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsPath = path.join(__dirname, '../../uploads');
 
 export const obtenerEntrenadores = async (req, res) => {
   try {
@@ -191,5 +199,98 @@ export const resetearPasswordEntrenador = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al resetear contraseña', error: error.message });
+  }
+};
+
+// Configuración de Multer para imágenes de usuarios
+const userImageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+    cb(null, uploadsPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `user-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const userImageUpload = multer({
+  storage: userImageStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB máximo
+  }
+});
+
+export const userImageUploadMiddleware = userImageUpload.single('foto');
+
+export const subirFotoEntrenador = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ mensaje: 'No se proporcionó ninguna imagen' });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    // Si ya tiene foto, eliminar la anterior
+    if (user.foto) {
+      const oldPhotoPath = path.join(uploadsPath, path.basename(user.foto));
+      if (fs.existsSync(oldPhotoPath)) {
+        fs.unlinkSync(oldPhotoPath);
+      }
+    }
+
+    const fotoUrl = `/uploads/${req.file.filename}`;
+    user.foto = fotoUrl;
+    await user.save();
+
+    res.json({
+      mensaje: 'Foto subida correctamente',
+      foto: fotoUrl
+    });
+  } catch (error) {
+    console.error('Error al subir foto:', error);
+    res.status(500).json({
+      mensaje: 'Error al subir la foto',
+      error: error.message
+    });
+  }
+};
+
+export const eliminarFotoEntrenador = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    if (user.foto) {
+      const photoPath = path.join(uploadsPath, path.basename(user.foto));
+      if (fs.existsSync(photoPath)) {
+        fs.unlinkSync(photoPath);
+      }
+      user.foto = undefined;
+      await user.save();
+    }
+
+    res.json({ mensaje: 'Foto eliminada correctamente' });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al eliminar la foto',
+      error: error.message
+    });
   }
 };

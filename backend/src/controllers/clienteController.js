@@ -3,6 +3,14 @@ import User from '../models/User.js';
 import multer from 'multer';
 import csv from 'csv-parser';
 import { Readable } from 'stream';
+import * as XLSX from 'xlsx';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsPath = path.join(__dirname, '../../uploads');
 
 export const obtenerClientes = async (req, res) => {
   try {
@@ -86,14 +94,22 @@ const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+    const allowedMimes = [
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    const allowedExtensions = ['.csv', '.xls', '.xlsx'];
+    const ext = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
+
+    if (allowedMimes.includes(file.mimetype) || allowedExtensions.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error('Solo se permiten archivos CSV'));
+      cb(new Error('Solo se permiten archivos CSV o Excel (.csv, .xls, .xlsx)'));
     }
   },
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB máximo
+    fileSize: 10 * 1024 * 1024 // 10MB máximo
   }
 });
 
@@ -152,6 +168,44 @@ const mapearNivelActividad = (nivelStr) => {
   return 'sedentario';
 };
 
+// Función helper para parsear archivo Excel
+const parseExcelFile = (buffer) => {
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+  // Normalizar headers a minúsculas
+  return data.map(row => {
+    const normalizedRow = {};
+    Object.keys(row).forEach(key => {
+      normalizedRow[key.trim().toLowerCase()] = row[key];
+    });
+    return normalizedRow;
+  });
+};
+
+// Función helper para parsear archivo CSV
+const parseCSVFile = async (buffer) => {
+  const results = [];
+  const stream = Readable.from(buffer.toString('utf-8'));
+
+  await new Promise((resolve, reject) => {
+    stream
+      .pipe(csv({
+        mapHeaders: ({ header }) => header.trim().toLowerCase(),
+        skipEmptyLines: true
+      }))
+      .on('data', (row) => {
+        results.push(row);
+      })
+      .on('end', resolve)
+      .on('error', reject);
+  });
+
+  return results;
+};
+
 export const importarClientes = async (req, res) => {
   try {
     if (!req.file) {
@@ -160,36 +214,27 @@ export const importarClientes = async (req, res) => {
 
     const { entrenadorId } = req.body;
 
-    if (!entrenadorId) {
-      return res.status(400).json({ mensaje: 'Debe especificar un entrenador para asignar los clientes' });
+    // Solo verificar entrenador si se proporcionó uno (es opcional)
+    if (entrenadorId) {
+      const entrenador = await User.findById(entrenadorId);
+      if (!entrenador) {
+        return res.status(404).json({ mensaje: 'Entrenador no encontrado' });
+      }
     }
 
-    // Verificar que el entrenador existe
-    const entrenador = await User.findById(entrenadorId);
-    if (!entrenador) {
-      return res.status(404).json({ mensaje: 'Entrenador no encontrado' });
-    }
-
-    const results = [];
     const errors = [];
     const clientesImportados = [];
 
-    // Convertir buffer a stream
-    const stream = Readable.from(req.file.buffer.toString('utf-8'));
+    // Determinar tipo de archivo y parsear
+    const fileName = req.file.originalname.toLowerCase();
+    const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
 
-    // Procesar CSV
-    await new Promise((resolve, reject) => {
-      stream
-        .pipe(csv({
-          mapHeaders: ({ header }) => header.trim().toLowerCase(),
-          skipEmptyLines: true
-        }))
-        .on('data', (row) => {
-          results.push(row);
-        })
-        .on('end', resolve)
-        .on('error', reject);
-    });
+    let results;
+    if (isExcel) {
+      results = parseExcelFile(req.file.buffer);
+    } else {
+      results = await parseCSVFile(req.file.buffer);
+    }
 
     // Procesar cada fila
     for (let i = 0; i < results.length; i++) {
@@ -238,7 +283,7 @@ export const importarClientes = async (req, res) => {
           altura: parseFloat(row.altura || row.height) || undefined,
           nivelActividad: mapearNivelActividad(row.nivelactividad || row.nivel_actividad || row.activity_level),
           notas: (row.notas || row.notes || row.comentarios || '').trim(),
-          entrenador: entrenadorId,
+          entrenador: entrenadorId || undefined,
           activo: true
         };
 
@@ -276,6 +321,101 @@ export const importarClientes = async (req, res) => {
     console.error('Error al importar clientes:', error);
     res.status(500).json({
       mensaje: 'Error al importar clientes',
+      error: error.message
+    });
+  }
+};
+
+// Configuración de Multer para imágenes
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+    cb(null, uploadsPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, `cliente-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+const imageUpload = multer({
+  storage: imageStorage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'), false);
+    }
+  },
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB máximo
+  }
+});
+
+export const imageUploadMiddleware = imageUpload.single('foto');
+
+export const subirFotoCliente = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ mensaje: 'No se proporcionó ninguna imagen' });
+    }
+
+    const cliente = await Cliente.findById(req.params.id);
+    if (!cliente) {
+      // Eliminar archivo subido si el cliente no existe
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
+
+    // Si el cliente ya tiene una foto, eliminar la anterior
+    if (cliente.foto) {
+      const oldPhotoPath = path.join(uploadsPath, path.basename(cliente.foto));
+      if (fs.existsSync(oldPhotoPath)) {
+        fs.unlinkSync(oldPhotoPath);
+      }
+    }
+
+    // Guardar la URL de la nueva foto
+    const fotoUrl = `/uploads/${req.file.filename}`;
+    cliente.foto = fotoUrl;
+    await cliente.save();
+
+    res.json({
+      mensaje: 'Foto subida correctamente',
+      foto: fotoUrl
+    });
+  } catch (error) {
+    console.error('Error al subir foto:', error);
+    res.status(500).json({
+      mensaje: 'Error al subir la foto',
+      error: error.message
+    });
+  }
+};
+
+export const eliminarFotoCliente = async (req, res) => {
+  try {
+    const cliente = await Cliente.findById(req.params.id);
+    if (!cliente) {
+      return res.status(404).json({ mensaje: 'Cliente no encontrado' });
+    }
+
+    if (cliente.foto) {
+      const photoPath = path.join(uploadsPath, path.basename(cliente.foto));
+      if (fs.existsSync(photoPath)) {
+        fs.unlinkSync(photoPath);
+      }
+      cliente.foto = undefined;
+      await cliente.save();
+    }
+
+    res.json({ mensaje: 'Foto eliminada correctamente' });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al eliminar la foto',
       error: error.message
     });
   }

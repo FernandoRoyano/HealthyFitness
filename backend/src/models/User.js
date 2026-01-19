@@ -28,6 +28,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  foto: {
+    type: String
+  },
   activo: {
     type: Boolean,
     default: true

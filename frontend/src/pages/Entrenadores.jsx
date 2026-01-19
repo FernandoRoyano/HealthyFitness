@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usersAPI } from '../services/api';
 import './Entrenadores.css';
 
@@ -10,6 +10,10 @@ function Entrenadores() {
   const [entrenadorEditando, setEntrenadorEditando] = useState(null);
   const [mostrarModalReasignar, setMostrarModalReasignar] = useState(false);
   const [mostrarModalCrear, setMostrarModalCrear] = useState(false);
+  const fotoInputRef = useRef(null);
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [archivoFoto, setArchivoFoto] = useState(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [formulario, setFormulario] = useState({
     nombre: '',
     email: '',
@@ -81,6 +85,12 @@ function Entrenadores() {
     e.preventDefault();
     try {
       await usersAPI.actualizarEntrenador(entrenadorEditando._id, formulario);
+
+      // Si hay foto nueva, subirla
+      if (archivoFoto && entrenadorEditando._id) {
+        await handleSubirFoto(entrenadorEditando._id);
+      }
+
       cargarEntrenadores();
       cerrarFormulario();
       setError('');
@@ -110,17 +120,55 @@ function Entrenadores() {
       email: entrenador.email,
       telefono: entrenador.telefono || ''
     });
+    // Si tiene foto, mostrar preview
+    if (entrenador.foto) {
+      const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+      setFotoPreview(`${apiUrl}${entrenador.foto}`);
+    } else {
+      setFotoPreview(null);
+    }
+    setArchivoFoto(null);
     setMostrarFormulario(true);
   };
 
   const cerrarFormulario = () => {
     setMostrarFormulario(false);
     setEntrenadorEditando(null);
+    setFotoPreview(null);
+    setArchivoFoto(null);
     setFormulario({
       nombre: '',
       email: '',
       telefono: ''
     });
+  };
+
+  const handleFotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setArchivoFoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubirFoto = async (entrenadorId) => {
+    if (!archivoFoto) return;
+
+    setSubiendoFoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('foto', archivoFoto);
+      await usersAPI.subirFoto(entrenadorId, formData);
+      setArchivoFoto(null);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al subir foto');
+    } finally {
+      setSubiendoFoto(false);
+    }
   };
 
   const cerrarModalReasignar = () => {
@@ -195,42 +243,49 @@ function Entrenadores() {
       {error && <div style={styles.error}>{error}</div>}
 
       <div style={styles.grid}>
-        {entrenadores.map((entrenador) => (
-          <div key={entrenador._id} style={styles.card}>
-            <div style={styles.cardHeader}>
-              <h3 style={styles.cardTitle}>{entrenador.nombre}</h3>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => handleEditar(entrenador)}
-                  style={styles.buttonEdit}
-                >
-                  Editar
-                </button>
-                <button
-                  onClick={() => abrirModalPassword(entrenador)}
-                  style={styles.buttonPassword}
-                  title="Resetear contraseña"
-                >
-                  🔑
-                </button>
+        {entrenadores.map((entrenador) => {
+          return (
+            <div key={entrenador._id} style={styles.card}>
+              <div style={styles.cardHeader}>
+                <div style={styles.cardTitleSection}>
+                  <div style={styles.avatarSmall}>
+                    <span style={{ fontSize: '24px' }}>👤</span>
+                  </div>
+                  <h3 style={styles.cardTitle}>{entrenador.nombre}</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => handleEditar(entrenador)}
+                    style={styles.buttonEdit}
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => abrirModalPassword(entrenador)}
+                    style={styles.buttonPassword}
+                    title="Resetear contraseña"
+                  >
+                    🔑
+                  </button>
+                </div>
+              </div>
+              <div style={styles.cardBody}>
+                <div style={styles.infoRow}>
+                  <span style={styles.label}>Email:</span>
+                  <span style={styles.value}>{entrenador.email}</span>
+                </div>
+                <div style={styles.infoRow}>
+                  <span style={styles.label}>Teléfono:</span>
+                  <span style={styles.value}>{entrenador.telefono || 'No especificado'}</span>
+                </div>
+                <div style={styles.infoRow}>
+                  <span style={styles.label}>Rol:</span>
+                  <span style={styles.badge}>{entrenador.rol}</span>
+                </div>
               </div>
             </div>
-            <div style={styles.cardBody}>
-              <div style={styles.infoRow}>
-                <span style={styles.label}>Email:</span>
-                <span style={styles.value}>{entrenador.email}</span>
-              </div>
-              <div style={styles.infoRow}>
-                <span style={styles.label}>Teléfono:</span>
-                <span style={styles.value}>{entrenador.telefono || 'No especificado'}</span>
-              </div>
-              <div style={styles.infoRow}>
-                <span style={styles.label}>Rol:</span>
-                <span style={styles.badge}>{entrenador.rol}</span>
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {mostrarFormulario && (
@@ -241,6 +296,37 @@ function Entrenadores() {
               <button onClick={cerrarFormulario} style={styles.closeButton}>×</button>
             </div>
             <form onSubmit={handleSubmit} style={styles.form}>
+              {/* FOTO DESHABILITADA TEMPORALMENTE - Se reactivará cuando se implemente Cloudinary
+              <div style={styles.fotoSection}>
+                <div style={styles.fotoPreviewContainer}>
+                  {fotoPreview ? (
+                    <img src={fotoPreview} alt="Preview" style={styles.fotoPreview} />
+                  ) : (
+                    <div style={styles.fotoPlaceholder}>
+                      <span style={{ fontSize: '40px' }}>👤</span>
+                    </div>
+                  )}
+                </div>
+                <div style={styles.fotoActions}>
+                  <input
+                    ref={fotoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFotoChange}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fotoInputRef.current?.click()}
+                    style={styles.buttonSecondary}
+                  >
+                    {fotoPreview ? 'Cambiar foto' : 'Subir foto'}
+                  </button>
+                  <span style={{ fontSize: '12px', color: '#666' }}>Opcional (JPG, PNG, WebP)</span>
+                </div>
+              </div>
+              */}
+
               <div style={styles.formGroup}>
                 <label style={styles.labelForm}>Nombre Completo*</label>
                 <input
@@ -695,6 +781,64 @@ const styles = {
     fontSize: '14px',
     lineHeight: '1.6',
     color: '#1976d2'
+  },
+  // Estilos para sección de foto
+  fotoSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+    padding: '15px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px'
+  },
+  fotoPreviewContainer: {
+    width: '100px',
+    height: '100px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    border: '3px solid #dee2e6',
+    flexShrink: 0
+  },
+  fotoPreview: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  fotoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e9ecef'
+  },
+  fotoActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px'
+  },
+  // Estilos para avatar en cards
+  cardTitleSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  },
+  avatarSmall: {
+    width: '50px',
+    height: '50px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    backgroundColor: '#e9ecef',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: '2px solid #dee2e6',
+    flexShrink: 0
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
   }
 };
 

@@ -66,10 +66,16 @@ const clienteSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  numeroCuenta: {
+    type: String,
+    trim: true
+  },
+  foto: {
+    type: String
+  },
   entrenador: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'El cliente debe tener un entrenador asignado']
+    ref: 'User'
   }
 }, {
   timestamps: true

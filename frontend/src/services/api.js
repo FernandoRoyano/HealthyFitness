@@ -33,12 +33,12 @@ export const clientesAPI = {
   actualizar: (id, datos) => api.put(`/clientes/${id}`, datos),
   eliminar: (id) => api.delete(`/clientes/${id}`),
   importar: (formData) => {
-    return api.post('/clientes/importar', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-  }
+    return api.post('/clientes/importar', formData);
+  },
+  subirFoto: (id, formData) => {
+    return api.post(`/clientes/${id}/foto`, formData);
+  },
+  eliminarFoto: (id) => api.delete(`/clientes/${id}/foto`)
 };
 
 export const reservasAPI = {
@@ -59,7 +59,11 @@ export const usersAPI = {
   resetearPasswordEntrenador: (id, nuevaPassword) => api.put(`/users/entrenadores/${id}/resetear-password`, { nuevaPassword }),
   obtenerClientesPorEntrenador: (id) => api.get(`/users/entrenadores/${id}/clientes`),
   reasignarClientes: (entrenadorOrigenId, entrenadorDestinoId) =>
-    api.post('/users/entrenadores/reasignar-clientes', { entrenadorOrigenId, entrenadorDestinoId })
+    api.post('/users/entrenadores/reasignar-clientes', { entrenadorOrigenId, entrenadorDestinoId }),
+  subirFoto: (id, formData) => {
+    return api.post(`/users/entrenadores/${id}/foto`, formData);
+  },
+  eliminarFoto: (id) => api.delete(`/users/entrenadores/${id}/foto`)
 };
 
 export const solicitudesCambioAPI = {
