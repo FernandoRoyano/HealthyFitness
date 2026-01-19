@@ -64,6 +64,8 @@ function Facturacion() {
     descuento: '',
     notas: ''
   });
+  const [suscripcionCliente, setSuscripcionCliente] = useState(null);
+  const [buscandoSuscripcion, setBuscandoSuscripcion] = useState(false);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -242,11 +244,43 @@ function Facturacion() {
     setFormNuevaFactura({
       clienteId: '',
       sesiones: '',
-      precioUnitario: '25',
+      precioUnitario: '',
       descuento: '',
       notas: ''
     });
+    setSuscripcionCliente(null);
     setModalNuevaFactura(true);
+  };
+
+  // Buscar suscripción cuando cambia el cliente
+  const handleClienteChange = async (clienteId) => {
+    setFormNuevaFactura(prev => ({ ...prev, clienteId }));
+    setSuscripcionCliente(null);
+
+    if (!clienteId) {
+      setFormNuevaFactura(prev => ({ ...prev, precioUnitario: '' }));
+      return;
+    }
+
+    setBuscandoSuscripcion(true);
+    try {
+      const res = await facturacionAPI.obtenerSuscripcionCliente(clienteId);
+      if (res.data.existe) {
+        setSuscripcionCliente(res.data);
+        setFormNuevaFactura(prev => ({
+          ...prev,
+          precioUnitario: res.data.precioUnitarioFijado?.toString() || ''
+        }));
+      } else {
+        setSuscripcionCliente(null);
+        setFormNuevaFactura(prev => ({ ...prev, precioUnitario: '' }));
+      }
+    } catch (err) {
+      console.error('Error al buscar suscripción:', err);
+      setSuscripcionCliente(null);
+    } finally {
+      setBuscandoSuscripcion(false);
+    }
   };
 
   // Crear factura manual
@@ -852,7 +886,7 @@ function Facturacion() {
                 <label>Cliente *</label>
                 <select
                   value={formNuevaFactura.clienteId}
-                  onChange={(e) => setFormNuevaFactura({ ...formNuevaFactura, clienteId: e.target.value })}
+                  onChange={(e) => handleClienteChange(e.target.value)}
                   required
                 >
                   <option value="">Seleccionar cliente...</option>
@@ -860,7 +894,31 @@ function Facturacion() {
                     <option key={c._id} value={c._id}>{c.nombre} {c.apellido}</option>
                   ))}
                 </select>
+                {buscandoSuscripcion && (
+                  <span className="buscando-suscripcion">Buscando tarifa...</span>
+                )}
               </div>
+
+              {/* Info de suscripción del cliente */}
+              {formNuevaFactura.clienteId && !buscandoSuscripcion && (
+                <div className={`info-suscripcion ${suscripcionCliente ? 'con-suscripcion' : 'sin-suscripcion'}`}>
+                  {suscripcionCliente ? (
+                    <>
+                      <span className="suscripcion-icono">✓</span>
+                      <span>
+                        <strong>{suscripcionCliente.producto?.nombre || 'Suscripción'}</strong>
+                        {' - '}{suscripcionCliente.diasPorSemana} días/semana
+                        {' - '}<strong>{suscripcionCliente.precioUnitarioFijado?.toFixed(2)}€</strong>/sesión
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="suscripcion-icono">!</span>
+                      <span>Cliente sin suscripción - introduce precio manualmente</span>
+                    </>
+                  )}
+                </div>
+              )}
 
               <div className="form-row-2">
                 <div className="form-grupo">
