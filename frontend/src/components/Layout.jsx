@@ -117,7 +117,8 @@ function Layout({ children }) {
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <Link to="/dashboard" className="sidebar-logo" onClick={closeSidebar}>
-            HealthyFitness
+            <img src="/logo.png" alt="HealthyFitness" className="sidebar-logo-img" />
+            <span>HealthyFitness</span>
           </Link>
         </div>
 

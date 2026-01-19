@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { clientesAPI, usersAPI } from '../services/api';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import './Clientes.css';
 
 function Clientes() {
@@ -17,6 +18,10 @@ function Clientes() {
   const [importando, setImportando] = useState(false);
   const [resultadoImportacion, setResultadoImportacion] = useState(null);
   const fileInputRef = useRef(null);
+  const fotoInputRef = useRef(null);
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [archivoFoto, setArchivoFoto] = useState(null);
+  const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [formulario, setFormulario] = useState({
     nombre: '',
     apellido: '',
@@ -31,6 +36,7 @@ function Clientes() {
     altura: '',
     nivelActividad: 'sedentario',
     notas: '',
+    numeroCuenta: '',
     entrenador: ''
   });
 
@@ -72,11 +78,20 @@ function Clientes() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      let clienteId;
       if (clienteEditando) {
         await clientesAPI.actualizar(clienteEditando._id, formulario);
+        clienteId = clienteEditando._id;
       } else {
-        await clientesAPI.crear(formulario);
+        const { data } = await clientesAPI.crear(formulario);
+        clienteId = data._id;
       }
+
+      // Si hay foto nueva, subirla
+      if (archivoFoto && clienteId) {
+        await handleSubirFoto(clienteId);
+      }
+
       cargarClientes();
       cerrarFormulario();
     } catch (err) {
@@ -100,8 +115,17 @@ function Clientes() {
       altura: cliente.altura || '',
       nivelActividad: cliente.nivelActividad || 'sedentario',
       notas: cliente.notas || '',
+      numeroCuenta: cliente.numeroCuenta || '',
       entrenador: cliente.entrenador?._id || ''
     });
+    // Si tiene foto, mostrar preview
+    if (cliente.foto) {
+      const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+      setFotoPreview(`${apiUrl}${cliente.foto}`);
+    } else {
+      setFotoPreview(null);
+    }
+    setArchivoFoto(null);
     setMostrarFormulario(true);
   };
 
@@ -119,6 +143,8 @@ function Clientes() {
   const cerrarFormulario = () => {
     setMostrarFormulario(false);
     setClienteEditando(null);
+    setFotoPreview(null);
+    setArchivoFoto(null);
     setFormulario({
       nombre: '',
       apellido: '',
@@ -133,28 +159,73 @@ function Clientes() {
       altura: '',
       nivelActividad: 'sedentario',
       notas: '',
+      numeroCuenta: '',
       entrenador: ''
     });
+  };
+
+  const handleFotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setArchivoFoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFotoPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubirFoto = async (clienteId) => {
+    if (!archivoFoto) return;
+
+    setSubiendoFoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('foto', archivoFoto);
+      await clientesAPI.subirFoto(clienteId, formData);
+      setArchivoFoto(null);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al subir foto');
+    } finally {
+      setSubiendoFoto(false);
+    }
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setArchivoCSV(file);
-      // Preview del CSV
-      Papa.parse(file, {
-        header: true,
-        preview: 5, // Mostrar solo las primeras 5 filas
-        complete: (results) => {
-          setPreviewCSV(results.data);
-        }
-      });
+      const fileName = file.name.toLowerCase();
+
+      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+        // Preview de archivo Excel
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+          setPreviewCSV(jsonData.slice(0, 5)); // Mostrar solo las primeras 5 filas
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        // Preview de archivo CSV
+        Papa.parse(file, {
+          header: true,
+          preview: 5,
+          complete: (results) => {
+            setPreviewCSV(results.data);
+          }
+        });
+      }
     }
   };
 
   const handleImportarCSV = async () => {
-    if (!archivoCSV || !entrenadorImportar) {
-      setError('Debe seleccionar un archivo CSV y un entrenador');
+    if (!archivoCSV) {
+      setError('Debe seleccionar un archivo');
       return;
     }
 
@@ -199,7 +270,7 @@ function Clientes() {
             onClick={() => setMostrarImportar(true)}
             style={styles.buttonSecondary}
           >
-            📥 Importar CSV
+            📥 Importar
           </button>
           <button
             onClick={() => setMostrarFormulario(true)}
@@ -220,6 +291,37 @@ function Clientes() {
               <button onClick={cerrarFormulario} style={styles.closeButton}>×</button>
             </div>
             <form onSubmit={handleSubmit} style={styles.form}>
+              {/* FOTO DESHABILITADA TEMPORALMENTE - Se reactivará cuando se implemente Cloudinary
+              <div style={styles.fotoSection}>
+                <div style={styles.fotoPreviewContainer}>
+                  {fotoPreview ? (
+                    <img src={fotoPreview} alt="Preview" style={styles.fotoPreview} />
+                  ) : (
+                    <div style={styles.fotoPlaceholder}>
+                      <span style={{ fontSize: '40px' }}>👤</span>
+                    </div>
+                  )}
+                </div>
+                <div style={styles.fotoActions}>
+                  <input
+                    ref={fotoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={handleFotoChange}
+                    style={{ display: 'none' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fotoInputRef.current?.click()}
+                    style={styles.buttonSecondary}
+                  >
+                    {fotoPreview ? 'Cambiar foto' : 'Subir foto'}
+                  </button>
+                  <span style={{ fontSize: '12px', color: '#666' }}>Opcional (JPG, PNG, WebP)</span>
+                </div>
+              </div>
+              */}
+
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Nombre*</label>
@@ -325,6 +427,19 @@ function Clientes() {
                 />
               </div>
 
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Número de Cuenta (IBAN)</label>
+                <input
+                  type="text"
+                  name="numeroCuenta"
+                  value={formulario.numeroCuenta}
+                  onChange={handleChange}
+                  placeholder="ES00 0000 0000 0000 0000 0000"
+                  style={styles.input}
+                />
+                <span style={{ fontSize: '12px', color: '#666' }}>Opcional - Para recibos domiciliados</span>
+              </div>
+
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Peso (kg)</label>
@@ -414,14 +529,19 @@ function Clientes() {
         <div style={styles.modal} onClick={cerrarModalImportar}>
           <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h2>Importar Clientes desde CSV</h2>
+              <h2>Importar Clientes</h2>
               <button onClick={cerrarModalImportar} style={styles.closeButton}>×</button>
             </div>
             <div style={styles.form}>
               {!resultadoImportacion ? (
                 <>
                   <div style={styles.importInfo}>
-                    <h3 style={{ marginBottom: '10px', fontSize: '16px' }}>Formato del archivo CSV</h3>
+                    <h3 style={{ marginBottom: '10px', fontSize: '16px' }}>Formatos aceptados</h3>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                      <span style={styles.formatBadge}>📄 CSV</span>
+                      <span style={styles.formatBadge}>📊 Excel (.xlsx)</span>
+                      <span style={styles.formatBadge}>📊 Excel (.xls)</span>
+                    </div>
                     <p style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
                       El archivo debe incluir al menos estas columnas (en cualquier orden):
                     </p>
@@ -437,11 +557,11 @@ function Clientes() {
                   </div>
 
                   <div style={styles.formGroup}>
-                    <label style={styles.label}>Seleccionar archivo CSV*</label>
+                    <label style={styles.label}>Seleccionar archivo (CSV o Excel)*</label>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept=".csv"
+                      accept=".csv,.xlsx,.xls"
                       onChange={handleFileChange}
                       style={styles.inputFile}
                     />
@@ -474,13 +594,13 @@ function Clientes() {
                   )}
 
                   <div style={styles.formGroup}>
-                    <label style={styles.label}>Asignar a entrenador*</label>
+                    <label style={styles.label}>Asignar a entrenador (opcional)</label>
                     <select
                       value={entrenadorImportar}
                       onChange={(e) => setEntrenadorImportar(e.target.value)}
                       style={styles.input}
                     >
-                      <option value="">Seleccionar entrenador</option>
+                      <option value="">Sin asignar</option>
                       {entrenadores.map((entrenador) => (
                         <option key={entrenador._id} value={entrenador._id}>
                           {entrenador.nombre}
@@ -497,7 +617,7 @@ function Clientes() {
                       type="button"
                       onClick={handleImportarCSV}
                       style={styles.buttonPrimary}
-                      disabled={importando || !archivoCSV || !entrenadorImportar}
+                      disabled={importando || !archivoCSV}
                     >
                       {importando ? 'Importando...' : 'Importar'}
                     </button>
@@ -968,6 +1088,51 @@ const styles = {
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer'
+  },
+  formatBadge: {
+    display: 'inline-block',
+    padding: '4px 10px',
+    backgroundColor: '#e9ecef',
+    borderRadius: '4px',
+    fontSize: '13px',
+    color: '#495057',
+    fontWeight: '500'
+  },
+  // Estilos para sección de foto
+  fotoSection: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+    padding: '15px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    marginBottom: '10px'
+  },
+  fotoPreviewContainer: {
+    width: '100px',
+    height: '100px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    border: '3px solid #dee2e6',
+    flexShrink: 0
+  },
+  fotoPreview: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  fotoPlaceholder: {
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e9ecef'
+  },
+  fotoActions: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px'
   }
 };
 

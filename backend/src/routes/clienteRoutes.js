@@ -6,7 +6,10 @@ import {
   actualizarCliente,
   eliminarCliente,
   importarClientes,
-  uploadMiddleware
+  uploadMiddleware,
+  imageUploadMiddleware,
+  subirFotoCliente,
+  eliminarFotoCliente
 } from '../controllers/clienteController.js';
 import { proteger } from '../middleware/authMiddleware.js';
 
@@ -19,6 +22,11 @@ router.route('/')
   .post(crearCliente);
 
 router.post('/importar', uploadMiddleware, importarClientes);
+
+// Rutas de foto - deben ir ANTES de /:id
+router.route('/:id/foto')
+  .post(imageUploadMiddleware, subirFotoCliente)
+  .delete(eliminarFotoCliente);
 
 router.route('/:id')
   .get(obtenerClientePorId)
