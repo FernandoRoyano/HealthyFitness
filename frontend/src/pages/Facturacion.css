@@ -638,6 +638,13 @@
   border-color: #75b760;
 }
 
+.form-grupo .input-hint {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
 .dias-selector {
   display: flex;
   gap: 8px;
@@ -1085,7 +1092,11 @@
 
 /* ==================== MODAL EDITAR FACTURA ==================== */
 .modal-editar-factura {
-  max-width: 500px;
+  max-width: 600px;
+}
+
+.modal-nueva-factura {
+  max-width: 600px;
 }
 
 .factura-cliente-info {

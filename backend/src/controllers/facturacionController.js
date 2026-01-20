@@ -510,7 +510,17 @@ export const obtenerFacturaPorId = async (req, res) => {
 // Actualizar factura (ajustes manuales)
 export const actualizarFactura = async (req, res) => {
   try {
-    const { descuentos, notasInternas, notasCliente, sesionesAcumuladasSiguiente } = req.body;
+    const {
+      descuentos,
+      notasInternas,
+      notasCliente,
+      sesionesAcumuladasSiguiente,
+      totalSesionesACobrar,
+      subtotal,
+      totalDescuentos,
+      totalAPagar,
+      diasAsistencia
+    } = req.body;
 
     const factura = await FacturaMensual.findById(req.params.id);
     if (!factura) {
@@ -521,6 +531,7 @@ export const actualizarFactura = async (req, res) => {
       return res.status(400).json({ mensaje: 'No se puede modificar una factura pagada o anulada' });
     }
 
+    // Campos originales
     if (descuentos !== undefined) factura.descuentos = descuentos;
     if (notasInternas !== undefined) factura.notasInternas = notasInternas;
     if (notasCliente !== undefined) factura.notasCliente = notasCliente;
@@ -528,8 +539,26 @@ export const actualizarFactura = async (req, res) => {
       factura.sesionesAcumuladasSiguiente = sesionesAcumuladasSiguiente;
     }
 
+    // Campos nuevos para edición manual
+    if (totalSesionesACobrar !== undefined) {
+      factura.totalSesionesACobrar = totalSesionesACobrar;
+      factura.sesionesProgramadas = totalSesionesACobrar;
+      factura.sesionesAsistidas = totalSesionesACobrar;
+    }
+    if (subtotal !== undefined) factura.subtotal = subtotal;
+    if (totalDescuentos !== undefined) factura.totalDescuentos = totalDescuentos;
+    if (totalAPagar !== undefined) factura.totalAPagar = totalAPagar;
+    if (diasAsistencia !== undefined) factura.diasAsistencia = diasAsistencia;
+
+    // Actualizar precio unitario si viene en el body
+    if (req.body['datosSuscripcion.precioUnitario'] !== undefined) {
+      if (!factura.datosSuscripcion) {
+        factura.datosSuscripcion = {};
+      }
+      factura.datosSuscripcion.precioUnitario = req.body['datosSuscripcion.precioUnitario'];
+    }
+
     factura.modificadaPor = req.usuario._id;
-    factura.calcularTotales();
 
     await factura.save();
 
@@ -713,7 +742,7 @@ export const obtenerClientesSinSuscripcion = async (req, res) => {
 // Crear factura manual (sin necesidad de suscripción)
 export const crearFacturaManual = async (req, res) => {
   try {
-    const { clienteId, mes, anio, sesiones, precioUnitario, descuento, notas } = req.body;
+    const { clienteId, mes, anio, sesiones, precioUnitario, descuento, notas, diasAsistencia } = req.body;
 
     // Validaciones
     if (!clienteId || !mes || !anio || !sesiones || !precioUnitario) {
@@ -783,6 +812,8 @@ export const crearFacturaManual = async (req, res) => {
       // Notas
       notasInternas: notas || '',
       notasCliente: '',
+      // Días de asistencia marcados
+      diasAsistencia: diasAsistencia || [],
       // Registro
       generadaPor: req.usuario._id,
       esManual: true
