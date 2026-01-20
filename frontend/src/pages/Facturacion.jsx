@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { facturacionAPI, clientesAPI, productosAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import CalendarioAsistencias from '../components/CalendarioAsistencias';
 import './Facturacion.css';
 
 const MESES = [
@@ -66,6 +67,7 @@ function Facturacion() {
   });
   const [suscripcionCliente, setSuscripcionCliente] = useState(null);
   const [buscandoSuscripcion, setBuscandoSuscripcion] = useState(false);
+  const [diasAsistenciaNueva, setDiasAsistenciaNueva] = useState([]);
 
   // Modal de editar factura
   const [modalEditarFactura, setModalEditarFactura] = useState(false);
@@ -76,6 +78,7 @@ function Facturacion() {
     descuento: '',
     notas: ''
   });
+  const [diasAsistenciaEditar, setDiasAsistenciaEditar] = useState([]);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -259,7 +262,17 @@ function Facturacion() {
       notas: ''
     });
     setSuscripcionCliente(null);
+    setDiasAsistenciaNueva([]);
     setModalNuevaFactura(true);
+  };
+
+  // Manejar cambio de días en calendario nueva factura
+  const handleDiasAsistenciaNuevaChange = (dias) => {
+    setDiasAsistenciaNueva(dias);
+    setFormNuevaFactura(prev => ({
+      ...prev,
+      sesiones: dias.length.toString()
+    }));
   };
 
   // Buscar suscripción cuando cambia el cliente
@@ -307,10 +320,12 @@ function Facturacion() {
         sesiones: parseInt(formNuevaFactura.sesiones),
         precioUnitario: parseFloat(formNuevaFactura.precioUnitario),
         descuento: formNuevaFactura.descuento ? parseFloat(formNuevaFactura.descuento) : 0,
-        notas: formNuevaFactura.notas
+        notas: formNuevaFactura.notas,
+        diasAsistencia: diasAsistenciaNueva
       });
       setMensaje('Factura creada correctamente');
       setModalNuevaFactura(false);
+      setDiasAsistenciaNueva([]);
       cargarDatos();
     } catch (err) {
       console.error('Error al crear factura:', err);
@@ -349,7 +364,18 @@ function Facturacion() {
       descuento: factura.totalDescuentos?.toString() || '0',
       notas: factura.notasInternas || ''
     });
+    // Cargar días de asistencia si existen
+    setDiasAsistenciaEditar(factura.diasAsistencia || []);
     setModalEditarFactura(true);
+  };
+
+  // Manejar cambio de días en calendario editar factura
+  const handleDiasAsistenciaEditarChange = (dias) => {
+    setDiasAsistenciaEditar(dias);
+    setFormEditarFactura(prev => ({
+      ...prev,
+      sesiones: dias.length.toString()
+    }));
   };
 
   // Guardar cambios de factura
@@ -373,12 +399,14 @@ function Facturacion() {
         subtotal: subtotal,
         totalDescuentos: descuento,
         totalAPagar: totalAPagar,
-        notasInternas: formEditarFactura.notas
+        notasInternas: formEditarFactura.notas,
+        diasAsistencia: diasAsistenciaEditar
       });
 
       setMensaje('Factura actualizada correctamente');
       setModalEditarFactura(false);
       setFacturaEditando(null);
+      setDiasAsistenciaEditar([]);
       cargarDatos();
     } catch (err) {
       console.error('Error al actualizar factura:', err);
@@ -1018,6 +1046,17 @@ function Facturacion() {
                 </div>
               )}
 
+              {/* Calendario de asistencias */}
+              <div className="form-grupo">
+                <label>Marcar días de asistencia (opcional)</label>
+                <CalendarioAsistencias
+                  mes={mesSeleccionado}
+                  anio={anioSeleccionado}
+                  diasSeleccionados={diasAsistenciaNueva}
+                  onChange={handleDiasAsistenciaNuevaChange}
+                />
+              </div>
+
               <div className="form-row-2">
                 <div className="form-grupo">
                   <label>Nº Sesiones *</label>
@@ -1029,6 +1068,7 @@ function Facturacion() {
                     placeholder="Ej: 8"
                     required
                   />
+                  <small className="input-hint">Se actualiza automáticamente al marcar días</small>
                 </div>
                 <div className="form-grupo">
                   <label>Precio/Sesión (€) *</label>
@@ -1110,6 +1150,17 @@ function Facturacion() {
             </div>
 
             <form onSubmit={handleGuardarFactura}>
+              {/* Calendario de asistencias */}
+              <div className="form-grupo">
+                <label>Marcar días de asistencia</label>
+                <CalendarioAsistencias
+                  mes={facturaEditando.mes}
+                  anio={facturaEditando.anio}
+                  diasSeleccionados={diasAsistenciaEditar}
+                  onChange={handleDiasAsistenciaEditarChange}
+                />
+              </div>
+
               <div className="form-row-2">
                 <div className="form-grupo">
                   <label>Nº Sesiones *</label>
@@ -1120,6 +1171,7 @@ function Facturacion() {
                     onChange={(e) => setFormEditarFactura({ ...formEditarFactura, sesiones: e.target.value })}
                     required
                   />
+                  <small className="input-hint">Se actualiza automáticamente al marcar días</small>
                 </div>
                 <div className="form-grupo">
                   <label>Precio/Sesión (€) *</label>

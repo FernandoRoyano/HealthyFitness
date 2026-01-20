@@ -233,6 +233,13 @@ const facturaMensualSchema = new mongoose.Schema({
     type: String
   },
 
+  // Días de asistencia marcados en el calendario (array de números del 1 al 31)
+  diasAsistencia: [{
+    type: Number,
+    min: 1,
+    max: 31
+  }],
+
   // Auditoría
   generadaPor: {
     type: mongoose.Schema.Types.ObjectId,
