@@ -36,13 +36,9 @@ const Productos = () => {
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  // Máximo de sesiones por mes según frecuencia semanal
+  // Máximo de sesiones por mes según frecuencia semanal (múltiplos de 5)
   const getMaxSesiones = (diasSemana) => {
-    if (diasSemana === 1) return 5;
-    if (diasSemana === 2) return 9;
-    if (diasSemana === 3) return 13;
-    if (diasSemana === 4) return 18;
-    return 22; // 5 días
+    return diasSemana * 5;
   };
 
   // Función para contar cuántas veces cae cada día de la semana en un mes
