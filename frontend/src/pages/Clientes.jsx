@@ -98,8 +98,8 @@ function Clientes() {
     }
     try {
       const res = await productosAPI.obtenerPrecio({
-        productoId,
-        diasPorSemana: parseInt(diasPorSemana)
+        producto_id: productoId,
+        dias_semana: parseInt(diasPorSemana)
       });
       setPrecioCalculado(res.data.precio);
     } catch {

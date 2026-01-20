@@ -75,11 +75,11 @@ const facturaMensualSchema = new mongoose.Schema({
     required: true
   },
 
-  // Referencia a la suscripción vigente
+  // Referencia a la suscripción vigente (null para facturas manuales)
   suscripcion: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'SuscripcionCliente',
-    required: true
+    required: false
   },
 
   // Snapshot de datos de suscripción al momento de generar
