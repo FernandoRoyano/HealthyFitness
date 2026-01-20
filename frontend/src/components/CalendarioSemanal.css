@@ -1,0 +1,384 @@
+/* ==================== CALENDARIO SEMANAL ==================== */
+.calendario-container {
+  background-color: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Header con navegación */
+.calendario-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.calendario-nav-btn {
+  padding: 10px 16px;
+  font-size: 14px;
+  background-color: #75b760;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.calendario-nav-btn:hover {
+  background-color: #5fa047;
+}
+
+.calendario-mes-anio {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+  text-transform: capitalize;
+  font-family: 'Niramit', sans-serif;
+}
+
+/* Tabs de días (solo móvil) */
+.calendario-dia-tabs {
+  display: none;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+
+.calendario-dia-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendario-dia-tab.activo {
+  background: white;
+  color: #75b760;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.calendario-dia-tab-fecha {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+/* Título del día seleccionado (solo móvil) */
+.calendario-dia-titulo {
+  display: none;
+  text-align: center;
+  padding: 12px;
+  background: linear-gradient(135deg, #75b760, #5fa047);
+  color: white;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Wrapper del calendario */
+.calendario-wrapper {
+  overflow-x: auto;
+}
+
+/* Grid del calendario (desktop) */
+.calendario-grid {
+  display: grid;
+  grid-template-columns: 70px repeat(5, 1fr);
+  gap: 1px;
+  background-color: #e5e7eb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  min-width: 800px;
+}
+
+/* Columnas */
+.calendario-columna-horas {
+  display: flex;
+  flex-direction: column;
+}
+
+.calendario-columna-dia {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Celdas de header */
+.calendario-header-celda {
+  background-color: #f8fafc;
+  padding: 12px 8px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #374151;
+}
+
+.calendario-header-celda.hoy {
+  background-color: #ecfdf5;
+  color: #059669;
+}
+
+.calendario-nombre-dia {
+  text-transform: capitalize;
+  font-size: 13px;
+}
+
+.calendario-fecha-dia {
+  font-size: 11px;
+  margin-top: 4px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+/* Celdas de hora */
+.calendario-hora-celda {
+  background-color: #fafafa;
+  padding: 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Celdas normales */
+.calendario-celda {
+  background-color: white;
+  min-height: 60px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Reserva */
+.calendario-reserva {
+  background: linear-gradient(135deg, #75b760, #5fa047);
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+  width: 100%;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 11px;
+}
+
+.calendario-reserva:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(117, 183, 96, 0.3);
+}
+
+.calendario-reserva-nombre {
+  font-weight: 600;
+  margin-bottom: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendario-reserva-hora {
+  font-size: 10px;
+  opacity: 0.9;
+}
+
+.calendario-reserva-tipo {
+  font-size: 10px;
+  margin-top: 2px;
+  opacity: 0.8;
+  text-transform: capitalize;
+}
+
+/* Botón agregar */
+.calendario-btn-agregar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px dashed #d1d5db;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendario-btn-agregar:hover {
+  border-color: #75b760;
+  color: #75b760;
+  background: #f0fdf4;
+}
+
+/* ==================== VISTA MÓVIL - DÍA ÚNICO ==================== */
+.calendario-vista-dia {
+  display: none;
+}
+
+.calendario-dia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.calendario-dia-fila {
+  display: flex;
+  background: white;
+  min-height: 70px;
+}
+
+.calendario-dia-hora {
+  width: 70px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  background: #fafafa;
+  border-right: 1px solid #e5e7eb;
+}
+
+.calendario-dia-contenido {
+  flex: 1;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+}
+
+.calendario-dia-reserva {
+  background: linear-gradient(135deg, #75b760, #5fa047);
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.calendario-dia-reserva-nombre {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.calendario-dia-reserva-info {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.calendario-dia-btn-agregar {
+  width: 100%;
+  height: 50px;
+  border: 2px dashed #d1d5db;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 24px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.calendario-dia-btn-agregar:hover {
+  border-color: #75b760;
+  color: #75b760;
+  background: #f0fdf4;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+  .calendario-container {
+    padding: 12px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .calendario-header {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .calendario-nav-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    order: 1;
+  }
+
+  .calendario-mes-anio {
+    width: 100%;
+    text-align: center;
+    font-size: 18px;
+    order: 0;
+    margin-bottom: 8px;
+  }
+
+  /* Ocultar grid semanal */
+  .calendario-wrapper {
+    display: none;
+  }
+
+  /* Mostrar tabs de días */
+  .calendario-dia-tabs {
+    display: flex;
+  }
+
+  /* Mostrar título del día */
+  .calendario-dia-titulo {
+    display: block;
+  }
+
+  /* Mostrar vista de día único */
+  .calendario-vista-dia {
+    display: block;
+  }
+}
+
+@media (max-width: 400px) {
+  .calendario-dia-tab {
+    padding: 8px 4px;
+    font-size: 12px;
+  }
+
+  .calendario-dia-tab-fecha {
+    font-size: 9px;
+  }
+
+  .calendario-dia-hora {
+    width: 60px;
+    font-size: 12px;
+  }
+
+  .calendario-dia-reserva-nombre {
+    font-size: 14px;
+  }
+
+  .calendario-dia-reserva-info {
+    font-size: 12px;
+  }
+}

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import './CalendarioSemanal.css';
 
 function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLectura = false }) {
   const [semanaActual, setSemanaActual] = useState(new Date());
+  const [diaSeleccionado, setDiaSeleccionado] = useState(0); // 0=Lunes, 4=Viernes
 
   const obtenerLunesDeLaSemana = (fecha) => {
     const d = new Date(fecha);
@@ -48,8 +50,18 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
     });
   };
 
+  const formatearFechaCorta = (fecha) => {
+    return fecha.toLocaleDateString('es-ES', {
+      day: '2-digit'
+    });
+  };
+
   const formatearNombreDia = (fecha) => {
     return fecha.toLocaleDateString('es-ES', { weekday: 'long' });
+  };
+
+  const formatearNombreDiaCorto = (fecha) => {
+    return fecha.toLocaleDateString('es-ES', { weekday: 'short' }).substring(0, 2).toUpperCase();
   };
 
   const esHoy = (fecha) => {
@@ -59,61 +71,89 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
 
   const diasSemana = obtenerDiasDeLaSemana();
   const mesAño = semanaActual.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  const diaActual = diasSemana[diaSeleccionado];
+
+  // Seleccionar automáticamente el día de hoy si está en la semana actual
+  useEffect(() => {
+    const hoy = new Date();
+    const indiceHoy = diasSemana.findIndex(dia => dia.toDateString() === hoy.toDateString());
+    if (indiceHoy !== -1) {
+      setDiaSeleccionado(indiceHoy);
+    }
+  }, [semanaActual]);
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <button onClick={() => cambiarSemana(-1)} style={styles.navButton}>
-          ← Semana Anterior
+    <div className="calendario-container">
+      {/* Header con navegación */}
+      <div className="calendario-header">
+        <h3 className="calendario-mes-anio">{mesAño}</h3>
+        <button onClick={() => cambiarSemana(-1)} className="calendario-nav-btn">
+          ← Anterior
         </button>
-        <h3 style={styles.mesAño}>{mesAño}</h3>
-        <button onClick={() => cambiarSemana(1)} style={styles.navButton}>
-          Semana Siguiente →
+        <button onClick={() => cambiarSemana(1)} className="calendario-nav-btn">
+          Siguiente →
         </button>
       </div>
 
-      <div style={styles.calendarioWrapper}>
-        <div style={styles.calendario}>
+      {/* Tabs de días (solo móvil) */}
+      <div className="calendario-dia-tabs">
+        {diasSemana.map((dia, index) => (
+          <button
+            key={index}
+            className={`calendario-dia-tab ${diaSeleccionado === index ? 'activo' : ''} ${esHoy(dia) ? 'hoy' : ''}`}
+            onClick={() => setDiaSeleccionado(index)}
+          >
+            {formatearNombreDiaCorto(dia)}
+            <span className="calendario-dia-tab-fecha">{formatearFechaCorta(dia)}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Título del día seleccionado (solo móvil) */}
+      <div className="calendario-dia-titulo">
+        {formatearNombreDia(diaActual)} {formatearFecha(diaActual)}
+      </div>
+
+      {/* Vista semanal (desktop) */}
+      <div className="calendario-wrapper">
+        <div className="calendario-grid">
           {/* Columna de horas */}
-          <div style={styles.columnaHoras}>
-            <div style={styles.headerCelda}></div>
+          <div className="calendario-columna-horas">
+            <div className="calendario-header-celda"></div>
             {horariosDisponibles.map(hora => (
-              <div key={hora} style={styles.horaCelda}>{hora}</div>
+              <div key={hora} className="calendario-hora-celda">{hora}</div>
             ))}
           </div>
 
           {/* Columnas de días */}
           {diasSemana.map((dia, index) => (
-            <div key={index} style={styles.columnaDia}>
-              <div style={{
-                ...styles.headerCelda,
-                ...(esHoy(dia) && styles.headerHoy)
-              }}>
-                <div style={styles.nombreDia}>{formatearNombreDia(dia)}</div>
-                <div style={styles.fechaDia}>{formatearFecha(dia)}</div>
+            <div key={index} className="calendario-columna-dia">
+              <div className={`calendario-header-celda ${esHoy(dia) ? 'hoy' : ''}`}>
+                <div className="calendario-nombre-dia">{formatearNombreDia(dia)}</div>
+                <div className="calendario-fecha-dia">{formatearFecha(dia)}</div>
               </div>
 
               {horariosDisponibles.map(hora => {
                 const reserva = obtenerReservaParaHorario(dia, hora);
                 return (
-                  <div key={hora} style={styles.celda}>
+                  <div key={hora} className="calendario-celda">
                     {reserva ? (
                       <div
-                        style={styles.reserva}
+                        className="calendario-reserva"
                         onClick={() => !soloLectura && onEditarReserva && onEditarReserva(reserva)}
                       >
-                        <div style={styles.clienteNombre}>
+                        <div className="calendario-reserva-nombre">
                           {reserva.cliente?.nombre} {reserva.cliente?.apellido}
                         </div>
-                        <div style={styles.reservaHora}>
+                        <div className="calendario-reserva-hora">
                           {reserva.horaInicio} - {reserva.horaFin}
                         </div>
-                        <div style={styles.reservaTipo}>{reserva.tipoSesion}</div>
+                        <div className="calendario-reserva-tipo">{reserva.tipoSesion}</div>
                       </div>
                     ) : (
                       !soloLectura && (
                         <button
-                          style={styles.btnAgregar}
+                          className="calendario-btn-agregar"
                           onClick={() => onAgregarReserva && onAgregarReserva(dia, hora)}
                         >
                           +
@@ -127,139 +167,46 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
           ))}
         </div>
       </div>
+
+      {/* Vista de día único (móvil) */}
+      <div className="calendario-vista-dia">
+        <div className="calendario-dia-lista">
+          {horariosDisponibles.map(hora => {
+            const reserva = obtenerReservaParaHorario(diaActual, hora);
+            return (
+              <div key={hora} className="calendario-dia-fila">
+                <div className="calendario-dia-hora">{hora}</div>
+                <div className="calendario-dia-contenido">
+                  {reserva ? (
+                    <div
+                      className="calendario-dia-reserva"
+                      onClick={() => !soloLectura && onEditarReserva && onEditarReserva(reserva)}
+                    >
+                      <div className="calendario-dia-reserva-nombre">
+                        {reserva.cliente?.nombre} {reserva.cliente?.apellido}
+                      </div>
+                      <div className="calendario-dia-reserva-info">
+                        {reserva.horaInicio} - {reserva.horaFin} • {reserva.tipoSesion}
+                      </div>
+                    </div>
+                  ) : (
+                    !soloLectura && (
+                      <button
+                        className="calendario-dia-btn-agregar"
+                        onClick={() => onAgregarReserva && onAgregarReserva(diaActual, hora)}
+                      >
+                        +
+                      </button>
+                    )
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    padding: '20px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-  },
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '20px'
-  },
-  navButton: {
-    padding: '8px 16px',
-    fontSize: '14px',
-    backgroundColor: '#007bff',
-    color: 'white',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer'
-  },
-  mesAño: {
-    fontSize: '20px',
-    fontWeight: 'bold',
-    color: '#333',
-    textTransform: 'capitalize'
-  },
-  calendarioWrapper: {
-    overflowX: 'auto'
-  },
-  calendario: {
-    display: 'grid',
-    gridTemplateColumns: '80px repeat(5, 1fr)',
-    gap: '1px',
-    backgroundColor: '#e0e0e0',
-    border: '1px solid #e0e0e0',
-    minWidth: '900px'
-  },
-  columnaHoras: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  columnaDia: {
-    display: 'flex',
-    flexDirection: 'column'
-  },
-  headerCelda: {
-    backgroundColor: '#f8f9fa',
-    padding: '12px 8px',
-    textAlign: 'center',
-    fontWeight: '600',
-    fontSize: '14px',
-    minHeight: '60px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  headerHoy: {
-    backgroundColor: '#e3f2fd',
-    color: '#1976d2'
-  },
-  nombreDia: {
-    textTransform: 'capitalize',
-    fontSize: '13px'
-  },
-  fechaDia: {
-    fontSize: '12px',
-    marginTop: '4px',
-    fontWeight: 'normal'
-  },
-  horaCelda: {
-    backgroundColor: '#fafafa',
-    padding: '8px',
-    textAlign: 'center',
-    fontSize: '12px',
-    fontWeight: '500',
-    color: '#666',
-    minHeight: '60px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  celda: {
-    backgroundColor: 'white',
-    minHeight: '60px',
-    padding: '4px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative'
-  },
-  reserva: {
-    backgroundColor: '#4caf50',
-    color: 'white',
-    padding: '8px',
-    borderRadius: '4px',
-    width: '100%',
-    cursor: 'pointer',
-    transition: 'transform 0.2s',
-    fontSize: '11px'
-  },
-  clienteNombre: {
-    fontWeight: 'bold',
-    marginBottom: '4px',
-    fontSize: '12px'
-  },
-  reservaHora: {
-    fontSize: '10px',
-    opacity: 0.9
-  },
-  reservaTipo: {
-    fontSize: '10px',
-    marginTop: '2px',
-    opacity: 0.8,
-    textTransform: 'capitalize'
-  },
-  btnAgregar: {
-    width: '30px',
-    height: '30px',
-    borderRadius: '50%',
-    border: '2px dashed #ccc',
-    backgroundColor: 'transparent',
-    color: '#999',
-    fontSize: '18px',
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  }
-};
 
 export default CalendarioSemanal;
