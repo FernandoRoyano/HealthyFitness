@@ -167,3 +167,14 @@ export const facturacionAPI = {
   anularFactura: (id, motivo) => api.put(`/facturacion/facturas/${id}/anular`, { motivo }),
   obtenerResumenMes: (mes, anio) => api.get(`/facturacion/facturas/resumen/${mes}/${anio}`)
 };
+
+export const clientesPotencialesAPI = {
+  obtenerTodos: (params) => api.get('/clientes-potenciales', { params }),
+  obtenerPorId: (id) => api.get(`/clientes-potenciales/${id}`),
+  crear: (datos) => api.post('/clientes-potenciales', datos),
+  actualizar: (id, datos) => api.put(`/clientes-potenciales/${id}`, datos),
+  cambiarEstado: (id, estado) => api.put(`/clientes-potenciales/${id}/estado`, { estado }),
+  eliminar: (id) => api.delete(`/clientes-potenciales/${id}`),
+  convertirACliente: (id, datos) => api.post(`/clientes-potenciales/${id}/convertir`, datos),
+  obtenerEstadisticas: () => api.get('/clientes-potenciales/stats')
+};

@@ -92,6 +92,7 @@ function Layout({ children }) {
   const menuItems = [
     { path: '/dashboard', label: 'Inicio', icon: '🏠' },
     { path: '/clientes', label: 'Clientes', icon: '👥' },
+    { path: '/leads', label: 'Leads', icon: '🎯' },
     { path: '/reservas', label: 'Reservas', icon: '📅' },
     { path: '/calendario-reservas', label: 'Calendario', icon: '📊' },
   ];
