@@ -83,7 +83,7 @@ const Productos = () => {
       // Validar máximo según frecuencia
       const max = getMaxSesiones(calculadoraMensual.diasSemanaManual);
       if (sesiones > max) {
-        setError(`Máximo ${max} sesiones al mes para ${calculadoraMensual.diasSemanaManual} día(s) por semana`);
+        setError(`Para ${calculadoraMensual.diasSemanaManual} día(s)/semana puedes introducir de 1 a ${max} sesiones`);
         return;
       }
     } else {
