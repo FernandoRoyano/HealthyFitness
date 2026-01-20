@@ -67,6 +67,16 @@ function Facturacion() {
   const [suscripcionCliente, setSuscripcionCliente] = useState(null);
   const [buscandoSuscripcion, setBuscandoSuscripcion] = useState(false);
 
+  // Modal de editar factura
+  const [modalEditarFactura, setModalEditarFactura] = useState(false);
+  const [facturaEditando, setFacturaEditando] = useState(null);
+  const [formEditarFactura, setFormEditarFactura] = useState({
+    sesiones: '',
+    precioUnitario: '',
+    descuento: '',
+    notas: ''
+  });
+
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatos();
@@ -330,6 +340,80 @@ function Facturacion() {
     }
   };
 
+  // Abrir modal de editar factura
+  const abrirModalEditarFactura = (factura) => {
+    setFacturaEditando(factura);
+    setFormEditarFactura({
+      sesiones: factura.totalSesionesACobrar?.toString() || '',
+      precioUnitario: factura.datosSuscripcion?.precioUnitario?.toString() || '',
+      descuento: factura.totalDescuentos?.toString() || '0',
+      notas: factura.notasInternas || ''
+    });
+    setModalEditarFactura(true);
+  };
+
+  // Guardar cambios de factura
+  const handleGuardarFactura = async (e) => {
+    e.preventDefault();
+    if (!facturaEditando) return;
+
+    setCargando(true);
+    setError('');
+
+    try {
+      const sesiones = parseInt(formEditarFactura.sesiones);
+      const precio = parseFloat(formEditarFactura.precioUnitario);
+      const descuento = parseFloat(formEditarFactura.descuento) || 0;
+      const subtotal = sesiones * precio;
+      const totalAPagar = subtotal - descuento;
+
+      await facturacionAPI.actualizarFactura(facturaEditando._id, {
+        totalSesionesACobrar: sesiones,
+        'datosSuscripcion.precioUnitario': precio,
+        subtotal: subtotal,
+        totalDescuentos: descuento,
+        totalAPagar: totalAPagar,
+        notasInternas: formEditarFactura.notas
+      });
+
+      setMensaje('Factura actualizada correctamente');
+      setModalEditarFactura(false);
+      setFacturaEditando(null);
+      cargarDatos();
+    } catch (err) {
+      console.error('Error al actualizar factura:', err);
+      setError(err.response?.data?.mensaje || 'Error al actualizar factura');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Calcular total en edición
+  const calcularTotalEdicion = () => {
+    const sesiones = parseInt(formEditarFactura.sesiones) || 0;
+    const precio = parseFloat(formEditarFactura.precioUnitario) || 0;
+    const descuento = parseFloat(formEditarFactura.descuento) || 0;
+    return (sesiones * precio - descuento).toFixed(2);
+  };
+
+  // Anular/Eliminar factura
+  const handleAnularFactura = async (factura) => {
+    const mensaje = factura.estado === 'generada' || factura.estado === 'borrador'
+      ? '¿Estás seguro de eliminar esta factura?'
+      : '¿Estás seguro de anular esta factura? Esta acción no se puede deshacer.';
+
+    if (!window.confirm(mensaje)) return;
+
+    try {
+      await facturacionAPI.anularFactura(factura._id, 'Anulada por el usuario');
+      setMensaje('Factura anulada correctamente');
+      cargarDatos();
+    } catch (err) {
+      console.error('Error al anular factura:', err);
+      setError(err.response?.data?.mensaje || 'Error al anular factura');
+    }
+  };
+
   // Obtener clase CSS según estado de factura
   const getEstadoClass = (estado) => {
     const clases = {
@@ -513,6 +597,13 @@ function Facturacion() {
                         {esGerente && factura.estado !== 'pagada' && factura.estado !== 'anulada' && (
                           <>
                             <button
+                              className="btn-accion btn-editar"
+                              onClick={() => abrirModalEditarFactura(factura)}
+                              title="Editar factura"
+                            >
+                              ✏️
+                            </button>
+                            <button
                               className="btn-accion btn-pago"
                               onClick={() => abrirModalPago(factura)}
                               title="Registrar pago"
@@ -528,6 +619,13 @@ function Facturacion() {
                                 📤
                               </button>
                             )}
+                            <button
+                              className="btn-accion btn-eliminar"
+                              onClick={() => handleAnularFactura(factura)}
+                              title="Anular/Eliminar factura"
+                            >
+                              🗑️
+                            </button>
                           </>
                         )}
                       </td>
@@ -990,6 +1088,95 @@ function Facturacion() {
                   disabled={cargando || !formNuevaFactura.clienteId || !formNuevaFactura.sesiones || !formNuevaFactura.precioUnitario}
                 >
                   {cargando ? 'Creando...' : 'Crear Factura'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Editar Factura */}
+      {modalEditarFactura && facturaEditando && (
+        <div className="modal-overlay" onClick={() => setModalEditarFactura(false)}>
+          <div className="modal-content modal-editar-factura" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Editar Factura</h2>
+              <button className="btn-cerrar" onClick={() => setModalEditarFactura(false)}>×</button>
+            </div>
+
+            <div className="factura-cliente-info">
+              <strong>{facturaEditando.cliente?.nombre} {facturaEditando.cliente?.apellido}</strong>
+              <span>{MESES[facturaEditando.mes - 1]} {facturaEditando.anio}</span>
+            </div>
+
+            <form onSubmit={handleGuardarFactura}>
+              <div className="form-row-2">
+                <div className="form-grupo">
+                  <label>Nº Sesiones *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formEditarFactura.sesiones}
+                    onChange={(e) => setFormEditarFactura({ ...formEditarFactura, sesiones: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-grupo">
+                  <label>Precio/Sesión (€) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formEditarFactura.precioUnitario}
+                    onChange={(e) => setFormEditarFactura({ ...formEditarFactura, precioUnitario: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-grupo">
+                <label>Descuento (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formEditarFactura.descuento}
+                  onChange={(e) => setFormEditarFactura({ ...formEditarFactura, descuento: e.target.value })}
+                />
+              </div>
+
+              <div className="form-grupo">
+                <label>Notas internas</label>
+                <textarea
+                  value={formEditarFactura.notas}
+                  onChange={(e) => setFormEditarFactura({ ...formEditarFactura, notas: e.target.value })}
+                  rows={2}
+                  placeholder="Notas internas sobre la factura..."
+                />
+              </div>
+
+              {/* Preview del total */}
+              <div className="preview-total">
+                <div className="preview-calculo">
+                  <span>{formEditarFactura.sesiones || 0} sesiones × {formEditarFactura.precioUnitario || 0}€</span>
+                  {parseFloat(formEditarFactura.descuento) > 0 && <span> - {formEditarFactura.descuento}€ dto.</span>}
+                </div>
+                <div className="preview-resultado">
+                  <span>Total:</span>
+                  <strong>{calcularTotalEdicion()}€</strong>
+                </div>
+              </div>
+
+              <div className="modal-acciones">
+                <button type="button" className="btn-cancelar" onClick={() => setModalEditarFactura(false)}>
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="btn-guardar"
+                  disabled={cargando || !formEditarFactura.sesiones || !formEditarFactura.precioUnitario}
+                >
+                  {cargando ? 'Guardando...' : 'Guardar Cambios'}
                 </button>
               </div>
             </form>
