@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { clientesAPI, usersAPI } from '../services/api';
+import { clientesAPI, usersAPI, facturacionAPI, productosAPI } from '../services/api';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import './Clientes.css';
@@ -22,6 +22,19 @@ function Clientes() {
   const [fotoPreview, setFotoPreview] = useState(null);
   const [archivoFoto, setArchivoFoto] = useState(null);
   const [subiendoFoto, setSubiendoFoto] = useState(false);
+  // Estados para membresía/suscripción
+  const [suscripcionCliente, setSuscripcionCliente] = useState(null);
+  const [cargandoSuscripcion, setCargandoSuscripcion] = useState(false);
+  const [mostrarModalSuscripcion, setMostrarModalSuscripcion] = useState(false);
+  const [productos, setProductos] = useState([]);
+  const [formSuscripcion, setFormSuscripcion] = useState({
+    producto: '',
+    diasPorSemana: '2',
+    diasEspecificos: [],
+    notas: ''
+  });
+  const [precioCalculado, setPrecioCalculado] = useState(null);
+  const [guardandoSuscripcion, setGuardandoSuscripcion] = useState(false);
   const [formulario, setFormulario] = useState({
     nombre: '',
     apellido: '',
@@ -46,16 +59,122 @@ function Clientes() {
 
   const cargarDatos = async () => {
     try {
-      const [clientesRes, entrenadoresRes] = await Promise.all([
+      const [clientesRes, entrenadoresRes, productosRes] = await Promise.all([
         clientesAPI.obtenerTodos(),
-        usersAPI.obtenerEntrenadores()
+        usersAPI.obtenerEntrenadores(),
+        productosAPI.obtenerTodos({ activo: true })
       ]);
       setClientes(clientesRes.data);
       setEntrenadores(entrenadoresRes.data);
+      setProductos(productosRes.data);
     } catch {
       setError('Error al cargar datos');
     } finally {
       setCargando(false);
+    }
+  };
+
+  // Cargar suscripción de un cliente
+  const cargarSuscripcionCliente = async (clienteId) => {
+    setCargandoSuscripcion(true);
+    setSuscripcionCliente(null);
+    try {
+      const res = await facturacionAPI.obtenerSuscripcionCliente(clienteId);
+      if (res.data.existe) {
+        setSuscripcionCliente(res.data);
+      }
+    } catch (err) {
+      console.error('Error al cargar suscripción:', err);
+    } finally {
+      setCargandoSuscripcion(false);
+    }
+  };
+
+  // Calcular precio según producto y días
+  const calcularPrecio = async (productoId, diasPorSemana) => {
+    if (!productoId || !diasPorSemana) {
+      setPrecioCalculado(null);
+      return;
+    }
+    try {
+      const res = await productosAPI.obtenerPrecio({
+        productoId,
+        diasPorSemana: parseInt(diasPorSemana)
+      });
+      setPrecioCalculado(res.data.precio);
+    } catch {
+      setPrecioCalculado(null);
+    }
+  };
+
+  // Handler para cambios en el form de suscripción
+  const handleSuscripcionChange = (e) => {
+    const { name, value } = e.target;
+    setFormSuscripcion(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'producto' || name === 'diasPorSemana') {
+      const productoId = name === 'producto' ? value : formSuscripcion.producto;
+      const dias = name === 'diasPorSemana' ? value : formSuscripcion.diasPorSemana;
+      calcularPrecio(productoId, dias);
+    }
+  };
+
+  // Toggle día específico
+  const toggleDiaEspecifico = (dia) => {
+    setFormSuscripcion(prev => {
+      const dias = prev.diasEspecificos.includes(dia)
+        ? prev.diasEspecificos.filter(d => d !== dia)
+        : [...prev.diasEspecificos, dia];
+      return { ...prev, diasEspecificos: dias };
+    });
+  };
+
+  // Abrir modal de suscripción
+  const abrirModalSuscripcion = () => {
+    if (suscripcionCliente) {
+      // Editar existente
+      setFormSuscripcion({
+        producto: suscripcionCliente.producto?._id || '',
+        diasPorSemana: suscripcionCliente.diasPorSemana?.toString() || '2',
+        diasEspecificos: suscripcionCliente.diasEspecificos || [],
+        notas: suscripcionCliente.notas || ''
+      });
+      setPrecioCalculado(suscripcionCliente.precioUnitarioFijado);
+    } else {
+      // Nueva suscripción
+      setFormSuscripcion({
+        producto: productos.length > 0 ? productos[0]._id : '',
+        diasPorSemana: '2',
+        diasEspecificos: [],
+        notas: ''
+      });
+      if (productos.length > 0) {
+        calcularPrecio(productos[0]._id, '2');
+      }
+    }
+    setMostrarModalSuscripcion(true);
+  };
+
+  // Guardar suscripción
+  const guardarSuscripcion = async () => {
+    if (!clienteEditando || !formSuscripcion.producto) return;
+
+    setGuardandoSuscripcion(true);
+    try {
+      await facturacionAPI.guardarSuscripcion(clienteEditando._id, {
+        productoId: formSuscripcion.producto,
+        diasPorSemana: parseInt(formSuscripcion.diasPorSemana),
+        diasEspecificos: formSuscripcion.diasEspecificos,
+        notas: formSuscripcion.notas
+      });
+
+      // Recargar suscripción
+      await cargarSuscripcionCliente(clienteEditando._id);
+      setMostrarModalSuscripcion(false);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al guardar suscripción');
+    } finally {
+      setGuardandoSuscripcion(false);
     }
   };
 
@@ -126,6 +245,8 @@ function Clientes() {
       setFotoPreview(null);
     }
     setArchivoFoto(null);
+    // Cargar suscripción del cliente
+    cargarSuscripcionCliente(cliente._id);
     setMostrarFormulario(true);
   };
 
@@ -145,6 +266,10 @@ function Clientes() {
     setClienteEditando(null);
     setFotoPreview(null);
     setArchivoFoto(null);
+    // Limpiar estados de suscripción
+    setSuscripcionCliente(null);
+    setMostrarModalSuscripcion(false);
+    setPrecioCalculado(null);
     setFormulario({
       nombre: '',
       apellido: '',
@@ -440,6 +565,51 @@ function Clientes() {
                 <span style={{ fontSize: '12px', color: '#666' }}>Opcional - Para recibos domiciliados</span>
               </div>
 
+              {/* Sección de Membresía - Solo visible al editar */}
+              {clienteEditando && (
+                <div className="seccion-membresia" style={styles.membresiaSection}>
+                  <h3 style={styles.membresiaTitle}>Membresía</h3>
+                  {cargandoSuscripcion ? (
+                    <div style={styles.membresiaLoading}>Cargando información de membresía...</div>
+                  ) : suscripcionCliente ? (
+                    <div className="membresia-info" style={styles.membresiaCard}>
+                      <div style={styles.membresiaIcono}>
+                        <span style={{ fontSize: '24px' }}>✓</span>
+                      </div>
+                      <div style={styles.membresiaDetalles}>
+                        <div style={styles.membresiaProducto}>{suscripcionCliente.producto?.nombre || 'Producto'}</div>
+                        <div style={styles.membresiaDatos}>
+                          {suscripcionCliente.diasPorSemana} días/semana - <strong>{suscripcionCliente.precioUnitarioFijado?.toFixed(2)}€</strong>/sesión
+                        </div>
+                        {suscripcionCliente.diasEspecificos?.length > 0 && (
+                          <div style={styles.membresiaDias}>
+                            {suscripcionCliente.diasEspecificos.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={abrirModalSuscripcion}
+                        style={styles.membresiaEditarBtn}
+                      >
+                        Editar
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={styles.sinMembresia}>
+                      <span style={styles.sinMembresiaTexto}>Este cliente no tiene membresía asignada</span>
+                      <button
+                        type="button"
+                        onClick={abrirModalSuscripcion}
+                        style={styles.asignarMembresiaBtn}
+                      >
+                        + Asignar Membresía
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div style={styles.formRow}>
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Peso (kg)</label>
@@ -521,6 +691,106 @@ function Clientes() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Suscripción/Membresía */}
+      {mostrarModalSuscripcion && (
+        <div style={styles.modal} onClick={() => setMostrarModalSuscripcion(false)}>
+          <div style={{ ...styles.modalContent, maxWidth: '500px' }} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <h2>{suscripcionCliente ? 'Editar Membresía' : 'Asignar Membresía'}</h2>
+              <button onClick={() => setMostrarModalSuscripcion(false)} style={styles.closeButton}>×</button>
+            </div>
+            <div style={styles.form}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Tipo de Entrenamiento*</label>
+                <select
+                  name="producto"
+                  value={formSuscripcion.producto}
+                  onChange={handleSuscripcionChange}
+                  style={styles.input}
+                >
+                  <option value="">Seleccionar tipo</option>
+                  {productos.map(producto => (
+                    <option key={producto._id} value={producto._id}>
+                      {producto.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Días por Semana*</label>
+                <select
+                  name="diasPorSemana"
+                  value={formSuscripcion.diasPorSemana}
+                  onChange={handleSuscripcionChange}
+                  style={styles.input}
+                >
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <option key={n} value={n}>{n} día{n > 1 ? 's' : ''}/semana</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Días Específicos (opcional)</label>
+                <div style={styles.diasSemana}>
+                  {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].map(dia => (
+                    <button
+                      key={dia}
+                      type="button"
+                      onClick={() => toggleDiaEspecifico(dia)}
+                      style={{
+                        ...styles.diaBtn,
+                        ...(formSuscripcion.diasEspecificos.includes(dia) ? styles.diaBtnActivo : {})
+                      }}
+                    >
+                      {dia.slice(0, 3)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {precioCalculado !== null && (
+                <div style={styles.precioPreview}>
+                  <span>Precio por sesión:</span>
+                  <strong style={{ fontSize: '20px', color: '#28a745' }}>{precioCalculado.toFixed(2)}€</strong>
+                </div>
+              )}
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notas</label>
+                <textarea
+                  name="notas"
+                  value={formSuscripcion.notas}
+                  onChange={handleSuscripcionChange}
+                  rows="2"
+                  placeholder="Notas adicionales sobre la membresía..."
+                  style={{ ...styles.input, resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={styles.formActions}>
+                <button
+                  type="button"
+                  onClick={() => setMostrarModalSuscripcion(false)}
+                  style={styles.buttonSecondary}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={guardarSuscripcion}
+                  disabled={guardandoSuscripcion || !formSuscripcion.producto}
+                  style={styles.buttonPrimary}
+                >
+                  {guardandoSuscripcion ? 'Guardando...' : 'Guardar Membresía'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1133,6 +1403,133 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '8px'
+  },
+  // Estilos para sección de membresía
+  membresiaSection: {
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    padding: '16px',
+    marginTop: '10px',
+    border: '1px solid #e9ecef'
+  },
+  membresiaTitle: {
+    margin: '0 0 12px 0',
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#333',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  },
+  membresiaLoading: {
+    color: '#666',
+    fontSize: '14px',
+    textAlign: 'center',
+    padding: '15px'
+  },
+  membresiaCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 16px',
+    backgroundColor: '#f0fdf4',
+    borderRadius: '8px',
+    border: '1px solid #86efac'
+  },
+  membresiaIcono: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    backgroundColor: '#22c55e',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    flexShrink: 0
+  },
+  membresiaDetalles: {
+    flex: 1
+  },
+  membresiaProducto: {
+    fontWeight: '600',
+    color: '#166534',
+    fontSize: '15px'
+  },
+  membresiaDatos: {
+    fontSize: '13px',
+    color: '#166534',
+    marginTop: '2px'
+  },
+  membresiaDias: {
+    fontSize: '12px',
+    color: '#15803d',
+    marginTop: '4px'
+  },
+  membresiaEditarBtn: {
+    padding: '6px 14px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#166534',
+    backgroundColor: '#dcfce7',
+    border: '1px solid #86efac',
+    borderRadius: '6px',
+    cursor: 'pointer'
+  },
+  sinMembresia: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '20px',
+    backgroundColor: '#fef3c7',
+    borderRadius: '8px',
+    border: '1px solid #fcd34d'
+  },
+  sinMembresiaTexto: {
+    color: '#92400e',
+    fontSize: '14px'
+  },
+  asignarMembresiaBtn: {
+    padding: '10px 20px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: 'white',
+    backgroundColor: '#f59e0b',
+    border: 'none',
+    borderRadius: '6px',
+    cursor: 'pointer'
+  },
+  // Estilos para modal de suscripción
+  diasSemana: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap'
+  },
+  diaBtn: {
+    padding: '8px 12px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#666',
+    backgroundColor: '#f3f4f6',
+    border: '1px solid #d1d5db',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    transition: 'all 0.2s'
+  },
+  diaBtnActivo: {
+    backgroundColor: '#dbeafe',
+    color: '#1d4ed8',
+    borderColor: '#3b82f6'
+  },
+  precioPreview: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '16px',
+    backgroundColor: '#f0fdf4',
+    borderRadius: '8px',
+    border: '1px solid #86efac',
+    marginTop: '5px'
   }
 };
 
