@@ -365,6 +365,22 @@
   background: #bae6fd;
 }
 
+.btn-editar {
+  background: #fef3c7;
+}
+
+.btn-editar:hover {
+  background: #fde68a;
+}
+
+.btn-eliminar {
+  background: #fee2e2;
+}
+
+.btn-eliminar:hover {
+  background: #fecaca;
+}
+
 /* ==================== SUSCRIPCIONES ==================== */
 .lista-suscripciones {
   padding: 24px;
@@ -1065,4 +1081,29 @@
   .preview-resultado strong {
     font-size: 28px;
   }
+}
+
+/* ==================== MODAL EDITAR FACTURA ==================== */
+.modal-editar-factura {
+  max-width: 500px;
+}
+
+.factura-cliente-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 16px;
+}
+
+.factura-cliente-info strong {
+  font-size: 16px;
+  color: #1a1a2e;
+}
+
+.factura-cliente-info span {
+  font-size: 14px;
+  color: #666;
 }
