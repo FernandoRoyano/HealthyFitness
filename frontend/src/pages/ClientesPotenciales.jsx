@@ -271,6 +271,8 @@ function ClientesPotenciales() {
           </button>
         </div>
       ) : (
+        <>
+        {/* Vista tabla (desktop) */}
         <div className="leads-tabla-container">
           <table className="leads-tabla">
             <thead>
@@ -367,6 +369,96 @@ function ClientesPotenciales() {
             </tbody>
           </table>
         </div>
+
+        {/* Vista cards (móvil) */}
+        <div className="leads-cards">
+          {leads.map(lead => {
+            const estadoConfig = getEstadoConfig(lead.estado);
+            return (
+              <div key={lead._id} className={`lead-card ${lead.clienteConvertido ? 'lead-convertido' : ''}`}>
+                <div className="lead-card-header">
+                  <div>
+                    <h3 className="lead-card-nombre">{lead.nombre}</h3>
+                    <span className="lead-card-fecha">{formatearFecha(lead.createdAt)}</span>
+                  </div>
+                  <span
+                    className="estado-badge"
+                    style={{ backgroundColor: estadoConfig.color }}
+                  >
+                    {estadoConfig.etiqueta}
+                  </span>
+                </div>
+
+                <div className="lead-card-body">
+                  <div className="lead-card-row">
+                    <span className="lead-card-label">Teléfono:</span>
+                    <span className="lead-card-value">
+                      <a href={`tel:${lead.telefono}`}>{lead.telefono}</a>
+                    </span>
+                  </div>
+                  {lead.email && (
+                    <div className="lead-card-row">
+                      <span className="lead-card-label">Email:</span>
+                      <span className="lead-card-value">
+                        <a href={`mailto:${lead.email}`}>{lead.email}</a>
+                      </span>
+                    </div>
+                  )}
+                  {lead.busca && (
+                    <div className="lead-card-busca">
+                      <strong>Busca:</strong> {lead.busca}
+                    </div>
+                  )}
+                </div>
+
+                <div className="lead-card-footer">
+                  {lead.estado !== 'apuntado' && !lead.clienteConvertido && (
+                    <select
+                      className="select-estado-rapido"
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value) cambiarEstadoRapido(lead, e.target.value);
+                      }}
+                    >
+                      <option value="">Cambiar estado</option>
+                      {ESTADOS.filter(e => e.valor !== 'todos' && e.valor !== lead.estado).map(e => (
+                        <option key={e.valor} value={e.valor}>{e.etiqueta}</option>
+                      ))}
+                    </select>
+                  )}
+
+                  <button
+                    className="btn-accion btn-editar"
+                    onClick={() => abrirModalEditar(lead)}
+                  >
+                    Editar
+                  </button>
+
+                  {lead.estado !== 'apuntado' && !lead.clienteConvertido && (
+                    <button
+                      className="btn-accion btn-convertir"
+                      onClick={() => abrirModalConvertir(lead)}
+                    >
+                      Convertir
+                    </button>
+                  )}
+
+                  {lead.clienteConvertido && (
+                    <span className="badge-convertido">Cliente</span>
+                  )}
+
+                  <button
+                    className="btn-accion btn-eliminar"
+                    onClick={() => eliminarLead(lead)}
+                  >
+                    X
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        </>
       )}
 
       {/* Modal Crear/Editar */}

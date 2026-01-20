@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { dashboardAPI } from '../services/api';
 
 // Obtener saludo según la hora del día
 const obtenerSaludo = () => {
@@ -19,14 +20,61 @@ const obtenerIniciales = (nombre) => {
     : nombre.substring(0, 2).toUpperCase();
 };
 
+// Formatear número grande
+const formatearNumero = (num) => {
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k';
+  }
+  return num?.toString() || '0';
+};
+
 function Dashboard() {
   const { usuario } = useAuth();
   const saludo = obtenerSaludo();
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredWidget, setHoveredWidget] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [cargando, setCargando] = useState(true);
 
-  // Configuración de tarjetas
+  // Cargar estadísticas al montar
+  useEffect(() => {
+    cargarEstadisticas();
+  }, []);
+
+  const cargarEstadisticas = async () => {
+    try {
+      const { data } = await dashboardAPI.obtenerEstadisticas();
+      setStats(data);
+    } catch (error) {
+      console.error('Error al cargar estadísticas:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Configuración de widgets según rol
+  const widgetsGerente = [
+    { id: 'clientes', icon: '👥', label: 'Clientes Activos', value: stats?.clientesActivos, path: '/clientes', color: '#667eea' },
+    { id: 'leads', icon: '🎯', label: 'Leads Pendientes', value: stats?.leadsPendientes, path: '/leads', color: '#f59e0b' },
+    { id: 'reservas', icon: '📅', label: 'Reservas Hoy', value: stats?.reservasHoy, path: '/reservas', color: '#10b981' },
+    { id: 'solicitudes', icon: '📬', label: 'Solicitudes', value: stats?.solicitudesPendientes, path: '/solicitudes', color: '#3b82f6' },
+    { id: 'vacaciones', icon: '🏖️', label: 'Vacaciones', value: stats?.vacacionesPendientes, path: '/vacaciones', color: '#8b5cf6' },
+    { id: 'facturacion', icon: '💶', label: 'Facturación Mes', value: stats?.facturacionMes, path: '/facturacion', color: '#059669', formato: 'moneda' },
+  ];
+
+  const widgetsEntrenador = [
+    { id: 'misclientes', icon: '👥', label: 'Mis Clientes', value: stats?.misClientes, path: '/clientes', color: '#667eea' },
+    { id: 'leads', icon: '🎯', label: 'Leads Pendientes', value: stats?.leadsPendientes, path: '/leads', color: '#f59e0b' },
+    { id: 'reservas', icon: '📅', label: 'Mis Reservas Hoy', value: stats?.misReservasHoy, path: '/reservas', color: '#10b981' },
+    { id: 'vacaciones', icon: '🏖️', label: 'Días Vacaciones', value: stats?.diasVacacionesDisponibles, path: '/vacaciones', color: '#8b5cf6' },
+  ];
+
+  const widgets = usuario?.rol === 'gerente' ? widgetsGerente : widgetsEntrenador;
+
+  // Configuración de tarjetas de acceso rápido
   const tarjetasBase = [
     { id: 'clientes', path: '/clientes', icon: '👥', title: 'Clientes', desc: 'Gestiona la información de tus clientes' },
+    { id: 'leads', path: '/leads', icon: '🎯', title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
     { id: 'reservas', path: '/reservas', icon: '📅', title: 'Reservas', desc: 'Administra las reservas y horarios' },
     { id: 'calendario-excel', path: '/calendario-reservas', icon: '📊', title: 'Calendario Excel', desc: 'Vista tipo Excel con todos los entrenadores' },
   ];
@@ -35,10 +83,12 @@ function Dashboard() {
     { id: 'calendarios', path: '/calendario-gerente', icon: '📆', title: 'Calendarios', desc: 'Vista de todos los entrenadores' },
     { id: 'entrenadores', path: '/entrenadores', icon: '👨‍🏫', title: 'Entrenadores', desc: 'Gestiona los perfiles de entrenadores' },
     { id: 'vacaciones', path: '/vacaciones', icon: '🏖️', title: 'Vacaciones', desc: 'Control de vacaciones del equipo' },
+    { id: 'facturacion', path: '/facturacion', icon: '💶', title: 'Facturación', desc: 'Gestión de facturas y pagos' },
   ];
 
   const tarjetasEntrenador = [
     { id: 'mi-calendario', path: '/calendario', icon: '📆', title: 'Mi Calendario', desc: 'Vista semanal de tus sesiones' },
+    { id: 'vacaciones', path: '/vacaciones', icon: '🏖️', title: 'Mis Vacaciones', desc: 'Solicitar y ver mis vacaciones' },
   ];
 
   const tarjetas = usuario?.rol === 'gerente'
@@ -84,41 +134,82 @@ function Dashboard() {
         )}
       </div>
 
-      {/* Grid de Tarjetas */}
-      <div style={styles.grid}>
-        {tarjetas.map((tarjeta) => (
-          <Link
-            key={tarjeta.id}
-            to={tarjeta.path}
-            style={{
-              ...styles.card,
-              ...(hoveredCard === tarjeta.id ? styles.cardHover : {}),
-            }}
-            onMouseEnter={() => setHoveredCard(tarjeta.id)}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            <div style={styles.cardDecoration} />
-            <div style={{
-              ...styles.cardIconWrapper,
-              ...(hoveredCard === tarjeta.id ? styles.cardIconWrapperHover : {}),
-            }}>
-              <span style={styles.cardIcon}>{tarjeta.icon}</span>
-            </div>
-            <h2 style={{
-              ...styles.cardTitle,
-              ...(hoveredCard === tarjeta.id ? styles.cardTitleHover : {}),
-            }}>
-              {tarjeta.title}
-            </h2>
-            <p style={styles.cardDescription}>{tarjeta.desc}</p>
-            <div style={{
-              ...styles.cardArrow,
-              ...(hoveredCard === tarjeta.id ? styles.cardArrowVisible : {}),
-            }}>
-              →
-            </div>
-          </Link>
-        ))}
+      {/* Widgets de Estadísticas */}
+      <div style={styles.statsSection}>
+        <h2 style={styles.sectionTitle}>Resumen del Día</h2>
+        <div style={styles.widgetsGrid}>
+          {widgets.map((widget) => (
+            <Link
+              key={widget.id}
+              to={widget.path}
+              style={{
+                ...styles.widget,
+                ...(hoveredWidget === widget.id ? styles.widgetHover : {}),
+              }}
+              onMouseEnter={() => setHoveredWidget(widget.id)}
+              onMouseLeave={() => setHoveredWidget(null)}
+            >
+              <div style={{ ...styles.widgetIconBg, backgroundColor: `${widget.color}15` }}>
+                <span style={styles.widgetIcon}>{widget.icon}</span>
+              </div>
+              <div style={styles.widgetContent}>
+                <span style={{ ...styles.widgetValue, color: widget.color }}>
+                  {cargando ? '...' : (
+                    widget.formato === 'moneda'
+                      ? `${formatearNumero(widget.value)}€`
+                      : (widget.value ?? 0)
+                  )}
+                </span>
+                <span style={styles.widgetLabel}>{widget.label}</span>
+              </div>
+              {(widget.value > 0 && (widget.id === 'solicitudes' || widget.id === 'leads')) && (
+                <div style={{ ...styles.widgetBadge, backgroundColor: widget.color }}>
+                  !
+                </div>
+              )}
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Sección de Accesos Rápidos */}
+      <div style={styles.quickAccessSection}>
+        <h2 style={styles.sectionTitle}>Accesos Rápidos</h2>
+        <div style={styles.grid}>
+          {tarjetas.map((tarjeta) => (
+            <Link
+              key={tarjeta.id}
+              to={tarjeta.path}
+              style={{
+                ...styles.card,
+                ...(hoveredCard === tarjeta.id ? styles.cardHover : {}),
+              }}
+              onMouseEnter={() => setHoveredCard(tarjeta.id)}
+              onMouseLeave={() => setHoveredCard(null)}
+            >
+              <div style={styles.cardDecoration} />
+              <div style={{
+                ...styles.cardIconWrapper,
+                ...(hoveredCard === tarjeta.id ? styles.cardIconWrapperHover : {}),
+              }}>
+                <span style={styles.cardIcon}>{tarjeta.icon}</span>
+              </div>
+              <h3 style={{
+                ...styles.cardTitle,
+                ...(hoveredCard === tarjeta.id ? styles.cardTitleHover : {}),
+              }}>
+                {tarjeta.title}
+              </h3>
+              <p style={styles.cardDescription}>{tarjeta.desc}</p>
+              <div style={{
+                ...styles.cardArrow,
+                ...(hoveredCard === tarjeta.id ? styles.cardArrowVisible : {}),
+              }}>
+                →
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -138,7 +229,7 @@ const styles = {
     background: 'linear-gradient(135deg, #75b760 0%, #5fa047 50%, #4a8a38 100%)',
     borderRadius: '20px',
     padding: '32px',
-    marginBottom: '32px',
+    marginBottom: '24px',
     boxShadow: '0 10px 40px rgba(117, 183, 96, 0.3)',
     position: 'relative',
     overflow: 'hidden',
@@ -214,7 +305,7 @@ const styles = {
   },
 
   title: {
-    fontSize: '36px',
+    fontSize: '32px',
     fontWeight: '700',
     color: 'white',
     marginBottom: '8px',
@@ -257,17 +348,109 @@ const styles = {
     letterSpacing: '0.3px',
   },
 
+  // Sección de estadísticas
+  statsSection: {
+    marginBottom: '32px',
+  },
+
+  sectionTitle: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1a1a2e',
+    marginBottom: '16px',
+    fontFamily: "'Niramit', sans-serif",
+  },
+
+  widgetsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+    gap: '16px',
+  },
+
+  widget: {
+    backgroundColor: 'white',
+    borderRadius: '16px',
+    padding: '20px',
+    textDecoration: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+    border: '1px solid rgba(0,0,0,0.04)',
+    transition: 'all 0.3s ease',
+    position: 'relative',
+  },
+
+  widgetHover: {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+  },
+
+  widgetIconBg: {
+    width: '56px',
+    height: '56px',
+    borderRadius: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  widgetIcon: {
+    fontSize: '28px',
+  },
+
+  widgetContent: {
+    textAlign: 'center',
+  },
+
+  widgetValue: {
+    display: 'block',
+    fontSize: '28px',
+    fontWeight: '700',
+    fontFamily: "'Niramit', sans-serif",
+    lineHeight: '1',
+  },
+
+  widgetLabel: {
+    display: 'block',
+    fontSize: '12px',
+    color: '#6b7280',
+    marginTop: '4px',
+    fontFamily: "'Niramit', sans-serif",
+  },
+
+  widgetBadge: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    width: '20px',
+    height: '20px',
+    borderRadius: '50%',
+    color: 'white',
+    fontSize: '12px',
+    fontWeight: '700',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Sección de accesos rápidos
+  quickAccessSection: {
+    marginTop: '8px',
+  },
+
   // Grid de tarjetas
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '24px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+    gap: '20px',
   },
 
   // Tarjetas
   card: {
     backgroundColor: 'white',
-    padding: '28px',
+    padding: '24px',
     borderRadius: '16px',
     boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
     textDecoration: 'none',
@@ -282,8 +465,8 @@ const styles = {
   },
 
   cardHover: {
-    transform: 'translateY(-8px)',
-    boxShadow: '0 20px 40px rgba(117, 183, 96, 0.2)',
+    transform: 'translateY(-6px)',
+    boxShadow: '0 16px 32px rgba(117, 183, 96, 0.2)',
     borderColor: '#75b760',
   },
 
@@ -300,14 +483,14 @@ const styles = {
   },
 
   cardIconWrapper: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '16px',
+    width: '56px',
+    height: '56px',
+    borderRadius: '14px',
     background: 'linear-gradient(135deg, #f0f9ed 0%, #e3f2df 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '20px',
+    marginBottom: '16px',
     transition: 'all 0.3s ease',
   },
 
@@ -317,15 +500,15 @@ const styles = {
   },
 
   cardIcon: {
-    fontSize: '32px',
+    fontSize: '28px',
     transition: 'transform 0.3s ease',
   },
 
   cardTitle: {
-    fontSize: '20px',
+    fontSize: '18px',
     fontWeight: '700',
     color: '#1a1a2e',
-    marginBottom: '8px',
+    marginBottom: '6px',
     fontFamily: "'Niramit', sans-serif",
     transition: 'color 0.3s ease',
   },
@@ -335,18 +518,18 @@ const styles = {
   },
 
   cardDescription: {
-    fontSize: '14px',
+    fontSize: '13px',
     color: '#666666',
-    lineHeight: '1.6',
+    lineHeight: '1.5',
     flex: 1,
     fontFamily: "'Lora', serif",
   },
 
   cardArrow: {
     position: 'absolute',
-    bottom: '24px',
-    right: '24px',
-    fontSize: '20px',
+    bottom: '20px',
+    right: '20px',
+    fontSize: '18px',
     color: '#75b760',
     opacity: 0,
     transform: 'translateX(-10px)',

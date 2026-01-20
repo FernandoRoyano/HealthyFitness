@@ -178,3 +178,7 @@ export const clientesPotencialesAPI = {
   convertirACliente: (id, datos) => api.post(`/clientes-potenciales/${id}/convertir`, datos),
   obtenerEstadisticas: () => api.get('/clientes-potenciales/stats')
 };
+
+export const dashboardAPI = {
+  obtenerEstadisticas: () => api.get('/dashboard/stats')
+};
