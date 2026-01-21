@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { clientesAPI, usersAPI, facturacionAPI, productosAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import './Clientes.css';
 
 function Clientes() {
+  const { usuario } = useAuth();
+  const esGerente = usuario?.rol === 'gerente';
   const [clientes, setClientes] = useState([]);
   const [entrenadores, setEntrenadores] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -389,14 +392,24 @@ function Clientes() {
   return (
     <div style={styles.container}>
       <div className="clientes-header" style={styles.header}>
-        <h1 style={styles.title}>Gestión de Clientes</h1>
+        <div>
+          <h1 style={styles.title}>{esGerente ? 'Gestión de Clientes' : 'Mis Clientes'}</h1>
+          <p style={styles.subtitle}>
+            {esGerente
+              ? `${clientes.length} clientes registrados en el sistema`
+              : `${clientes.length} clientes asignados a tu perfil`
+            }
+          </p>
+        </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setMostrarImportar(true)}
-            style={styles.buttonSecondary}
-          >
-            📥 Importar
-          </button>
+          {esGerente && (
+            <button
+              onClick={() => setMostrarImportar(true)}
+              style={styles.buttonSecondary}
+            >
+              📥 Importar
+            </button>
+          )}
           <button
             onClick={() => setMostrarFormulario(true)}
             style={styles.buttonPrimary}
@@ -1059,7 +1072,13 @@ const styles = {
   title: {
     fontSize: 'clamp(22px, 5vw, 28px)',
     fontWeight: 'bold',
-    color: '#333'
+    color: '#333',
+    margin: 0
+  },
+  subtitle: {
+    fontSize: '14px',
+    color: '#666',
+    marginTop: '4px'
   },
   buttonPrimary: {
     padding: '10px 20px',
