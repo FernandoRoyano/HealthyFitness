@@ -3,7 +3,7 @@ import ClientePotencial from '../models/ClientePotencial.js';
 import Reserva from '../models/Reserva.js';
 import SolicitudCambio from '../models/SolicitudCambio.js';
 import Vacacion from '../models/Vacacion.js';
-import Factura from '../models/Factura.js';
+import FacturaMensual from '../models/FacturaMensual.js';
 
 // @desc    Obtener estadísticas del dashboard
 // @route   GET /api/dashboard/stats
@@ -47,7 +47,7 @@ export const obtenerEstadisticas = async (req, res) => {
         Vacacion.countDocuments({ estado: 'pendiente' }),
 
         // Facturación del mes actual
-        Factura.aggregate([
+        FacturaMensual.aggregate([
           {
             $match: {
               mes: mesActual,
