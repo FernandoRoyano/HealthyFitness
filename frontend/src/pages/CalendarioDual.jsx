@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { plantillasAPI, reservasAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import './CalendarioDual.css';
 
 const CalendarioDual = () => {
   const { usuario } = useAuth();
@@ -154,15 +155,61 @@ const CalendarioDual = () => {
     return colores[estado] || colores.pendiente;
   };
 
+  // Obtener todas las sesiones de un día para la vista móvil
+  const getSesionesDia = (diaIndex) => {
+    const diaSemana = diaIndex + 1;
+    const fecha = obtenerFechaDia(diaIndex);
+    const sesiones = [];
+
+    horas.forEach(hora => {
+      const sesionPlantilla = getSesionPlantilla(diaSemana, hora);
+      const reservaReal = getReservaReal(fecha, hora);
+      const estadoComparacion = getEstadoComparacion(diaSemana, fecha, hora);
+
+      if (vistaActiva === 'base' && sesionPlantilla) {
+        sesiones.push({
+          hora,
+          tipo: 'base',
+          entrenador: sesionPlantilla.entrenador?.nombre || 'Sin asignar',
+          cliente: sesionPlantilla.cliente
+            ? `${sesionPlantilla.cliente.nombre} ${sesionPlantilla.cliente.apellido}`
+            : 'Slot vacío',
+          estado: null
+        });
+      } else if (vistaActiva === 'real' && reservaReal) {
+        sesiones.push({
+          hora,
+          tipo: 'real',
+          entrenador: reservaReal.entrenador?.nombre || 'Sin asignar',
+          cliente: `${reservaReal.cliente?.nombre} ${reservaReal.cliente?.apellido}`,
+          estado: reservaReal.estado
+        });
+      } else if (vistaActiva === 'comparativa' && estadoComparacion) {
+        const info = estadoComparacion === 'falta' ? sesionPlantilla : reservaReal;
+        sesiones.push({
+          hora,
+          tipo: estadoComparacion,
+          entrenador: info?.entrenador?.nombre || sesionPlantilla?.entrenador?.nombre,
+          cliente: estadoComparacion === 'falta'
+            ? (sesionPlantilla?.cliente ? `${sesionPlantilla.cliente.nombre} ${sesionPlantilla.cliente.apellido}` : 'Slot vacío')
+            : (reservaReal?.cliente ? `${reservaReal.cliente.nombre} ${reservaReal.cliente.apellido}` : ''),
+          estado: estadoComparacion
+        });
+      }
+    });
+
+    return sesiones;
+  };
+
   if (loading) {
     return <div style={styles.loading}>Cargando calendario...</div>;
   }
 
   return (
-    <div style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>Comparar Horarios</h1>
-        <p style={styles.subtitle}>Revisa qué se cumplió del horario base</p>
+    <div className="calendario-dual-container">
+      <div className="calendario-dual-header">
+        <h1>Comparar Horarios</h1>
+        <p>Revisa qué se cumplió del horario base</p>
       </div>
 
       {error && (
@@ -173,74 +220,99 @@ const CalendarioDual = () => {
       )}
 
       {/* Controles de navegación */}
-      <div style={styles.controles}>
-        <div style={styles.navegacionSemana}>
-          <button onClick={() => cambiarSemana(-1)} style={styles.navButton}>
-            ← Semana Anterior
-          </button>
-          <span style={styles.semanaActual}>
-            Semana del {formatearFecha(semanaActual)} al {formatearFecha(obtenerFechaDia(4))}
+      <div className="calendario-dual-controles">
+        <div className="navegacion-semana">
+          <div className="nav-buttons">
+            <button onClick={() => cambiarSemana(-1)} className="nav-btn">
+              ← Anterior
+            </button>
+            <button onClick={() => cambiarSemana(1)} className="nav-btn">
+              Siguiente →
+            </button>
+          </div>
+          <span className="semana-label">
+            {formatearFecha(semanaActual)} - {formatearFecha(obtenerFechaDia(4))}
           </span>
-          <button onClick={() => cambiarSemana(1)} style={styles.navButton}>
-            Semana Siguiente →
-          </button>
         </div>
 
-        <div style={styles.vistaSelector}>
+        <div className="vista-selector">
           <button
             onClick={() => setVistaActiva('base')}
-            style={{
-              ...styles.vistaButton,
-              ...(vistaActiva === 'base' ? styles.vistaButtonActiva : {})
-            }}
+            className={`vista-btn ${vistaActiva === 'base' ? 'activa' : ''}`}
           >
-            Plantilla Base
+            Base
           </button>
           <button
             onClick={() => setVistaActiva('real')}
-            style={{
-              ...styles.vistaButton,
-              ...(vistaActiva === 'real' ? styles.vistaButtonActiva : {})
-            }}
+            className={`vista-btn ${vistaActiva === 'real' ? 'activa' : ''}`}
           >
-            Horario Real
+            Real
           </button>
           <button
             onClick={() => setVistaActiva('comparativa')}
-            style={{
-              ...styles.vistaButton,
-              ...(vistaActiva === 'comparativa' ? styles.vistaButtonActiva : {})
-            }}
+            className={`vista-btn ${vistaActiva === 'comparativa' ? 'activa' : ''}`}
           >
-            Comparativa
+            Comparar
           </button>
         </div>
       </div>
 
       {/* Leyenda */}
       {vistaActiva === 'comparativa' && (
-        <div style={styles.leyenda}>
-          <div style={styles.leyendaItem}>
-            <span style={{ ...styles.leyendaColor, backgroundColor: '#d4edda' }}></span>
-            Coincide con plantilla
+        <div className="leyenda">
+          <div className="leyenda-item">
+            <span className="leyenda-color" style={{ backgroundColor: '#d4edda' }}></span>
+            Coincide
           </div>
-          <div style={styles.leyendaItem}>
-            <span style={{ ...styles.leyendaColor, backgroundColor: '#fff3cd' }}></span>
-            Falta (en plantilla, sin reserva)
+          <div className="leyenda-item">
+            <span className="leyenda-color" style={{ backgroundColor: '#fff3cd' }}></span>
+            Falta
           </div>
-          <div style={styles.leyendaItem}>
-            <span style={{ ...styles.leyendaColor, backgroundColor: '#cce5ff' }}></span>
-            Extra (fuera de plantilla)
+          <div className="leyenda-item">
+            <span className="leyenda-color" style={{ backgroundColor: '#cce5ff' }}></span>
+            Extra
           </div>
-          <div style={styles.leyendaItem}>
-            <span style={{ ...styles.leyendaColor, backgroundColor: '#f8d7da' }}></span>
+          <div className="leyenda-item">
+            <span className="leyenda-color" style={{ backgroundColor: '#f8d7da' }}></span>
             Cancelada
           </div>
         </div>
       )}
 
-      {/* Calendario */}
-      <div style={styles.calendarioContainer}>
+      {/* Vista móvil: Cards por día */}
+      <div className="mobile-view">
+        <div className="dias-cards">
+          {diasSemana.map((dia, diaIndex) => {
+            const sesiones = getSesionesDia(diaIndex);
+            return (
+              <div key={diaIndex} className="dia-card">
+                <div className="dia-card-header">
+                  {dia} - {formatearFecha(obtenerFechaDia(diaIndex))}
+                </div>
+                <div className="dia-card-body">
+                  {sesiones.length === 0 ? (
+                    <div className="sin-sesiones">Sin sesiones</div>
+                  ) : (
+                    sesiones.map((sesion, idx) => (
+                      <div key={idx} className={`sesion-mobile ${sesion.tipo}`}>
+                        <div className="sesion-hora">{sesion.hora}</div>
+                        <div className="sesion-entrenador">{sesion.entrenador}</div>
+                        <div className="sesion-cliente">{sesion.cliente}</div>
+                        {sesion.estado && (
+                          <div className="sesion-estado">{sesion.estado}</div>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Calendario Desktop */}
+      <div className="desktop-view" style={styles.calendarioContainer}>
         <div style={styles.calendario}>
           {/* Cabecera de días */}
           <div style={styles.headerRow}>
@@ -393,35 +465,35 @@ const CalendarioDual = () => {
       )}
 
       {/* Resumen estadísticas */}
-      <div style={styles.resumen}>
+      <div className="resumen-semana">
         <h3>Resumen de la Semana</h3>
-        <div style={styles.estadisticas}>
-          <div style={styles.estadistica}>
-            <span style={styles.estadisticaNumero}>
+        <div className="estadisticas-grid">
+          <div className="estadistica-item">
+            <span className="estadistica-numero">
               {reservasReales.filter(r => r.estado === 'confirmada' || r.estado === 'completada').length}
             </span>
-            <span style={styles.estadisticaLabel}>Sesiones Confirmadas</span>
+            <span className="estadistica-label">Confirmadas</span>
           </div>
-          <div style={styles.estadistica}>
-            <span style={styles.estadisticaNumero}>
+          <div className="estadistica-item">
+            <span className="estadistica-numero">
               {reservasReales.filter(r => r.estado === 'pendiente').length}
             </span>
-            <span style={styles.estadisticaLabel}>Pendientes</span>
+            <span className="estadistica-label">Pendientes</span>
           </div>
-          <div style={styles.estadistica}>
-            <span style={styles.estadisticaNumero}>
+          <div className="estadistica-item">
+            <span className="estadistica-numero">
               {reservasReales.filter(r => r.estado === 'cancelada').length}
             </span>
-            <span style={styles.estadisticaLabel}>Canceladas</span>
+            <span className="estadistica-label">Canceladas</span>
           </div>
           {plantillaBase && (
-            <div style={styles.estadistica}>
-              <span style={styles.estadisticaNumero}>
+            <div className="estadistica-item">
+              <span className="estadistica-numero">
                 {plantillaBase.sesiones.filter(s =>
                   usuario.rol === 'gerente' || s.entrenador?._id === usuario._id || s.entrenador === usuario._id
                 ).length}
               </span>
-              <span style={styles.estadisticaLabel}>En Plantilla Base</span>
+              <span className="estadistica-label">En Plantilla</span>
             </div>
           )}
         </div>
