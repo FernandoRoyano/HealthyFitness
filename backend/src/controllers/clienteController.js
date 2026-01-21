@@ -16,13 +16,28 @@ export const obtenerClientes = async (req, res) => {
   try {
     // Si es entrenador, solo ver sus clientes asignados
     const filtro = {};
+
+    // LOG TEMPORAL para depuración
+    console.log('=== DEPURACIÓN obtenerClientes ===');
+    console.log('Usuario:', req.usuario?.nombre);
+    console.log('Email:', req.usuario?.email);
+    console.log('Rol:', req.usuario?.rol);
+    console.log('ID:', req.usuario?._id);
+
     if (req.usuario.rol === 'entrenador') {
       filtro.entrenador = req.usuario._id;
+      console.log('Filtro aplicado:', filtro);
+    } else {
+      console.log('Sin filtro - usuario es gerente');
     }
 
     const clientes = await Cliente.find(filtro)
       .populate('entrenador', 'nombre email')
       .sort({ createdAt: -1 });
+
+    console.log('Clientes encontrados:', clientes.length);
+    console.log('================================');
+
     res.json(clientes);
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al obtener clientes', error: error.message });
