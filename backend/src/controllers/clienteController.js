@@ -14,7 +14,13 @@ const uploadsPath = path.join(__dirname, '../../uploads');
 
 export const obtenerClientes = async (req, res) => {
   try {
-    const clientes = await Cliente.find()
+    // Si es entrenador, solo ver sus clientes asignados
+    const filtro = {};
+    if (req.usuario.rol === 'entrenador') {
+      filtro.entrenador = req.usuario._id;
+    }
+
+    const clientes = await Cliente.find(filtro)
       .populate('entrenador', 'nombre email')
       .sort({ createdAt: -1 });
     res.json(clientes);
