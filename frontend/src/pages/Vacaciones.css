@@ -4,6 +4,7 @@
   padding: 20px;
   max-width: 1400px;
   margin: 0 auto;
+  overflow-x: hidden;
 }
 
 .vacaciones-loading {
@@ -901,21 +902,20 @@
   }
 
   .filtros-estado {
-    overflow-x: auto;
-    padding-bottom: 8px;
-    flex-wrap: nowrap;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
   .filtro-btn {
-    flex-shrink: 0;
-    padding: 10px 16px;
-    font-size: 13px;
-    min-height: 44px;
+    padding: 8px 4px;
+    font-size: 11px;
+    min-height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
   }
 
   .filtros-secundarios {
@@ -931,37 +931,38 @@
   /* Cards móviles mejoradas */
   .vacacion-card {
     padding: 12px;
+    overflow: hidden;
   }
 
   .card-header {
     margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-body {
+    overflow: hidden;
   }
 
   .card-fechas {
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .card-fechas .periodo-separador {
     display: none;
   }
 
-  .card-fechas span:first-child::before {
-    content: "Desde: ";
-    color: #999;
-    font-size: 11px;
-  }
-
-  .card-fechas span:last-child::before {
-    content: "Hasta: ";
-    color: #999;
-    font-size: 11px;
+  .card-fechas span {
+    font-size: 13px;
+    word-break: break-word;
   }
 
   .card-info {
     margin-top: 8px;
+    flex-wrap: wrap;
   }
 
   .dias-badge {
@@ -970,13 +971,14 @@
   }
 
   .tipo-badge {
-    font-size: 11px;
-    padding: 3px 8px;
+    font-size: 10px;
+    padding: 3px 6px;
   }
 
   .card-motivo {
     font-size: 12px;
     margin-top: 8px;
+    word-break: break-word;
   }
 
   /* Formulario */
@@ -1002,47 +1004,61 @@
   }
 
   .preview-dias-completo {
-    padding: 12px;
+    padding: 10px;
+    overflow: hidden;
   }
 
   .preview-solicitud {
-    margin-bottom: 15px;
-    padding-bottom: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
   }
 
   .preview-solicitud h4,
   .preview-balance h4 {
-    font-size: 12px;
-    margin-bottom: 10px;
+    font-size: 11px;
+    margin-bottom: 8px;
   }
 
   .preview-solicitud-info {
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .preview-dias-numero {
-    font-size: 28px;
+    font-size: 24px;
+  }
+
+  .preview-dias-texto {
+    font-size: 12px;
   }
 
   .preview-balance-grid {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
 
   .preview-balance-item {
     justify-content: flex-start;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
   }
 
   .balance-actual,
   .balance-nuevo {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .balance-flecha {
+    font-size: 14px;
   }
 
   .balance-label {
-    font-size: 12px;
+    font-size: 11px;
     width: 100%;
+  }
+
+  .balance-meta {
+    font-size: 10px;
   }
 
   /* Modal detalles */
@@ -1095,11 +1111,47 @@
 
 @media (max-width: 480px) {
   .vacaciones-container {
-    padding: 12px;
+    padding: 10px;
   }
 
   .vacaciones-header h1 {
-    font-size: 20px;
+    font-size: 18px;
+  }
+
+  /* Filtros más compactos */
+  .filtros-estado {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+
+  .filtro-btn {
+    padding: 6px 2px;
+    font-size: 10px;
+    min-height: 36px;
+    border-radius: 16px;
+  }
+
+  /* Resumen compacto */
+  .resumen-container {
+    padding: 10px;
+  }
+
+  .resumen-card {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .resumen-numero {
+    font-size: 26px;
+    min-width: 40px;
+  }
+
+  .resumen-label {
+    font-size: 12px;
+  }
+
+  .resumen-subtexto {
+    font-size: 10px;
   }
 
   /* Modal a pantalla completa */
@@ -1116,7 +1168,7 @@
   }
 
   .modal-header {
-    padding: 16px;
+    padding: 14px;
     position: sticky;
     top: 0;
     background: white;
@@ -1125,53 +1177,68 @@
   }
 
   .modal-header h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .modal-close {
-    font-size: 24px;
+    font-size: 22px;
     padding: 4px;
   }
 
   .modal-body {
-    padding: 16px;
-    padding-bottom: 24px;
+    padding: 14px;
+    padding-bottom: 20px;
   }
 
   /* Entrenador info compacto */
   .entrenador-info {
-    gap: 8px;
+    gap: 6px;
   }
 
   .entrenador-foto,
   .entrenador-foto-placeholder {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
   }
 
   /* Estado badge más pequeño */
   .estado-badge {
-    padding: 4px 10px;
-    font-size: 11px;
+    padding: 3px 8px;
+    font-size: 10px;
   }
 
   /* Preview más compacto */
   .preview-dias-completo {
-    padding: 10px;
+    padding: 8px;
   }
 
   .preview-dias-numero {
-    font-size: 24px;
+    font-size: 22px;
   }
 
   .preview-dias-texto {
-    font-size: 13px;
+    font-size: 11px;
   }
 
   /* Advertencias */
   .preview-advertencia {
-    padding: 8px 12px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  /* Cards compactas */
+  .vacacion-card {
+    padding: 10px;
+  }
+
+  .card-fechas span {
     font-size: 12px;
+  }
+
+  .dias-badge,
+  .tipo-badge {
+    font-size: 10px;
+    padding: 2px 6px;
   }
 }
