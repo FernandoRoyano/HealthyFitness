@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { productosAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Productos.css';
 
 const Productos = () => {
+  const { usuario } = useAuth();
+  const esGerente = usuario?.rol === 'gerente';
   const [tablaPrecios, setTablaPrecios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -247,10 +250,15 @@ const Productos = () => {
     <div style={styles.container}>
       <div className="productos-header" style={styles.header}>
         <div>
-          <h1 style={styles.title}>Productos y Tarifas</h1>
-          <p style={styles.subtitle}>Gestión de servicios y precios por días/semana</p>
+          <h1 style={styles.title}>{esGerente ? 'Productos y Tarifas' : 'Consulta de Tarifas'}</h1>
+          <p style={styles.subtitle}>
+            {esGerente
+              ? 'Gestión de servicios y precios por días/semana'
+              : 'Consulta los precios de los servicios disponibles'
+            }
+          </p>
         </div>
-        {tablaPrecios.length === 0 && (
+        {esGerente && tablaPrecios.length === 0 && (
           <button onClick={handleInicializar} style={styles.initButton}>
             Inicializar Productos
           </button>
@@ -303,7 +311,7 @@ const Productos = () => {
                     <th style={{ ...styles.th, textAlign: 'center' }}>2 días/sem</th>
                     <th style={{ ...styles.th, textAlign: 'center' }}>3+ días/sem</th>
                     <th style={{ ...styles.th, textAlign: 'center' }}>Estado</th>
-                    <th style={{ ...styles.th, textAlign: 'center' }}>Acciones</th>
+                    {esGerente && <th style={{ ...styles.th, textAlign: 'center' }}>Acciones</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -382,39 +390,41 @@ const Productos = () => {
                         </span>
                       </td>
 
-                      <td style={{ ...styles.td, textAlign: 'center' }}>
-                        {editando === producto._id ? (
-                          <div style={styles.actionButtons}>
-                            <button
-                              onClick={() => handleGuardarPrecios(producto._id)}
-                              style={styles.saveButton}
-                            >
-                              Guardar
-                            </button>
-                            <button
-                              onClick={handleCancelarEdicion}
-                              style={styles.cancelButton}
-                            >
-                              Cancelar
-                            </button>
-                          </div>
-                        ) : (
-                          <div style={styles.actionButtons}>
-                            <button
-                              onClick={() => handleEditarProducto(producto)}
-                              style={styles.editButton}
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => handleToggleActivo(producto)}
-                              style={producto.activo ? styles.deactivateButton : styles.activateButton}
-                            >
-                              {producto.activo ? 'Desactivar' : 'Activar'}
-                            </button>
-                          </div>
-                        )}
-                      </td>
+                      {esGerente && (
+                        <td style={{ ...styles.td, textAlign: 'center' }}>
+                          {editando === producto._id ? (
+                            <div style={styles.actionButtons}>
+                              <button
+                                onClick={() => handleGuardarPrecios(producto._id)}
+                                style={styles.saveButton}
+                              >
+                                Guardar
+                              </button>
+                              <button
+                                onClick={handleCancelarEdicion}
+                                style={styles.cancelButton}
+                              >
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={styles.actionButtons}>
+                              <button
+                                onClick={() => handleEditarProducto(producto)}
+                                style={styles.editButton}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                onClick={() => handleToggleActivo(producto)}
+                                style={producto.activo ? styles.deactivateButton : styles.activateButton}
+                              >
+                                {producto.activo ? 'Desactivar' : 'Activar'}
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -507,39 +517,41 @@ const Productos = () => {
                     </div>
                   </div>
 
-                  <div style={styles.mobileCardActions}>
-                    {editando === producto._id ? (
-                      <>
-                        <button
-                          onClick={() => handleGuardarPrecios(producto._id)}
-                          style={styles.mobileButtonSave}
-                        >
-                          Guardar
-                        </button>
-                        <button
-                          onClick={handleCancelarEdicion}
-                          style={styles.mobileButtonCancel}
-                        >
-                          Cancelar
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => handleEditarProducto(producto)}
-                          style={styles.mobileButtonEdit}
-                        >
-                          Editar Precios
-                        </button>
-                        <button
-                          onClick={() => handleToggleActivo(producto)}
-                          style={producto.activo ? styles.mobileButtonDeactivate : styles.mobileButtonActivate}
-                        >
-                          {producto.activo ? 'Desactivar' : 'Activar'}
-                        </button>
-                      </>
-                    )}
-                  </div>
+                  {esGerente && (
+                    <div style={styles.mobileCardActions}>
+                      {editando === producto._id ? (
+                        <>
+                          <button
+                            onClick={() => handleGuardarPrecios(producto._id)}
+                            style={styles.mobileButtonSave}
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            onClick={handleCancelarEdicion}
+                            style={styles.mobileButtonCancel}
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleEditarProducto(producto)}
+                            style={styles.mobileButtonEdit}
+                          >
+                            Editar Precios
+                          </button>
+                          <button
+                            onClick={() => handleToggleActivo(producto)}
+                            style={producto.activo ? styles.mobileButtonDeactivate : styles.mobileButtonActivate}
+                          >
+                            {producto.activo ? 'Desactivar' : 'Activar'}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

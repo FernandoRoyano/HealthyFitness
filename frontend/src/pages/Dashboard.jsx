@@ -71,15 +71,12 @@ function Dashboard() {
 
   const widgets = usuario?.rol === 'gerente' ? widgetsGerente : widgetsEntrenador;
 
-  // Configuración de tarjetas de acceso rápido
-  const tarjetasBase = [
-    { id: 'clientes', path: '/clientes', icon: '👥', title: 'Clientes', desc: 'Gestiona la información de tus clientes' },
+  // Configuración de tarjetas de acceso rápido según rol
+  const tarjetasGerente = [
+    { id: 'clientes', path: '/clientes', icon: '👥', title: 'Clientes', desc: 'Gestiona la información de todos los clientes' },
     { id: 'leads', path: '/leads', icon: '🎯', title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
     { id: 'reservas', path: '/reservas', icon: '📅', title: 'Reservas', desc: 'Administra las reservas y horarios' },
     { id: 'calendario-excel', path: '/calendario-reservas', icon: '📊', title: 'Calendario Excel', desc: 'Vista tipo Excel con todos los entrenadores' },
-  ];
-
-  const tarjetasGerente = [
     { id: 'calendarios', path: '/calendario-gerente', icon: '📆', title: 'Calendarios', desc: 'Vista de todos los entrenadores' },
     { id: 'entrenadores', path: '/entrenadores', icon: '👨‍🏫', title: 'Entrenadores', desc: 'Gestiona los perfiles de entrenadores' },
     { id: 'vacaciones', path: '/vacaciones', icon: '🏖️', title: 'Vacaciones', desc: 'Control de vacaciones del equipo' },
@@ -87,13 +84,14 @@ function Dashboard() {
   ];
 
   const tarjetasEntrenador = [
+    { id: 'clientes', path: '/clientes', icon: '👥', title: 'Mis Clientes', desc: 'Gestiona la información de tus clientes asignados' },
+    { id: 'leads', path: '/leads', icon: '🎯', title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
     { id: 'mi-calendario', path: '/calendario', icon: '📆', title: 'Mi Calendario', desc: 'Vista semanal de tus sesiones' },
     { id: 'vacaciones', path: '/vacaciones', icon: '🏖️', title: 'Mis Vacaciones', desc: 'Solicitar y ver mis vacaciones' },
+    { id: 'facturacion', path: '/facturacion', icon: '💶', title: 'Mi Facturación', desc: 'Ver facturación de tus clientes' },
   ];
 
-  const tarjetas = usuario?.rol === 'gerente'
-    ? [...tarjetasBase, ...tarjetasGerente]
-    : [...tarjetasBase, ...tarjetasEntrenador];
+  const tarjetas = usuario?.rol === 'gerente' ? tarjetasGerente : tarjetasEntrenador;
 
   return (
     <div style={styles.container}>

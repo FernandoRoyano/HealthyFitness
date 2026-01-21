@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { usersAPI } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import './Entrenadores.css';
 
 function Entrenadores() {
+  const { usuario } = useAuth();
+  const esGerente = usuario?.rol === 'gerente';
   const [entrenadores, setEntrenadores] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -114,6 +117,10 @@ function Entrenadores() {
   };
 
   const handleEditar = (entrenador) => {
+    // Entrenador solo puede editar su propio perfil
+    if (!esGerente && entrenador._id !== usuario?._id) {
+      return;
+    }
     setEntrenadorEditando(entrenador);
     setFormulario({
       nombre: entrenador.nombre,
@@ -129,6 +136,16 @@ function Entrenadores() {
     }
     setArchivoFoto(null);
     setMostrarFormulario(true);
+  };
+
+  // Verificar si el entrenador actual puede editar al entrenador dado
+  const puedeEditar = (entrenador) => {
+    return esGerente || entrenador._id === usuario?._id;
+  };
+
+  // Verificar si puede cambiar contraseña del entrenador dado
+  const puedeCambiarPassword = (entrenador) => {
+    return esGerente || entrenador._id === usuario?._id;
   };
 
   const cerrarFormulario = () => {
@@ -219,33 +236,47 @@ function Entrenadores() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>Gestión de Entrenadores</h1>
-          <p style={styles.subtitle}>Administra los perfiles de los entrenadores de HealthyFitness</p>
+          <h1 style={styles.title}>{esGerente ? 'Gestión de Entrenadores' : 'Equipo de Entrenadores'}</h1>
+          <p style={styles.subtitle}>
+            {esGerente
+              ? 'Administra los perfiles de los entrenadores de HealthyFitness'
+              : 'Consulta la información de tus compañeros de trabajo'
+            }
+          </p>
         </div>
-        <div className="button-group" style={styles.headerButtons}>
-          <button
-            onClick={() => setMostrarModalCrear(true)}
-            className="btn-primary-custom"
-            style={styles.buttonPrimary}
-          >
-            + Nuevo Entrenador
-          </button>
-          <button
-            onClick={() => setMostrarModalReasignar(true)}
-            className="btn-secondary-custom"
-            style={styles.buttonSecondary}
-          >
-            Reasignar Clientes
-          </button>
-        </div>
+        {esGerente && (
+          <div className="button-group" style={styles.headerButtons}>
+            <button
+              onClick={() => setMostrarModalCrear(true)}
+              className="btn-primary-custom"
+              style={styles.buttonPrimary}
+            >
+              + Nuevo Entrenador
+            </button>
+            <button
+              onClick={() => setMostrarModalReasignar(true)}
+              className="btn-secondary-custom"
+              style={styles.buttonSecondary}
+            >
+              Reasignar Clientes
+            </button>
+          </div>
+        )}
       </div>
 
       {error && <div style={styles.error}>{error}</div>}
 
       <div style={styles.grid}>
         {entrenadores.map((entrenador) => {
+          const esMiPerfil = entrenador._id === usuario?._id;
           return (
-            <div key={entrenador._id} style={styles.card}>
+            <div key={entrenador._id} style={{
+              ...styles.card,
+              ...(esMiPerfil && !esGerente ? styles.cardMiPerfil : {})
+            }}>
+              {esMiPerfil && !esGerente && (
+                <div style={styles.miPerfilBadge}>Mi perfil</div>
+              )}
               <div style={styles.cardHeader}>
                 <div style={styles.cardTitleSection}>
                   <div style={styles.avatarSmall}>
@@ -253,21 +284,27 @@ function Entrenadores() {
                   </div>
                   <h3 style={styles.cardTitle}>{entrenador.nombre}</h3>
                 </div>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={() => handleEditar(entrenador)}
-                    style={styles.buttonEdit}
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => abrirModalPassword(entrenador)}
-                    style={styles.buttonPassword}
-                    title="Resetear contraseña"
-                  >
-                    🔑
-                  </button>
-                </div>
+                {(puedeEditar(entrenador) || puedeCambiarPassword(entrenador)) && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {puedeEditar(entrenador) && (
+                      <button
+                        onClick={() => handleEditar(entrenador)}
+                        style={styles.buttonEdit}
+                      >
+                        Editar
+                      </button>
+                    )}
+                    {puedeCambiarPassword(entrenador) && (
+                      <button
+                        onClick={() => abrirModalPassword(entrenador)}
+                        style={styles.buttonPassword}
+                        title={esMiPerfil ? 'Cambiar mi contraseña' : 'Resetear contraseña'}
+                      >
+                        🔑
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div style={styles.cardBody}>
                 <div style={styles.infoRow}>
@@ -839,6 +876,22 @@ const styles = {
     width: '100%',
     height: '100%',
     objectFit: 'cover'
+  },
+  // Estilos para destacar el perfil propio del entrenador
+  cardMiPerfil: {
+    border: '2px solid #75b760',
+    position: 'relative'
+  },
+  miPerfilBadge: {
+    position: 'absolute',
+    top: '-10px',
+    right: '15px',
+    backgroundColor: '#75b760',
+    color: 'white',
+    padding: '4px 12px',
+    borderRadius: '12px',
+    fontSize: '12px',
+    fontWeight: '600'
   }
 };
 

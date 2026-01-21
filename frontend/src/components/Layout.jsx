@@ -89,16 +89,13 @@ function Layout({ children }) {
   };
 
   // Menú items según rol
-  const menuItems = [
+  const menuGerente = [
     { path: '/dashboard', label: 'Inicio', icon: '🏠' },
     { path: '/clientes', label: 'Clientes', icon: '👥' },
     { path: '/leads', label: 'Leads', icon: '🎯' },
     { path: '/reservas', label: 'Reservas', icon: '📅' },
     { path: '/calendario-reservas', label: 'Calendario', icon: '📊' },
-  ];
-
-  const menuGerente = [
-    { path: '/calendario-gerente', label: 'Agenda', icon: '📅' },
+    { path: '/calendario-gerente', label: 'Agenda', icon: '📆' },
     { path: '/plantillas', label: 'Horario Base', icon: '📋' },
     { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
     { path: '/entrenadores', label: 'Entrenadores', icon: '🏋️' },
@@ -119,15 +116,22 @@ function Layout({ children }) {
   ];
 
   const menuEntrenador = [
-    { path: '/calendario', label: 'Mi Calendario', icon: '📆' },
-    { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
+    { path: '/dashboard', label: 'Inicio', icon: '🏠' },
+    { path: '/clientes', label: 'Mis Clientes', icon: '👥' },
+    { path: '/leads', label: 'Leads', icon: '🎯' },
+    { path: '/reservas', label: 'Mis Reservas', icon: '📅' },
+    { path: '/calendario-reservas', label: 'Calendario', icon: '📊' },
+    { path: '/calendario', label: 'Mi Agenda', icon: '📆' },
+    { path: '/entrenadores', label: 'Entrenadores', icon: '🏋️' },
+    { path: '/solicitudes', label: 'Solicitudes', icon: '📬' },
     { path: '/vacaciones', label: 'Mis Vacaciones', icon: '🏖️' },
-    { path: '/facturacion', label: 'Facturación', icon: '💶' },
+    { path: '/facturacion', label: 'Mi Facturación', icon: '💶' },
+    { path: '/productos', label: 'Tarifas', icon: '💰' },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'
-    ? [...menuItems, ...menuGerente]
-    : [...menuItems, ...menuEntrenador];
+    ? menuGerente
+    : menuEntrenador;
 
   return (
     <div className="layout-container">
