@@ -18,6 +18,7 @@ import Productos from './pages/Productos';
 import Vacaciones from './pages/Vacaciones';
 import Facturacion from './pages/Facturacion';
 import ClientesPotenciales from './pages/ClientesPotenciales';
+import ConfiguracionCentro from './pages/ConfiguracionCentro';
 
 function App() {
   return (
@@ -171,6 +172,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ClientesPotenciales />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/configuracion-centro"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ConfiguracionCentro />
                 </Layout>
               </ProtectedRoute>
             }

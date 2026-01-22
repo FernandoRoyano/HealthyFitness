@@ -3,6 +3,7 @@ import { clientesAPI, usersAPI, facturacionAPI, productosAPI } from '../services
 import { useAuth } from '../context/AuthContext';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
+import FichaCliente from '../components/FichaCliente';
 import './Clientes.css';
 
 function Clientes() {
@@ -55,6 +56,10 @@ function Clientes() {
     numeroCuenta: '',
     entrenador: ''
   });
+
+  // Estado para la ficha del cliente
+  const [mostrarFichaCliente, setMostrarFichaCliente] = useState(false);
+  const [clienteFicha, setClienteFicha] = useState(null);
 
   useEffect(() => {
     cargarDatos();
@@ -996,6 +1001,15 @@ function Clientes() {
                   <td style={styles.td}>{cliente.objetivos || '-'}</td>
                   <td style={styles.td}>
                     <button
+                      onClick={() => {
+                        setClienteFicha(cliente);
+                        setMostrarFichaCliente(true);
+                      }}
+                      style={styles.buttonView}
+                    >
+                      Ver ficha
+                    </button>
+                    <button
                       onClick={() => handleEditar(cliente)}
                       style={styles.buttonEdit}
                     >
@@ -1046,6 +1060,15 @@ function Clientes() {
               </div>
               <div style={styles.clienteCardActions}>
                 <button
+                  onClick={() => {
+                    setClienteFicha(cliente);
+                    setMostrarFichaCliente(true);
+                  }}
+                  style={styles.buttonViewMobile}
+                >
+                  Ver ficha
+                </button>
+                <button
                   onClick={() => handleEditar(cliente)}
                   style={styles.buttonEditMobile}
                 >
@@ -1062,6 +1085,18 @@ function Clientes() {
           ))
         )}
       </div>
+
+      {/* Modal Ficha Cliente */}
+      {mostrarFichaCliente && clienteFicha && (
+        <FichaCliente
+          cliente={clienteFicha}
+          onClose={() => {
+            setMostrarFichaCliente(false);
+            setClienteFicha(null);
+          }}
+          onClienteActualizado={cargarDatos}
+        />
+      )}
     </div>
   );
 }
@@ -1110,6 +1145,16 @@ const styles = {
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer'
+  },
+  buttonView: {
+    padding: '6px 12px',
+    fontSize: '12px',
+    color: 'white',
+    backgroundColor: '#75b760',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    marginRight: '5px'
   },
   buttonEdit: {
     padding: '6px 12px',
@@ -1366,6 +1411,17 @@ const styles = {
     borderTop: '1px solid #e9ecef',
     display: 'flex',
     gap: '10px'
+  },
+  buttonViewMobile: {
+    flex: 1,
+    padding: '10px 16px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: 'white',
+    backgroundColor: '#75b760',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer'
   },
   buttonEditMobile: {
     flex: 1,

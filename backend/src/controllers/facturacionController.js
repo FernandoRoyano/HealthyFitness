@@ -4,6 +4,8 @@ import Asistencia from '../models/Asistencia.js';
 import Cliente from '../models/Cliente.js';
 import Producto from '../models/Producto.js';
 import TarifaProducto from '../models/TarifaProducto.js';
+import { generarPDFFactura } from '../services/pdfService.js';
+import { enviarFacturaPorEmail, verificarConfiguracionEmail } from '../services/emailService.js';
 
 // ==================== SUSCRIPCIONES ====================
 
@@ -829,5 +831,72 @@ export const crearFacturaManual = async (req, res) => {
   } catch (error) {
     console.error('Error al crear factura manual:', error);
     res.status(500).json({ mensaje: error.message || 'Error al crear factura manual' });
+  }
+};
+
+// ==================== PDF Y EMAIL ====================
+
+// Descargar PDF de factura
+export const descargarPDFFactura = async (req, res) => {
+  try {
+    const factura = await FacturaMensual.findById(req.params.id)
+      .populate('cliente', 'nombre apellido email telefono direccion');
+
+    if (!factura) {
+      return res.status(404).json({ mensaje: 'Factura no encontrada' });
+    }
+
+    const pdfBuffer = await generarPDFFactura(factura);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=Factura_${factura.numeroFactura}.pdf`);
+    res.send(pdfBuffer);
+  } catch (error) {
+    console.error('Error al generar PDF:', error);
+    res.status(500).json({ mensaje: 'Error al generar PDF: ' + error.message });
+  }
+};
+
+// Enviar factura por email
+export const enviarFacturaEmail = async (req, res) => {
+  try {
+    const factura = await FacturaMensual.findById(req.params.id)
+      .populate('cliente', 'nombre apellido email telefono direccion');
+
+    if (!factura) {
+      return res.status(404).json({ mensaje: 'Factura no encontrada' });
+    }
+
+    if (!factura.cliente?.email) {
+      return res.status(400).json({ mensaje: 'El cliente no tiene email registrado' });
+    }
+
+    // Generar PDF
+    const pdfBuffer = await generarPDFFactura(factura);
+
+    // Enviar email
+    await enviarFacturaPorEmail(factura, pdfBuffer);
+
+    // Actualizar estado a 'enviada' si estaba en 'generada'
+    if (factura.estado === 'generada') {
+      factura.estado = 'enviada';
+      factura.fechaEmision = new Date();
+      await factura.save();
+    }
+
+    res.json({ mensaje: 'Factura enviada correctamente por email' });
+  } catch (error) {
+    console.error('Error al enviar factura por email:', error);
+    res.status(500).json({ mensaje: 'Error al enviar factura: ' + error.message });
+  }
+};
+
+// Verificar configuracion de email
+export const verificarEmail = async (req, res) => {
+  try {
+    const resultado = await verificarConfiguracionEmail();
+    res.json(resultado);
+  } catch (error) {
+    res.status(500).json({ configurado: false, mensaje: error.message });
   }
 };
