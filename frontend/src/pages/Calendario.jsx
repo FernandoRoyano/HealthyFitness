@@ -42,9 +42,18 @@ function Calendario() {
     }
   };
 
+  // Calcular hora fin basada en hora inicio y duración
+  const calcularHoraFin = (horaInicio, duracion) => {
+    const [horas, minutos] = horaInicio.split(':').map(Number);
+    const totalMinutos = horas * 60 + minutos + duracion;
+    const nuevaHora = Math.floor(totalMinutos / 60);
+    const nuevosMin = totalMinutos % 60;
+    return `${nuevaHora.toString().padStart(2, '0')}:${nuevosMin.toString().padStart(2, '0')}`;
+  };
+
   const handleAgregarReserva = (fecha, hora) => {
-    const horaFin = parseInt(hora.split(':')[0]) + 1;
-    const horaFinStr = `${horaFin.toString().padStart(2, '0')}:00`;
+    const duracionDefault = 60;
+    const horaFinStr = calcularHoraFin(hora, duracionDefault);
 
     setFormulario({
       cliente: '',
@@ -54,7 +63,7 @@ function Calendario() {
       tipoSesion: 'personal',
       estado: 'confirmada',
       notas: '',
-      duracion: 60
+      duracion: duracionDefault
     });
     setMostrarFormulario(true);
   };
@@ -75,10 +84,17 @@ function Calendario() {
   };
 
   const handleChange = (e) => {
-    setFormulario({
-      ...formulario,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    let nuevoFormulario = { ...formulario, [name]: value };
+
+    // Si cambia la duración o la hora de inicio, recalcular hora fin
+    if (name === 'duracion' && formulario.horaInicio) {
+      nuevoFormulario.horaFin = calcularHoraFin(formulario.horaInicio, parseInt(value));
+    } else if (name === 'horaInicio' && formulario.duracion) {
+      nuevoFormulario.horaFin = calcularHoraFin(value, parseInt(formulario.duracion));
+    }
+
+    setFormulario(nuevoFormulario);
   };
 
   const handleSubmit = async (e) => {
@@ -128,6 +144,19 @@ function Calendario() {
     });
   };
 
+  const handleMoverReserva = async (reservaId, nuevaFecha, nuevaHoraInicio, nuevaHoraFin) => {
+    try {
+      await reservasAPI.actualizar(reservaId, {
+        fecha: nuevaFecha.toISOString().split('T')[0],
+        horaInicio: nuevaHoraInicio,
+        horaFin: nuevaHoraFin
+      });
+      cargarDatos();
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al mover la reserva');
+    }
+  };
+
   if (cargando) return <div style={styles.container}>Cargando...</div>;
 
   return (
@@ -146,6 +175,7 @@ function Calendario() {
         entrenador={usuario._id}
         onAgregarReserva={handleAgregarReserva}
         onEditarReserva={handleEditarReserva}
+        onMoverReserva={handleMoverReserva}
       />
 
       {mostrarFormulario && (
@@ -200,6 +230,20 @@ function Calendario() {
                     <option value="otro">Otro</option>
                   </select>
                 </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Duración</label>
+                <select
+                  name="duracion"
+                  value={formulario.duracion}
+                  onChange={handleChange}
+                  style={styles.input}
+                >
+                  <option value="30">30 minutos</option>
+                  <option value="60">1 hora</option>
+                  <option value="90">1 hora 30 min</option>
+                </select>
               </div>
 
               <div style={styles.formRow}>

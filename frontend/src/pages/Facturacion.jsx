@@ -470,6 +470,73 @@ function Facturacion() {
     return labels[estado] || estado;
   };
 
+  // Descargar PDF de factura
+  const handleDescargarPDF = async (factura) => {
+    try {
+      setCargando(true);
+      const response = await facturacionAPI.descargarPDF(factura._id);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `factura-${factura.numeroFactura || factura._id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error al descargar PDF:', err);
+      setError('Error al descargar el PDF de la factura');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Enviar factura por email
+  const handleEnviarEmail = async (factura) => {
+    if (!factura.cliente?.email) {
+      setError('El cliente no tiene email configurado');
+      return;
+    }
+
+    if (!window.confirm(`¿Enviar factura por email a ${factura.cliente.email}?`)) {
+      return;
+    }
+
+    try {
+      setCargando(true);
+      await facturacionAPI.enviarEmail(factura._id);
+      setMensaje(`Factura enviada correctamente a ${factura.cliente.email}`);
+      cargarDatos();
+    } catch (err) {
+      console.error('Error al enviar email:', err);
+      setError(err.response?.data?.mensaje || 'Error al enviar la factura por email');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Imprimir factura
+  const handleImprimir = async (factura) => {
+    try {
+      setCargando(true);
+      const response = await facturacionAPI.descargarPDF(factura._id);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const printWindow = window.open(url, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } catch (err) {
+      console.error('Error al imprimir:', err);
+      setError('Error al generar el PDF para imprimir');
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return (
     <div className="facturacion-container">
       <div className="facturacion-header">
@@ -622,6 +689,29 @@ function Facturacion() {
                         >
                           👁️
                         </button>
+                        <button
+                          className="btn-accion btn-pdf"
+                          onClick={() => handleDescargarPDF(factura)}
+                          title="Descargar PDF"
+                        >
+                          📄
+                        </button>
+                        <button
+                          className="btn-accion btn-imprimir"
+                          onClick={() => handleImprimir(factura)}
+                          title="Imprimir"
+                        >
+                          🖨️
+                        </button>
+                        {factura.cliente?.email && (
+                          <button
+                            className="btn-accion btn-email"
+                            onClick={() => handleEnviarEmail(factura)}
+                            title={`Enviar a ${factura.cliente.email}`}
+                          >
+                            ✉️
+                          </button>
+                        )}
                         {esGerente && factura.estado !== 'pagada' && factura.estado !== 'anulada' && (
                           <>
                             <button
@@ -917,18 +1007,42 @@ function Facturacion() {
               )}
             </div>
 
-            <div className="modal-acciones">
-              <button className="btn-cancelar" onClick={() => setModalFactura(false)}>
-                Cerrar
-              </button>
-              {esGerente && facturaDetalle.estado !== 'pagada' && facturaDetalle.estado !== 'anulada' && (
-                <button className="btn-guardar" onClick={() => {
-                  setModalFactura(false);
-                  abrirModalPago(facturaDetalle);
-                }}>
-                  Registrar Pago
+            <div className="modal-acciones modal-acciones-factura">
+              <div className="acciones-izquierda">
+                <button
+                  className="btn-secundario btn-pdf-modal"
+                  onClick={() => handleDescargarPDF(facturaDetalle)}
+                >
+                  📄 Descargar PDF
                 </button>
-              )}
+                <button
+                  className="btn-secundario btn-imprimir-modal"
+                  onClick={() => handleImprimir(facturaDetalle)}
+                >
+                  🖨️ Imprimir
+                </button>
+                {facturaDetalle.cliente?.email && (
+                  <button
+                    className="btn-secundario btn-email-modal"
+                    onClick={() => handleEnviarEmail(facturaDetalle)}
+                  >
+                    ✉️ Enviar Email
+                  </button>
+                )}
+              </div>
+              <div className="acciones-derecha">
+                <button className="btn-cancelar" onClick={() => setModalFactura(false)}>
+                  Cerrar
+                </button>
+                {esGerente && facturaDetalle.estado !== 'pagada' && facturaDetalle.estado !== 'anulada' && (
+                  <button className="btn-guardar" onClick={() => {
+                    setModalFactura(false);
+                    abrirModalPago(facturaDetalle);
+                  }}>
+                    Registrar Pago
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

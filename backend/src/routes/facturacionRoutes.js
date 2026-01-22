@@ -24,7 +24,12 @@ import {
   emitirFactura,
   anularFactura,
   obtenerResumenMes,
-  previewFactura
+  previewFactura,
+
+  // PDF y Email
+  descargarPDFFactura,
+  enviarFacturaEmail,
+  verificarEmail
 } from '../controllers/facturacionController.js';
 import { proteger, esGerente } from '../middleware/authMiddleware.js';
 
@@ -101,5 +106,16 @@ router.put('/facturas/:id/emitir', esGerente, emitirFactura);
 
 // PUT /api/facturacion/facturas/:id/anular
 router.put('/facturas/:id/anular', esGerente, anularFactura);
+
+// ==================== PDF Y EMAIL ====================
+
+// GET /api/facturacion/facturas/:id/pdf - Descargar PDF
+router.get('/facturas/:id/pdf', descargarPDFFactura);
+
+// POST /api/facturacion/facturas/:id/enviar-email - Enviar por email
+router.post('/facturas/:id/enviar-email', esGerente, enviarFacturaEmail);
+
+// GET /api/facturacion/email/verificar - Verificar configuracion SMTP
+router.get('/email/verificar', esGerente, verificarEmail);
 
 export default router;

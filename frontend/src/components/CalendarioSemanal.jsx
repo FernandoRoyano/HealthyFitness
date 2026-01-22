@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import './CalendarioSemanal.css';
 
-function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLectura = false }) {
+function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, onMoverReserva, soloLectura = false }) {
   const [semanaActual, setSemanaActual] = useState(new Date());
   const [diaSeleccionado, setDiaSeleccionado] = useState(0); // 0=Lunes, 4=Viernes
+
+  // Estados para drag & drop
+  const [arrastrando, setArrastrando] = useState(null);
+  const [celdaHover, setCeldaHover] = useState(null);
 
   const obtenerLunesDeLaSemana = (fecha) => {
     const d = new Date(fecha);
@@ -30,17 +34,42 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
   };
 
   const horariosDisponibles = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00', '21:00'
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+    '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
+    '20:00', '20:30', '21:00'
   ];
 
+  // Obtener reserva que INICIA en este horario exacto
   const obtenerReservaParaHorario = (fecha, hora) => {
     return reservas.find(reserva => {
       const fechaReserva = new Date(reserva.fecha).toDateString();
       const fechaDia = fecha.toDateString();
       return fechaReserva === fechaDia && reserva.horaInicio === hora;
     });
+  };
+
+  // Verificar si este slot está ocupado por una reserva que empezó antes
+  const slotOcupadoPorReservaAnterior = (fecha, hora) => {
+    const minutoSlot = horaAMinutos(hora);
+    return reservas.find(reserva => {
+      const fechaReserva = new Date(reserva.fecha).toDateString();
+      const fechaDia = fecha.toDateString();
+      if (fechaReserva !== fechaDia) return false;
+
+      const inicioReserva = horaAMinutos(reserva.horaInicio);
+      const finReserva = horaAMinutos(reserva.horaFin);
+
+      // Este slot está ocupado si está dentro del rango de la reserva (pero no es el inicio)
+      return minutoSlot > inicioReserva && minutoSlot < finReserva;
+    });
+  };
+
+  // Calcular cuántas filas (slots de 30 min) debe ocupar una reserva
+  const calcularRowSpan = (reserva) => {
+    const duracion = calcularDuracion(reserva.horaInicio, reserva.horaFin);
+    return Math.ceil(duracion / 30);
   };
 
   const formatearFecha = (fecha) => {
@@ -67,6 +96,133 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
   const esHoy = (fecha) => {
     const hoy = new Date();
     return fecha.toDateString() === hoy.toDateString();
+  };
+
+  // Convertir hora string a minutos totales
+  const horaAMinutos = (hora) => {
+    const [h, m] = hora.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  // Convertir minutos totales a hora string
+  const minutosAHora = (minutos) => {
+    const h = Math.floor(minutos / 60);
+    const m = minutos % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  };
+
+  // Calcular hora fin manteniendo la duración original
+  const calcularHoraFin = (horaInicio, duracionOriginal) => {
+    const minutosInicio = horaAMinutos(horaInicio);
+    return minutosAHora(minutosInicio + duracionOriginal);
+  };
+
+  // Calcular duración en minutos
+  const calcularDuracion = (horaInicio, horaFin) => {
+    return horaAMinutos(horaFin) - horaAMinutos(horaInicio);
+  };
+
+  // Verificar si hay conflicto con otra reserva (considerando duración)
+  const hayConflicto = (fecha, hora, reservaId) => {
+    // Obtener la reserva que se está moviendo para conocer su duración
+    const reservaMoviendo = reservas.find(r => r._id === reservaId);
+    const duracionMoviendo = reservaMoviendo ? calcularDuracion(reservaMoviendo.horaInicio, reservaMoviendo.horaFin) : 60;
+
+    const inicioNuevo = horaAMinutos(hora);
+    const finNuevo = inicioNuevo + duracionMoviendo;
+
+    return reservas.some(r => {
+      if (r._id === reservaId) return false;
+      const fechaReserva = new Date(r.fecha).toDateString();
+      const fechaDia = fecha.toDateString();
+      if (fechaReserva !== fechaDia) return false;
+
+      // Verificar solapamiento de horarios
+      const inicioExistente = horaAMinutos(r.horaInicio);
+      const finExistente = horaAMinutos(r.horaFin);
+
+      // Hay conflicto si los rangos se solapan
+      return inicioNuevo < finExistente && finNuevo > inicioExistente;
+    });
+  };
+
+  // Handlers de Drag & Drop
+  const handleDragStart = (e, reserva) => {
+    if (soloLectura) return;
+    setArrastrando(reserva);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('reservaId', reserva._id);
+    // Agregar imagen fantasma personalizada
+    const dragImage = e.target.cloneNode(true);
+    dragImage.style.opacity = '0.8';
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-1000px';
+    document.body.appendChild(dragImage);
+    e.dataTransfer.setDragImage(dragImage, 50, 25);
+    setTimeout(() => document.body.removeChild(dragImage), 0);
+  };
+
+  const handleDragEnd = () => {
+    setArrastrando(null);
+    setCeldaHover(null);
+  };
+
+  const handleDragOver = (e, fecha, hora) => {
+    e.preventDefault();
+    if (!arrastrando) return;
+
+    const tieneConflicto = hayConflicto(fecha, hora, arrastrando._id);
+    e.dataTransfer.dropEffect = tieneConflicto ? 'none' : 'move';
+
+    const fechaStr = fecha.toDateString();
+    if (celdaHover?.fecha !== fechaStr || celdaHover?.hora !== hora) {
+      setCeldaHover({ fecha: fechaStr, hora, conflicto: tieneConflicto });
+    }
+  };
+
+  const handleDragLeave = (e) => {
+    // Solo limpiar si realmente salimos de la celda
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setCeldaHover(null);
+    }
+  };
+
+  const handleDrop = async (e, fecha, hora) => {
+    e.preventDefault();
+
+    if (!arrastrando || !onMoverReserva) {
+      setArrastrando(null);
+      setCeldaHover(null);
+      return;
+    }
+
+    // Verificar conflictos
+    if (hayConflicto(fecha, hora, arrastrando._id)) {
+      setArrastrando(null);
+      setCeldaHover(null);
+      return;
+    }
+
+    // Calcular nueva hora fin manteniendo la duración
+    const duracion = calcularDuracion(arrastrando.horaInicio, arrastrando.horaFin);
+    const nuevaHoraFin = calcularHoraFin(hora, duracion);
+
+    // Llamar al callback para mover la reserva
+    await onMoverReserva(arrastrando._id, fecha, hora, nuevaHoraFin);
+
+    setArrastrando(null);
+    setCeldaHover(null);
+  };
+
+  // Obtener clase CSS de la celda
+  const obtenerClaseCelda = (fecha, hora) => {
+    let clases = 'calendario-celda';
+
+    if (celdaHover && celdaHover.fecha === fecha.toDateString() && celdaHover.hora === hora) {
+      clases += celdaHover.conflicto ? ' drop-target-invalid' : ' drop-target';
+    }
+
+    return clases;
   };
 
   const diasSemana = obtenerDiasDeLaSemana();
@@ -135,12 +291,25 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
 
               {horariosDisponibles.map(hora => {
                 const reserva = obtenerReservaParaHorario(dia, hora);
+                const ocupadoPorOtra = !reserva && slotOcupadoPorReservaAnterior(dia, hora);
+                const rowSpan = reserva ? calcularRowSpan(reserva) : 1;
+
                 return (
-                  <div key={hora} className="calendario-celda">
+                  <div
+                    key={hora}
+                    className={`${obtenerClaseCelda(dia, hora)}${ocupadoPorOtra ? ' celda-ocupada' : ''}`}
+                    onDragOver={(e) => handleDragOver(e, dia, hora)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, dia, hora)}
+                  >
                     {reserva ? (
                       <div
-                        className="calendario-reserva"
+                        className={`calendario-reserva ${arrastrando?._id === reserva._id ? 'arrastrando' : ''} span-${rowSpan}`}
+                        draggable={!soloLectura && !!onMoverReserva}
+                        onDragStart={(e) => handleDragStart(e, reserva)}
+                        onDragEnd={handleDragEnd}
                         onClick={() => !soloLectura && onEditarReserva && onEditarReserva(reserva)}
+                        style={{ '--row-span': rowSpan }}
                       >
                         <div className="calendario-reserva-nombre">
                           {reserva.cliente?.nombre} {reserva.cliente?.apellido}
@@ -149,9 +318,14 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
                           {reserva.horaInicio} - {reserva.horaFin}
                         </div>
                         <div className="calendario-reserva-tipo">{reserva.tipoSesion}</div>
+                        {reserva.entrenador && (
+                          <div className="calendario-reserva-entrenador">
+                            {reserva.entrenador.nombre}
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      !soloLectura && (
+                    ) : ocupadoPorOtra ? null : (
+                      !soloLectura && !arrastrando && (
                         <button
                           className="calendario-btn-agregar"
                           onClick={() => onAgregarReserva && onAgregarReserva(dia, hora)}
@@ -173,8 +347,10 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
         <div className="calendario-dia-lista">
           {horariosDisponibles.map(hora => {
             const reserva = obtenerReservaParaHorario(diaActual, hora);
+            const ocupadoPorOtra = !reserva && slotOcupadoPorReservaAnterior(diaActual, hora);
+
             return (
-              <div key={hora} className="calendario-dia-fila">
+              <div key={hora} className={`calendario-dia-fila${ocupadoPorOtra ? ' fila-ocupada' : ''}`}>
                 <div className="calendario-dia-hora">{hora}</div>
                 <div className="calendario-dia-contenido">
                   {reserva ? (
@@ -188,7 +364,14 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, soloLe
                       <div className="calendario-dia-reserva-info">
                         {reserva.horaInicio} - {reserva.horaFin} • {reserva.tipoSesion}
                       </div>
+                      {reserva.entrenador && (
+                        <div className="calendario-dia-reserva-entrenador">
+                          {reserva.entrenador.nombre}
+                        </div>
+                      )}
                     </div>
+                  ) : ocupadoPorOtra ? (
+                    <div className="calendario-dia-ocupado"></div>
                   ) : (
                     !soloLectura && (
                       <button

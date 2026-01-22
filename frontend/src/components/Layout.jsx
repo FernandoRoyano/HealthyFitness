@@ -113,6 +113,7 @@ function Layout({ children }) {
     },
     { path: '/facturacion', label: 'Facturación', icon: '💶' },
     { path: '/productos', label: 'Tarifas', icon: '💰' },
+    { path: '/configuracion-centro', label: 'Configuración', icon: '⚙️' },
   ];
 
   const menuEntrenador = [

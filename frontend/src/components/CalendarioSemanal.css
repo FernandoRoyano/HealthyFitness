@@ -148,46 +148,101 @@
   color: #6b7280;
 }
 
-/* Celdas de hora */
+/* Celdas de hora - intervalos de 30 min */
 .calendario-hora-celda {
   background-color: #fafafa;
-  padding: 8px;
+  padding: 4px 8px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   color: #6b7280;
-  min-height: 60px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Celdas normales */
+/* Celdas normales - intervalos de 30 min */
 .calendario-celda {
   background-color: white;
-  min-height: 60px;
-  padding: 4px;
+  min-height: 40px;
+  padding: 2px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   position: relative;
+  overflow: visible;
+}
+
+/* Celda ocupada por reserva que empezó antes */
+.calendario-celda.celda-ocupada {
+  background-color: transparent;
+  pointer-events: none;
 }
 
 /* Reserva */
 .calendario-reserva {
   background: linear-gradient(135deg, #75b760, #5fa047);
   color: white;
-  padding: 8px;
+  padding: 6px;
   border-radius: 6px;
-  width: 100%;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  font-size: 11px;
+  width: calc(100% - 4px);
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+  font-size: 10px;
+  user-select: none;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  z-index: 10;
+  /* Altura basada en el número de slots que ocupa */
+  height: calc(var(--row-span, 1) * 40px - 4px);
+  overflow: hidden;
+}
+
+/* Clases para diferentes duraciones */
+.calendario-reserva.span-1 {
+  height: calc(40px - 4px);
+}
+
+.calendario-reserva.span-2 {
+  height: calc(80px - 4px);
+}
+
+.calendario-reserva.span-3 {
+  height: calc(120px - 4px);
+}
+
+.calendario-reserva.span-4 {
+  height: calc(160px - 4px);
 }
 
 .calendario-reserva:hover {
   transform: scale(1.02);
   box-shadow: 0 4px 12px rgba(117, 183, 96, 0.3);
+}
+
+.calendario-reserva:active {
+  cursor: grabbing;
+}
+
+/* Estilos de Drag & Drop */
+.calendario-reserva.arrastrando {
+  opacity: 0.5;
+  transform: scale(0.95);
+  box-shadow: none;
+}
+
+.calendario-celda.drop-target {
+  background-color: #dcfce7;
+  border: 2px dashed #22c55e;
+  border-radius: 4px;
+}
+
+.calendario-celda.drop-target-invalid {
+  background-color: #fee2e2;
+  border: 2px dashed #ef4444;
+  border-radius: 4px;
 }
 
 .calendario-reserva-nombre {
@@ -209,6 +264,16 @@
   margin-top: 2px;
   opacity: 0.8;
   text-transform: capitalize;
+}
+
+.calendario-reserva-entrenador {
+  font-size: 9px;
+  margin-top: 4px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  display: inline-block;
+  opacity: 0.9;
 }
 
 /* Botón agregar */
@@ -250,7 +315,18 @@
 .calendario-dia-fila {
   display: flex;
   background: white;
-  min-height: 70px;
+  min-height: 50px;
+}
+
+.calendario-dia-fila.fila-ocupada {
+  min-height: 30px;
+}
+
+.calendario-dia-ocupado {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(117, 183, 96, 0.2), rgba(95, 160, 71, 0.2));
+  border-radius: 4px;
 }
 
 .calendario-dia-hora {
@@ -290,6 +366,16 @@
 
 .calendario-dia-reserva-info {
   font-size: 13px;
+  opacity: 0.9;
+}
+
+.calendario-dia-reserva-entrenador {
+  font-size: 12px;
+  margin-top: 6px;
+  padding: 3px 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  display: inline-block;
   opacity: 0.9;
 }
 

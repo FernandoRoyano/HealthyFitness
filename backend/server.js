@@ -19,6 +19,8 @@ import vacacionRoutes from './src/routes/vacacionRoutes.js';
 import facturacionRoutes from './src/routes/facturacionRoutes.js';
 import clientePotencialRoutes from './src/routes/clientePotencialRoutes.js';
 import dashboardRoutes from './src/routes/dashboardRoutes.js';
+import medicionRoutes from './src/routes/medicionRoutes.js';
+import centroRoutes from './src/routes/centroRoutes.js';
 
 dotenv.config();
 
@@ -79,6 +81,8 @@ app.use('/api/vacaciones', vacacionRoutes);
 app.use('/api/facturacion', facturacionRoutes);
 app.use('/api/clientes-potenciales', clientePotencialRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/mediciones', medicionRoutes);
+app.use('/api/centro', centroRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;

@@ -15,6 +15,7 @@ function CalendarioGerente() {
   const [reservaEditando, setReservaEditando] = useState(null);
   const [formulario, setFormulario] = useState({
     cliente: '',
+    entrenador: '',
     fecha: '',
     horaInicio: '',
     horaFin: '',
@@ -67,19 +68,29 @@ function CalendarioGerente() {
     }
   };
 
+  // Calcular hora fin basada en hora inicio y duración
+  const calcularHoraFin = (horaInicio, duracion) => {
+    const [horas, minutos] = horaInicio.split(':').map(Number);
+    const totalMinutos = horas * 60 + minutos + duracion;
+    const nuevaHora = Math.floor(totalMinutos / 60);
+    const nuevosMin = totalMinutos % 60;
+    return `${nuevaHora.toString().padStart(2, '0')}:${nuevosMin.toString().padStart(2, '0')}`;
+  };
+
   const handleAgregarReserva = (fecha, hora) => {
-    const horaFin = parseInt(hora.split(':')[0]) + 1;
-    const horaFinStr = `${horaFin.toString().padStart(2, '0')}:00`;
+    const duracionDefault = 60;
+    const horaFinStr = calcularHoraFin(hora, duracionDefault);
 
     setFormulario({
       cliente: '',
+      entrenador: entrenadorSeleccionado,
       fecha: fecha.toISOString().split('T')[0],
       horaInicio: hora,
       horaFin: horaFinStr,
       tipoSesion: 'personal',
       estado: 'confirmada',
       notas: '',
-      duracion: 60
+      duracion: duracionDefault
     });
     setMostrarFormulario(true);
   };
@@ -88,6 +99,7 @@ function CalendarioGerente() {
     setReservaEditando(reserva);
     setFormulario({
       cliente: reserva.cliente._id,
+      entrenador: reserva.entrenador?._id || entrenadorSeleccionado,
       fecha: new Date(reserva.fecha).toISOString().split('T')[0],
       horaInicio: reserva.horaInicio,
       horaFin: reserva.horaFin,
@@ -100,10 +112,17 @@ function CalendarioGerente() {
   };
 
   const handleChange = (e) => {
-    setFormulario({
-      ...formulario,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    let nuevoFormulario = { ...formulario, [name]: value };
+
+    // Si cambia la duración o la hora de inicio, recalcular hora fin
+    if (name === 'duracion' && formulario.horaInicio) {
+      nuevoFormulario.horaFin = calcularHoraFin(formulario.horaInicio, parseInt(value));
+    } else if (name === 'horaInicio' && formulario.duracion) {
+      nuevoFormulario.horaFin = calcularHoraFin(value, parseInt(formulario.duracion));
+    }
+
+    setFormulario(nuevoFormulario);
   };
 
   const handleSubmit = async (e) => {
@@ -111,7 +130,7 @@ function CalendarioGerente() {
     try {
       const datos = {
         ...formulario,
-        entrenador: entrenadorSeleccionado
+        entrenador: formulario.entrenador
       };
 
       if (reservaEditando) {
@@ -143,6 +162,7 @@ function CalendarioGerente() {
     setReservaEditando(null);
     setFormulario({
       cliente: '',
+      entrenador: '',
       fecha: '',
       horaInicio: '',
       horaFin: '',
@@ -151,6 +171,19 @@ function CalendarioGerente() {
       notas: '',
       duracion: 60
     });
+  };
+
+  const handleMoverReserva = async (reservaId, nuevaFecha, nuevaHoraInicio, nuevaHoraFin) => {
+    try {
+      await reservasAPI.actualizar(reservaId, {
+        fecha: nuevaFecha.toISOString().split('T')[0],
+        horaInicio: nuevaHoraInicio,
+        horaFin: nuevaHoraFin
+      });
+      cargarReservasEntrenador(entrenadorSeleccionado);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al mover la reserva');
+    }
   };
 
   const entrenadorActual = entrenadores.find(e => e._id === entrenadorSeleccionado);
@@ -199,6 +232,7 @@ function CalendarioGerente() {
             entrenador={entrenadorSeleccionado}
             onAgregarReserva={handleAgregarReserva}
             onEditarReserva={handleEditarReserva}
+            onMoverReserva={handleMoverReserva}
           />
         </div>
       )}
@@ -224,6 +258,24 @@ function CalendarioGerente() {
                   {clientes.map((cliente) => (
                     <option key={cliente._id} value={cliente._id}>
                       {cliente.nombre} {cliente.apellido}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Entrenador*</label>
+                <select
+                  name="entrenador"
+                  value={formulario.entrenador}
+                  onChange={handleChange}
+                  required
+                  style={styles.input}
+                >
+                  <option value="">Selecciona un entrenador</option>
+                  {entrenadores.map((entrenador) => (
+                    <option key={entrenador._id} value={entrenador._id}>
+                      {entrenador.nombre}
                     </option>
                   ))}
                 </select>
@@ -255,6 +307,20 @@ function CalendarioGerente() {
                     <option value="otro">Otro</option>
                   </select>
                 </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Duración</label>
+                <select
+                  name="duracion"
+                  value={formulario.duracion}
+                  onChange={handleChange}
+                  style={styles.input}
+                >
+                  <option value="30">30 minutos</option>
+                  <option value="60">1 hora</option>
+                  <option value="90">1 hora 30 min</option>
+                </select>
               </div>
 
               <div style={styles.formRow}>

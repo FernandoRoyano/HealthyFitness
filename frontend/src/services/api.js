@@ -165,7 +165,12 @@ export const facturacionAPI = {
   registrarPago: (id, datos) => api.post(`/facturacion/facturas/${id}/pago`, datos),
   emitirFactura: (id) => api.put(`/facturacion/facturas/${id}/emitir`),
   anularFactura: (id, motivo) => api.put(`/facturacion/facturas/${id}/anular`, { motivo }),
-  obtenerResumenMes: (mes, anio) => api.get(`/facturacion/facturas/resumen/${mes}/${anio}`)
+  obtenerResumenMes: (mes, anio) => api.get(`/facturacion/facturas/resumen/${mes}/${anio}`),
+
+  // ==================== PDF Y EMAIL ====================
+  descargarPDF: (id) => api.get(`/facturacion/facturas/${id}/pdf`, { responseType: 'blob' }),
+  enviarEmail: (id) => api.post(`/facturacion/facturas/${id}/enviar-email`),
+  verificarEmail: () => api.get('/facturacion/email/verificar')
 };
 
 export const clientesPotencialesAPI = {
@@ -181,4 +186,17 @@ export const clientesPotencialesAPI = {
 
 export const dashboardAPI = {
   obtenerEstadisticas: () => api.get('/dashboard/stats')
+};
+
+export const medicionesAPI = {
+  obtenerPorCliente: (clienteId) => api.get(`/mediciones/cliente/${clienteId}`),
+  obtenerUltima: (clienteId) => api.get(`/mediciones/cliente/${clienteId}/ultima`),
+  crear: (clienteId, datos) => api.post(`/mediciones/cliente/${clienteId}`, datos),
+  actualizar: (id, datos) => api.put(`/mediciones/${id}`, datos),
+  eliminar: (id) => api.delete(`/mediciones/${id}`)
+};
+
+export const centroAPI = {
+  obtener: () => api.get('/centro'),
+  actualizar: (datos) => api.put('/centro', datos)
 };

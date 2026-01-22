@@ -20,7 +20,11 @@ const CalendarioDual = () => {
   const horas = [];
   for (let h = 8; h <= 20; h++) {
     horas.push(`${h.toString().padStart(2, '0')}:00`);
+    if (h < 20) {
+      horas.push(`${h.toString().padStart(2, '0')}:30`);
+    }
   }
+  horas.push('21:00');
 
   function obtenerLunesDeSemana(fecha) {
     const d = new Date(fecha);

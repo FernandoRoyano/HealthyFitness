@@ -381,6 +381,30 @@
   background: #fecaca;
 }
 
+.btn-pdf {
+  background: #fef3c7;
+}
+
+.btn-pdf:hover {
+  background: #fde68a;
+}
+
+.btn-imprimir {
+  background: #e0f2fe;
+}
+
+.btn-imprimir:hover {
+  background: #bae6fd;
+}
+
+.btn-email {
+  background: #f3e8ff;
+}
+
+.btn-email:hover {
+  background: #e9d5ff;
+}
+
 /* ==================== SUSCRIPCIONES ==================== */
 .lista-suscripciones {
   padding: 24px;
@@ -1117,4 +1141,74 @@
 .factura-cliente-info span {
   font-size: 14px;
   color: #666;
+}
+
+/* ==================== ACCIONES FACTURA MODAL ==================== */
+.modal-acciones-factura {
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.modal-acciones-factura .acciones-izquierda {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-acciones-factura .acciones-derecha {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-secundario {
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-secundario:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.btn-pdf-modal:hover {
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+.btn-imprimir-modal:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+.btn-email-modal:hover {
+  background: #f3e8ff;
+  border-color: #c4b5fd;
+}
+
+@media (max-width: 768px) {
+  .modal-acciones-factura {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modal-acciones-factura .acciones-izquierda {
+    justify-content: center;
+  }
+
+  .modal-acciones-factura .acciones-derecha {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .modal-acciones-factura .acciones-derecha button {
+    flex: 1;
+  }
 }
