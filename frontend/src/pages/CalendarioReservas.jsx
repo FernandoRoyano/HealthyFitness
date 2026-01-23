@@ -1,13 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { reservasAPI, usersAPI } from '../services/api';
 
+// Formatear fecha local sin problemas de zona horaria
+const formatearFechaLocal = (fecha) => {
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function CalendarioReservas() {
   const [vista, setVista] = useState('diaria'); // 'individual', 'diaria', 'semanal'
   const [entrenadores, setEntrenadores] = useState([]);
   const [entrenadorSeleccionado, setEntrenadorSeleccionado] = useState('');
   const [reservas, setReservas] = useState([]);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
-    new Date().toISOString().split('T')[0]
+    formatearFechaLocal(new Date())
   );
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -127,7 +135,7 @@ function CalendarioReservas() {
   const cambiarDia = (dias) => {
     const fecha = new Date(fechaSeleccionada);
     fecha.setDate(fecha.getDate() + dias);
-    setFechaSeleccionada(fecha.toISOString().split('T')[0]);
+    setFechaSeleccionada(formatearFechaLocal(fecha));
   };
 
   const renderVistaIndividual = () => {

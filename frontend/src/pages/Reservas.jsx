@@ -49,6 +49,14 @@ function Reservas() {
     }
   };
 
+  // Formatear fecha local sin problemas de zona horaria
+  const formatearFechaLocal = (fecha) => {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleChange = (e) => {
     setFormulario({
       ...formulario,
@@ -80,7 +88,7 @@ function Reservas() {
     setReservaEditando(reserva);
     setFormulario({
       cliente: reserva.cliente._id,
-      fecha: new Date(reserva.fecha).toISOString().split('T')[0],
+      fecha: formatearFechaLocal(new Date(reserva.fecha)),
       horaInicio: reserva.horaInicio,
       horaFin: reserva.horaFin,
       tipoSesion: reserva.tipoSesion,
@@ -139,7 +147,7 @@ function Reservas() {
     setReservaSolicitud(reserva);
     setFormularioSolicitud({
       tipoCambio: 'puntual',
-      fecha: new Date(reserva.fecha).toISOString().split('T')[0],
+      fecha: formatearFechaLocal(new Date(reserva.fecha)),
       horaInicio: reserva.horaInicio,
       horaFin: reserva.horaFin,
       motivoCambio: ''

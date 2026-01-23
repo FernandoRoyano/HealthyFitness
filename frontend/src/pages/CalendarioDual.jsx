@@ -3,6 +3,14 @@ import { plantillasAPI, reservasAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './CalendarioDual.css';
 
+// Formatear fecha local sin problemas de zona horaria
+const formatearFechaLocal = (fecha) => {
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const CalendarioDual = () => {
   const { usuario } = useAuth();
   const [plantillaBase, setPlantillaBase] = useState(null);
@@ -107,10 +115,10 @@ const CalendarioDual = () => {
 
   // Obtener reserva real para un día y hora específicos
   const getReservaReal = (fecha, hora) => {
-    const fechaStr = fecha.toISOString().split('T')[0];
+    const fechaStr = formatearFechaLocal(fecha);
 
     return reservasReales.find(r => {
-      const reservaFecha = new Date(r.fecha).toISOString().split('T')[0];
+      const reservaFecha = formatearFechaLocal(new Date(r.fecha));
       return reservaFecha === fechaStr &&
              r.horaInicio === hora &&
              (usuario.rol === 'gerente' || r.entrenador?._id === usuario._id || r.entrenador === usuario._id);
