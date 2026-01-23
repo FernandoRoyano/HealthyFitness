@@ -14,6 +14,7 @@ function Layout({ children }) {
   const [vacacionesPendientes, setVacacionesPendientes] = useState(0);
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [notificacionesNoLeidas, setNotificacionesNoLeidas] = useState(0);
+  const [submenusAbiertos, setSubmenusAbiertos] = useState({});
 
   const handleLogout = () => {
     logout();
@@ -21,6 +22,13 @@ function Layout({ children }) {
   };
 
   const isActive = (path) => location.pathname === path;
+
+  const toggleSubmenu = (categoria) => {
+    setSubmenusAbiertos(prev => ({
+      ...prev,
+      [categoria]: !prev[categoria]
+    }));
+  };
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -88,51 +96,119 @@ function Layout({ children }) {
     cargarContadorNotificaciones();
   };
 
-  // Menú items según rol
+  // Menú items según rol - con submenús desplegables
   const menuGerente = [
     { path: '/dashboard', label: 'Inicio', icon: '🏠' },
-    { path: '/clientes', label: 'Clientes', icon: '👥' },
-    { path: '/leads', label: 'Leads', icon: '🎯' },
-    { path: '/reservas', label: 'Reservas', icon: '📅' },
-    { path: '/calendario-reservas', label: 'Calendario', icon: '📊' },
-    { path: '/calendario-gerente', label: 'Agenda', icon: '📆' },
-    { path: '/plantillas', label: 'Horario Base', icon: '📋' },
-    { path: '/calendario-dual', label: 'Comparar', icon: '🔄' },
-    { path: '/entrenadores', label: 'Entrenadores', icon: '🏋️' },
     {
-      path: '/solicitudes',
-      label: 'Solicitudes',
-      icon: '📬',
-      badge: solicitudesPendientes
+      label: 'Clientes',
+      icon: '👥',
+      submenu: [
+        { path: '/clientes', label: 'Clientes' },
+        { path: '/leads', label: 'Leads' },
+      ]
     },
     {
-      path: '/vacaciones',
-      label: 'Vacaciones',
-      icon: '🏖️',
-      badge: vacacionesPendientes
+      label: 'Agenda',
+      icon: '📆',
+      submenu: [
+        { path: '/calendario-reservas', label: 'Calendario' },
+        { path: '/calendario-gerente', label: 'Agenda' },
+        { path: '/plantillas', label: 'Horario Base' },
+        { path: '/calendario-dual', label: 'Comparar' },
+        { path: '/reservas', label: 'Reservas' },
+      ]
     },
-    { path: '/facturacion', label: 'Facturación', icon: '💶' },
-    { path: '/productos', label: 'Tarifas', icon: '💰' },
+    {
+      label: 'Equipo',
+      icon: '🏋️',
+      submenu: [
+        { path: '/entrenadores', label: 'Entrenadores' },
+        { path: '/solicitudes', label: 'Solicitudes', badge: solicitudesPendientes },
+        { path: '/vacaciones', label: 'Vacaciones', badge: vacacionesPendientes },
+      ]
+    },
+    {
+      label: 'Finanzas',
+      icon: '💶',
+      submenu: [
+        { path: '/facturacion', label: 'Facturación' },
+        { path: '/productos', label: 'Tarifas' },
+      ]
+    },
     { path: '/configuracion-centro', label: 'Configuración', icon: '⚙️' },
   ];
 
   const menuEntrenador = [
     { path: '/dashboard', label: 'Inicio', icon: '🏠' },
-    { path: '/clientes', label: 'Mis Clientes', icon: '👥' },
-    { path: '/leads', label: 'Leads', icon: '🎯' },
-    { path: '/reservas', label: 'Mis Reservas', icon: '📅' },
-    { path: '/calendario-reservas', label: 'Calendario', icon: '📊' },
-    { path: '/calendario', label: 'Mi Agenda', icon: '📆' },
-    { path: '/entrenadores', label: 'Entrenadores', icon: '🏋️' },
-    { path: '/solicitudes', label: 'Solicitudes', icon: '📬' },
-    { path: '/vacaciones', label: 'Mis Vacaciones', icon: '🏖️' },
-    { path: '/facturacion', label: 'Mi Facturación', icon: '💶' },
-    { path: '/productos', label: 'Tarifas', icon: '💰' },
+    {
+      label: 'Clientes',
+      icon: '👥',
+      submenu: [
+        { path: '/clientes', label: 'Mis Clientes' },
+        { path: '/leads', label: 'Leads' },
+      ]
+    },
+    {
+      label: 'Agenda',
+      icon: '📆',
+      submenu: [
+        { path: '/calendario-reservas', label: 'Calendario' },
+        { path: '/calendario', label: 'Mi Agenda' },
+        { path: '/reservas', label: 'Mis Reservas' },
+      ]
+    },
+    {
+      label: 'Equipo',
+      icon: '🏋️',
+      submenu: [
+        { path: '/entrenadores', label: 'Entrenadores' },
+        { path: '/solicitudes', label: 'Solicitudes' },
+        { path: '/vacaciones', label: 'Mis Vacaciones' },
+      ]
+    },
+    {
+      label: 'Finanzas',
+      icon: '💶',
+      submenu: [
+        { path: '/facturacion', label: 'Mi Facturación' },
+        { path: '/productos', label: 'Tarifas' },
+      ]
+    },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'
     ? menuGerente
     : menuEntrenador;
+
+  // Auto-abrir submenú si una ruta hija está activa
+  useEffect(() => {
+    const nuevosSubmenus = {};
+    allMenuItems.forEach(item => {
+      if (item.submenu) {
+        const tieneRutaActiva = item.submenu.some(subitem => isActive(subitem.path));
+        if (tieneRutaActiva) {
+          nuevosSubmenus[item.label] = true;
+        }
+      }
+    });
+    setSubmenusAbiertos(prev => ({ ...prev, ...nuevosSubmenus }));
+  }, [location.pathname]);
+
+  // Obtener el label de la página actual (para el header)
+  const obtenerTituloPagina = () => {
+    for (const item of allMenuItems) {
+      if (item.path && isActive(item.path)) {
+        return item.label;
+      }
+      if (item.submenu) {
+        const subitem = item.submenu.find(sub => isActive(sub.path));
+        if (subitem) {
+          return subitem.label;
+        }
+      }
+    }
+    return 'HealthyFitness';
+  };
 
   return (
     <div className="layout-container">
@@ -152,19 +228,44 @@ function Layout({ children }) {
         </div>
 
         <nav className="sidebar-nav">
-          {allMenuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
-              onClick={closeSidebar}
-            >
-              <span className="sidebar-icon">{item.icon}</span>
-              <span className="sidebar-label">{item.label}</span>
-              {item.badge > 0 && (
-                <span className="sidebar-badge">{item.badge}</span>
-              )}
-            </Link>
+          {allMenuItems.map((item, index) => (
+            item.submenu ? (
+              <div key={index} className="sidebar-menu-group">
+                <button
+                  className={`sidebar-menu-header ${submenusAbiertos[item.label] ? 'abierto' : ''}`}
+                  onClick={() => toggleSubmenu(item.label)}
+                >
+                  <span className="sidebar-icon">{item.icon}</span>
+                  <span className="sidebar-label">{item.label}</span>
+                  <span className="sidebar-chevron">{submenusAbiertos[item.label] ? '▼' : '▶'}</span>
+                </button>
+                <div className={`sidebar-submenu ${submenusAbiertos[item.label] ? 'abierto' : ''}`}>
+                  {item.submenu.map((subitem) => (
+                    <Link
+                      key={subitem.path}
+                      to={subitem.path}
+                      className={`sidebar-sublink ${isActive(subitem.path) ? 'active' : ''}`}
+                      onClick={closeSidebar}
+                    >
+                      <span className="sidebar-sublabel">{subitem.label}</span>
+                      {subitem.badge > 0 && (
+                        <span className="sidebar-badge">{subitem.badge}</span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
+                onClick={closeSidebar}
+              >
+                <span className="sidebar-icon">{item.icon}</span>
+                <span className="sidebar-label">{item.label}</span>
+              </Link>
+            )
           ))}
         </nav>
 
@@ -194,7 +295,7 @@ function Layout({ children }) {
           </button>
 
           <div className="header-title">
-            {allMenuItems.find(item => isActive(item.path))?.label || 'HealthyFitness'}
+            {obtenerTituloPagina()}
           </div>
 
           <div className="header-actions">
