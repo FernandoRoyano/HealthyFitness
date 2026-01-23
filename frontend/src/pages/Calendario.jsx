@@ -16,7 +16,7 @@ function Calendario() {
     fecha: '',
     horaInicio: '',
     horaFin: '',
-    tipoSesion: 'personal',
+    tipoSesion: 'individual',
     estado: 'confirmada',
     notas: '',
     duracion: 60
@@ -60,7 +60,7 @@ function Calendario() {
       fecha: fecha.toISOString().split('T')[0],
       horaInicio: hora,
       horaFin: horaFinStr,
-      tipoSesion: 'personal',
+      tipoSesion: 'individual',
       estado: 'confirmada',
       notas: '',
       duracion: duracionDefault
@@ -137,7 +137,7 @@ function Calendario() {
       fecha: '',
       horaInicio: '',
       horaFin: '',
-      tipoSesion: 'personal',
+      tipoSesion: 'individual',
       estado: 'confirmada',
       notas: '',
       duracion: 60
@@ -224,10 +224,10 @@ function Calendario() {
                     onChange={handleChange}
                     style={styles.input}
                   >
-                    <option value="personal">Personal</option>
-                    <option value="grupal">Grupal</option>
-                    <option value="evaluacion">Evaluación</option>
-                    <option value="otro">Otro</option>
+                    <option value="individual">Individual</option>
+                    <option value="pareja">En pareja</option>
+                    <option value="express">Express</option>
+                    <option value="pareja-express">En pareja express</option>
                   </select>
                 </div>
               </div>

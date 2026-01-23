@@ -544,8 +544,9 @@ const PlantillasSemanales = () => {
                 style={styles.selectModal}
               >
                 <option value="individual">Individual</option>
-                <option value="pareja">Pareja</option>
-                <option value="grupo">Grupo</option>
+                <option value="pareja">En pareja</option>
+                <option value="express">Express</option>
+                <option value="pareja-express">En pareja express</option>
               </select>
             </div>
 
