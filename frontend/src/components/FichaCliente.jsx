@@ -11,6 +11,14 @@ import {
 } from '../services/api';
 import './FichaCliente.css';
 
+// Formatear fecha local sin problemas de zona horaria
+const formatearFechaLocal = (fecha) => {
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   const { usuario } = useAuth();
   const esGerente = usuario?.rol === 'gerente';
@@ -38,7 +46,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
     apellido: cliente.apellido || '',
     email: cliente.email || '',
     telefono: cliente.telefono || '',
-    fechaNacimiento: cliente.fechaNacimiento ? new Date(cliente.fechaNacimiento).toISOString().split('T')[0] : '',
+    fechaNacimiento: cliente.fechaNacimiento ? formatearFechaLocal(new Date(cliente.fechaNacimiento)) : '',
     genero: cliente.genero || '',
     direccion: cliente.direccion || '',
     peso: cliente.peso || '',
@@ -52,7 +60,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   });
 
   const [formularioMedicion, setFormularioMedicion] = useState({
-    fecha: new Date().toISOString().split('T')[0],
+    fecha: formatearFechaLocal(new Date()),
     peso: '',
     altura: '',
     pecho: '',
@@ -250,7 +258,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setMensaje('Medicion registrada correctamente');
       setMostrarFormMedicion(false);
       setFormularioMedicion({
-        fecha: new Date().toISOString().split('T')[0],
+        fecha: formatearFechaLocal(new Date()),
         peso: '',
         altura: '',
         pecho: '',

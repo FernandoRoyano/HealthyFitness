@@ -68,6 +68,14 @@ function CalendarioGerente() {
     }
   };
 
+  // Formatear fecha local sin problemas de zona horaria
+  const formatearFechaLocal = (fecha) => {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   // Calcular hora fin basada en hora inicio y duración
   const calcularHoraFin = (horaInicio, duracion) => {
     const [horas, minutos] = horaInicio.split(':').map(Number);
@@ -84,7 +92,7 @@ function CalendarioGerente() {
     setFormulario({
       cliente: '',
       entrenador: entrenadorSeleccionado,
-      fecha: fecha.toISOString().split('T')[0],
+      fecha: formatearFechaLocal(fecha),
       horaInicio: hora,
       horaFin: horaFinStr,
       tipoSesion: 'individual',
@@ -100,7 +108,7 @@ function CalendarioGerente() {
     setFormulario({
       cliente: reserva.cliente._id,
       entrenador: reserva.entrenador?._id || entrenadorSeleccionado,
-      fecha: new Date(reserva.fecha).toISOString().split('T')[0],
+      fecha: formatearFechaLocal(new Date(reserva.fecha)),
       horaInicio: reserva.horaInicio,
       horaFin: reserva.horaFin,
       tipoSesion: reserva.tipoSesion,
@@ -176,7 +184,7 @@ function CalendarioGerente() {
   const handleMoverReserva = async (reservaId, nuevaFecha, nuevaHoraInicio, nuevaHoraFin) => {
     try {
       await reservasAPI.actualizar(reservaId, {
-        fecha: nuevaFecha.toISOString().split('T')[0],
+        fecha: formatearFechaLocal(nuevaFecha),
         horaInicio: nuevaHoraInicio,
         horaFin: nuevaHoraFin
       });

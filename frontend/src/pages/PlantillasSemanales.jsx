@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { plantillasAPI, usersAPI, clientesAPI } from '../services/api';
 
+// Formatear fecha local sin problemas de zona horaria
+const formatearFechaLocal = (fecha) => {
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const PlantillasSemanales = () => {
   const [entrenadores, setEntrenadores] = useState([]);
   const [clientes, setClientes] = useState([]);
@@ -100,7 +108,7 @@ const PlantillasSemanales = () => {
         descripcion: 'Plantilla base del mes',
         mes: mesSeleccionado,
         año: añoSeleccionado,
-        semanaReferencia: primerLunes.toISOString().split('T')[0],
+        semanaReferencia: formatearFechaLocal(primerLunes),
         esPlantillaBase: true
       };
       const res = await plantillasAPI.crear(datos);
