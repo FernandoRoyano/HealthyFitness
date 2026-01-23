@@ -39,8 +39,9 @@ Accede a http://localhost:5173
 
 ## 👤 Usuarios
 
-**Gerente:** fernandoroyano.dev@gmail.com / 72171129GFernando@  
-**Entrenadores:** Contraseña 123456
+Los usuarios y contraseñas se configuran durante la instalación.
+
+Ver [DEPLOYMENT.md](DEPLOYMENT.md) para instrucciones de despliegue en producción.
 
 ## 📝 Licencia
 
