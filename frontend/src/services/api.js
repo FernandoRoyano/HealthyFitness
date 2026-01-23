@@ -11,7 +11,19 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    // Para rutas del portal cliente, usar clienteToken
+    // EXCEPTO las rutas de administración (crear-acceso, desactivar, estado) que usa el gerente
+    const isClientePortalRoute = config.url?.includes('/cliente-portal/');
+    const isClienteAuthRoute = config.url?.includes('/cliente-auth/') &&
+      !config.url?.includes('/crear-acceso/') &&
+      !config.url?.includes('/desactivar/') &&
+      !config.url?.includes('/estado/');
+
+    const useClienteToken = isClientePortalRoute || isClienteAuthRoute;
+    const token = useClienteToken
+      ? localStorage.getItem('clienteToken')
+      : localStorage.getItem('token');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -199,4 +211,15 @@ export const medicionesAPI = {
 export const centroAPI = {
   obtener: () => api.get('/centro'),
   actualizar: (datos) => api.put('/centro', datos)
+};
+
+// API para autenticación de clientes en el portal
+export const clienteAuthAPI = {
+  login: (credenciales) => api.post('/cliente-auth/login', credenciales),
+  obtenerPerfil: () => api.get('/cliente-auth/perfil'),
+  cambiarPassword: (datos) => api.put('/cliente-auth/cambiar-password', datos),
+  // Estas rutas son para gerentes/entrenadores
+  crearAcceso: (clienteId, password) => api.post(`/cliente-auth/crear-acceso/${clienteId}`, { password }),
+  desactivarAcceso: (clienteId) => api.put(`/cliente-auth/desactivar/${clienteId}`),
+  verificarEstado: (clienteId) => api.get(`/cliente-auth/estado/${clienteId}`)
 };

@@ -6,7 +6,8 @@ import {
   reservasAPI,
   facturacionAPI,
   medicionesAPI,
-  productosAPI
+  productosAPI,
+  clienteAuthAPI
 } from '../services/api';
 import './FichaCliente.css';
 
@@ -68,6 +69,12 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
 
   const [mostrarFormMedicion, setMostrarFormMedicion] = useState(false);
 
+  // Estados para portal de cliente
+  const [portalInfo, setPortalInfo] = useState(null);
+  const [mostrarFormPortal, setMostrarFormPortal] = useState(false);
+  const [passwordPortal, setPasswordPortal] = useState('');
+  const [cargandoPortal, setCargandoPortal] = useState(false);
+
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatosIniciales();
@@ -83,6 +90,8 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       cargarAsistencias();
     } else if (tabActivo === 'seguimiento' && mediciones.length === 0) {
       cargarMediciones();
+    } else if (tabActivo === 'portal' && !portalInfo) {
+      cargarEstadoPortal();
     }
   }, [tabActivo]);
 
@@ -148,6 +157,57 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setError('Error al cargar mediciones');
     } finally {
       setCargando(false);
+    }
+  };
+
+  const cargarEstadoPortal = async () => {
+    try {
+      setCargandoPortal(true);
+      const res = await clienteAuthAPI.verificarEstado(cliente._id);
+      setPortalInfo(res.data);
+    } catch (err) {
+      console.error('Error al cargar estado del portal:', err);
+      setPortalInfo({ portalActivo: false });
+    } finally {
+      setCargandoPortal(false);
+    }
+  };
+
+  const crearAccesoPortal = async (e) => {
+    e.preventDefault();
+    if (!passwordPortal || passwordPortal.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+    try {
+      setCargandoPortal(true);
+      setError('');
+      await clienteAuthAPI.crearAcceso(cliente._id, passwordPortal);
+      setMensaje('Acceso al portal creado correctamente');
+      setMostrarFormPortal(false);
+      setPasswordPortal('');
+      cargarEstadoPortal();
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al crear acceso al portal');
+    } finally {
+      setCargandoPortal(false);
+    }
+  };
+
+  const desactivarAccesoPortal = async () => {
+    if (!window.confirm('¿Desactivar el acceso al portal para este cliente?')) return;
+    try {
+      setCargandoPortal(true);
+      setError('');
+      await clienteAuthAPI.desactivarAcceso(cliente._id);
+      setMensaje('Acceso al portal desactivado');
+      cargarEstadoPortal();
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al desactivar acceso');
+    } finally {
+      setCargandoPortal(false);
     }
   };
 
@@ -244,7 +304,8 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
     { id: 'reservas', label: 'Reservas' },
     { id: 'facturas', label: 'Facturas' },
     { id: 'asistencias', label: 'Asistencias' },
-    { id: 'seguimiento', label: 'Seguimiento' }
+    { id: 'seguimiento', label: 'Seguimiento' },
+    { id: 'portal', label: 'Portal' }
   ];
 
   return (
@@ -829,6 +890,159 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                 <div className="ficha-cliente-vacio">
                   <p>No hay mediciones registradas para este cliente.</p>
                   <p>Registra la primera medicion para hacer seguimiento del progreso.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: PORTAL */}
+          {tabActivo === 'portal' && (
+            <div className="ficha-cliente-seccion">
+              <div className="ficha-cliente-seccion-header">
+                <h3>Acceso al Portal del Cliente</h3>
+              </div>
+
+              {cargandoPortal ? (
+                <div className="ficha-cliente-cargando">Cargando estado del portal...</div>
+              ) : (
+                <div className="ficha-cliente-portal">
+                  <div className="portal-info-card">
+                    <div className="portal-estado">
+                      <span className="portal-estado-label">Estado del portal:</span>
+                      <span className={`estado-badge ${portalInfo?.portalActivo ? 'activa' : 'inactiva'}`}>
+                        {portalInfo?.portalActivo ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+
+                    {portalInfo?.portalActivo && (
+                      <>
+                        <div className="portal-info-item">
+                          <span className="portal-info-label">Email de acceso:</span>
+                          <span className="portal-info-value">{cliente.email}</span>
+                        </div>
+                        {portalInfo?.ultimoAcceso && (
+                          <div className="portal-info-item">
+                            <span className="portal-info-label">Ultimo acceso:</span>
+                            <span className="portal-info-value">
+                              {formatearFecha(portalInfo.ultimoAcceso)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="portal-url-info">
+                          <span className="portal-info-label">URL del portal:</span>
+                          <code className="portal-url">/cliente/login</code>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {!portalInfo?.portalActivo ? (
+                    <div className="portal-acciones">
+                      {!mostrarFormPortal ? (
+                        <div className="portal-crear-acceso">
+                          <p className="portal-descripcion">
+                            El cliente podra acceder a su propio portal donde vera su calendario,
+                            sesiones, facturas y seguimiento de progreso.
+                          </p>
+                          <button
+                            className="btn-primary"
+                            onClick={() => setMostrarFormPortal(true)}
+                          >
+                            Crear Acceso al Portal
+                          </button>
+                        </div>
+                      ) : (
+                        <form onSubmit={crearAccesoPortal} className="portal-form">
+                          <div className="ficha-cliente-form-group">
+                            <label>Contraseña inicial para el cliente</label>
+                            <input
+                              type="password"
+                              value={passwordPortal}
+                              onChange={(e) => setPasswordPortal(e.target.value)}
+                              placeholder="Minimo 6 caracteres"
+                              minLength={6}
+                              required
+                            />
+                            <small className="portal-hint">
+                              El cliente usara su email ({cliente.email}) y esta contraseña para acceder.
+                            </small>
+                          </div>
+                          <div className="portal-form-actions">
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => {
+                                setMostrarFormPortal(false);
+                                setPasswordPortal('');
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="submit"
+                              className="btn-primary"
+                              disabled={cargandoPortal}
+                            >
+                              {cargandoPortal ? 'Creando...' : 'Crear Acceso'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="portal-acciones">
+                      <div className="portal-acciones-activo">
+                        <button
+                          className="btn-primary"
+                          onClick={() => setMostrarFormPortal(true)}
+                        >
+                          Cambiar Contraseña
+                        </button>
+                        <button
+                          className="btn-danger"
+                          onClick={desactivarAccesoPortal}
+                          disabled={cargandoPortal}
+                        >
+                          Desactivar Acceso
+                        </button>
+                      </div>
+
+                      {mostrarFormPortal && (
+                        <form onSubmit={crearAccesoPortal} className="portal-form">
+                          <div className="ficha-cliente-form-group">
+                            <label>Nueva contraseña</label>
+                            <input
+                              type="password"
+                              value={passwordPortal}
+                              onChange={(e) => setPasswordPortal(e.target.value)}
+                              placeholder="Minimo 6 caracteres"
+                              minLength={6}
+                              required
+                            />
+                          </div>
+                          <div className="portal-form-actions">
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => {
+                                setMostrarFormPortal(false);
+                                setPasswordPortal('');
+                              }}
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="submit"
+                              className="btn-primary"
+                              disabled={cargandoPortal}
+                            >
+                              {cargandoPortal ? 'Guardando...' : 'Guardar'}
+                            </button>
+                          </div>
+                        </form>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

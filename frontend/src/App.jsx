@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ClienteAuthProvider } from './context/ClienteAuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRouteCliente from './components/ProtectedRouteCliente';
 import Layout from './components/Layout';
+import LayoutCliente from './components/LayoutCliente';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Clientes from './pages/Clientes';
@@ -19,13 +22,23 @@ import Vacaciones from './pages/Vacaciones';
 import Facturacion from './pages/Facturacion';
 import ClientesPotenciales from './pages/ClientesPotenciales';
 import ConfiguracionCentro from './pages/ConfiguracionCentro';
+// Portal del Cliente
+import LoginCliente from './pages/cliente/LoginCliente';
+import DashboardCliente from './pages/cliente/DashboardCliente';
+import CalendarioCliente from './pages/cliente/CalendarioCliente';
+import MisSesiones from './pages/cliente/MisSesiones';
+import MiProgreso from './pages/cliente/MiProgreso';
+import MiSuscripcion from './pages/cliente/MiSuscripcion';
 
 function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+        <ClienteAuthProvider>
+          <Routes>
+            {/* ==================== RUTAS PÚBLICAS ==================== */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/cliente/login" element={<LoginCliente />} />
           <Route
             path="/dashboard"
             element={
@@ -187,7 +200,25 @@ function App() {
             }
           />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
+
+            {/* ==================== PORTAL DEL CLIENTE ==================== */}
+            <Route
+              path="/cliente"
+              element={
+                <ProtectedRouteCliente>
+                  <LayoutCliente />
+                </ProtectedRouteCliente>
+              }
+            >
+              <Route index element={<Navigate to="/cliente/dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardCliente />} />
+              <Route path="calendario" element={<CalendarioCliente />} />
+              <Route path="sesiones" element={<MisSesiones />} />
+              <Route path="progreso" element={<MiProgreso />} />
+              <Route path="suscripcion" element={<MiSuscripcion />} />
+            </Route>
+          </Routes>
+        </ClienteAuthProvider>
       </AuthProvider>
     </Router>
   );
