@@ -48,8 +48,18 @@ backend/migrar-*.js
 backend/test-*.js
 backend/cambiar-*.js
 backend/inicializar-*.js
+backend/agregar-*.js
+backend/obtener-*.js
+
+# Archivos de prueba
+test-*.html
 
 # Temporary files
 *.tmp
 *.temp
 .cache/
+tmpclaude-*
+*/tmpclaude-*
+
+# Claude config local
+.claude/settings.local.json
