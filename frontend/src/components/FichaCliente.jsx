@@ -291,6 +291,18 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
     }
   };
 
+  const eliminarReserva = async (id) => {
+    if (!window.confirm('¿Eliminar esta reserva?')) return;
+    try {
+      await reservasAPI.eliminar(id);
+      cargarReservas();
+      setMensaje('Reserva eliminada correctamente');
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      setError('Error al eliminar reserva');
+    }
+  };
+
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-ES', {
       day: '2-digit',
@@ -574,6 +586,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                         <th>Entrenador</th>
                         <th>Tipo</th>
                         <th>Estado</th>
+                        <th>Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -587,6 +600,15 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                             <span className={`estado-badge ${reserva.estado}`}>
                               {reserva.estado}
                             </span>
+                          </td>
+                          <td>
+                            <button
+                              className="btn-eliminar"
+                              onClick={() => eliminarReserva(reserva._id)}
+                              title="Eliminar reserva"
+                            >
+                              &times;
+                            </button>
                           </td>
                         </tr>
                       ))}

@@ -25,8 +25,8 @@ const reservaSchema = new mongoose.Schema({
   },
   tipoSesion: {
     type: String,
-    enum: ['personal', 'grupal', 'evaluacion', 'otro'],
-    default: 'personal'
+    enum: ['individual', 'pareja', 'express', 'pareja-express'],
+    default: 'individual'
   },
   estado: {
     type: String,
