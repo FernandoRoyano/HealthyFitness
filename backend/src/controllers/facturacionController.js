@@ -129,6 +129,35 @@ export const guardarSuscripcion = async (req, res) => {
   }
 };
 
+// Actualizar sesiones acumuladas de una suscripción
+export const actualizarSesionesAcumuladas = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+    const { sesionesAcumuladas } = req.body;
+
+    if (sesionesAcumuladas === undefined || sesionesAcumuladas < 0) {
+      return res.status(400).json({ mensaje: 'Valor de sesiones inválido' });
+    }
+
+    const suscripcion = await SuscripcionCliente.findOne({ cliente: clienteId });
+    if (!suscripcion) {
+      return res.status(404).json({ mensaje: 'Suscripción no encontrada' });
+    }
+
+    suscripcion.sesionesAcumuladas = parseInt(sesionesAcumuladas);
+    suscripcion.actualizadoPor = req.usuario._id;
+    await suscripcion.save();
+
+    res.json({
+      mensaje: 'Sesiones acumuladas actualizadas',
+      sesionesAcumuladas: suscripcion.sesionesAcumuladas
+    });
+  } catch (error) {
+    console.error('Error al actualizar sesiones acumuladas:', error);
+    res.status(500).json({ mensaje: 'Error al actualizar sesiones acumuladas' });
+  }
+};
+
 // Pausar/Reactivar/Cancelar suscripción
 export const cambiarEstadoSuscripcion = async (req, res) => {
   try {

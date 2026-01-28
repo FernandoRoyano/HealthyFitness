@@ -111,11 +111,8 @@ function Layout({ children }) {
       label: 'Agenda',
       icon: '📆',
       submenu: [
-        { path: '/calendario-reservas', label: 'Calendario' },
         { path: '/calendario-gerente', label: 'Agenda' },
         { path: '/plantillas', label: 'Horario Base' },
-        { path: '/calendario-dual', label: 'Comparar' },
-        { path: '/reservas', label: 'Reservas' },
       ]
     },
     {
@@ -152,9 +149,7 @@ function Layout({ children }) {
       label: 'Agenda',
       icon: '📆',
       submenu: [
-        { path: '/calendario-reservas', label: 'Calendario' },
         { path: '/calendario', label: 'Mi Agenda' },
-        { path: '/reservas', label: 'Mis Reservas' },
       ]
     },
     {

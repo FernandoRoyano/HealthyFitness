@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { plantillasAPI, usersAPI, clientesAPI } from '../services/api';
+import ModalAplicarPlantilla from '../components/ModalAplicarPlantilla';
 
 // Formatear fecha local sin problemas de zona horaria
 const formatearFechaLocal = (fecha) => {
@@ -33,6 +34,9 @@ const PlantillasSemanales = () => {
     duracion: 60,
     tipoSesion: 'individual'
   });
+
+  // Modal de aplicar plantilla
+  const [mostrarModalAplicar, setMostrarModalAplicar] = useState(false);
 
   const meses = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -351,11 +355,21 @@ const PlantillasSemanales = () => {
           </div>
         </div>
 
-        {!plantillaActual && (
-          <button onClick={crearPlantillaBase} style={styles.crearButton}>
-            + Crear Plantilla Base
-          </button>
-        )}
+        <div style={styles.botonesAccion}>
+          {!plantillaActual && (
+            <button onClick={crearPlantillaBase} style={styles.crearButton}>
+              + Crear Plantilla Base
+            </button>
+          )}
+          {plantillaActual && sesiones.length > 0 && (
+            <button
+              onClick={() => setMostrarModalAplicar(true)}
+              style={styles.aplicarButton}
+            >
+              Aplicar Plantilla
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Leyenda de entrenadores */}
@@ -574,6 +588,21 @@ const PlantillasSemanales = () => {
           </div>
         </div>
       )}
+
+      {/* Modal de aplicar plantilla */}
+      {mostrarModalAplicar && plantillaActual && (
+        <ModalAplicarPlantilla
+          plantilla={plantillaActual}
+          mes={mesSeleccionado}
+          anio={añoSeleccionado}
+          onClose={() => setMostrarModalAplicar(false)}
+          onSuccess={(resultado) => {
+            setMostrarModalAplicar(false);
+            setMensaje(`Se crearon ${resultado.reservasCreadas} reservas en ${resultado.exitosas} semana(s)`);
+            setTimeout(() => setMensaje(''), 5000);
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -669,6 +698,20 @@ const styles = {
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '600'
+  },
+  aplicarButton: {
+    backgroundColor: '#3b82f6',
+    color: '#fff',
+    border: 'none',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: '600'
+  },
+  botonesAccion: {
+    display: 'flex',
+    gap: '10px'
   },
   leyenda: {
     display: 'flex',

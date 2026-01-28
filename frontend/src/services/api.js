@@ -99,12 +99,14 @@ export const notificacionesAPI = {
 export const plantillasAPI = {
   obtenerTodas: (params) => api.get('/plantillas', { params }),
   obtenerPorId: (id) => api.get(`/plantillas/${id}`),
-  obtenerPlantillaBase: (mes, año) => api.get(`/plantillas/base/${mes}/${año}`),
+  obtenerPlantillaBase: (mes, anio) => api.get(`/plantillas/base/${mes}/${anio}`),
   crear: (datos) => api.post('/plantillas', datos),
   actualizar: (id, datos) => api.put(`/plantillas/${id}`, datos),
   eliminar: (id) => api.delete(`/plantillas/${id}`),
   duplicar: (id, datos) => api.post(`/plantillas/${id}/duplicar`, datos),
   aplicar: (id) => api.post(`/plantillas/${id}/aplicar`),
+  previewSemana: (id, fechaLunes) => api.get(`/plantillas/${id}/preview-semana`, { params: { fechaLunes } }),
+  aplicarASemana: (id, datos) => api.post(`/plantillas/${id}/aplicar-semana`, datos),
   añadirSesion: (id, datos) => api.post(`/plantillas/${id}/sesiones`, datos),
   actualizarSesion: (id, sesionId, datos) => api.put(`/plantillas/${id}/sesiones/${sesionId}`, datos),
   eliminarSesion: (id, sesionId) => api.delete(`/plantillas/${id}/sesiones/${sesionId}`)
@@ -154,6 +156,8 @@ export const facturacionAPI = {
   guardarSuscripcion: (clienteId, datos) => api.post(`/facturacion/suscripciones/cliente/${clienteId}`, datos),
   cambiarEstadoSuscripcion: (clienteId, estado) =>
     api.put(`/facturacion/suscripciones/cliente/${clienteId}/estado`, { estado }),
+  actualizarSesionesAcumuladas: (clienteId, sesionesAcumuladas) =>
+    api.put(`/facturacion/suscripciones/cliente/${clienteId}/sesiones-acumuladas`, { sesionesAcumuladas }),
   obtenerClientesSinSuscripcion: () => api.get('/facturacion/suscripciones/clientes-sin-suscripcion'),
 
   // ==================== ASISTENCIAS ====================

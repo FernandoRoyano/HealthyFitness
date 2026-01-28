@@ -34,6 +34,9 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   const [suscripcion, setSuscripcion] = useState(null);
   const [mediciones, setMediciones] = useState([]);
   const [asistencias, setAsistencias] = useState([]);
+  const [sesionesInfo, setSesionesInfo] = useState(null);
+  const [editandoAcumuladas, setEditandoAcumuladas] = useState(false);
+  const [valorAcumuladas, setValorAcumuladas] = useState(0);
 
   // Estados de carga
   const [cargando, setCargando] = useState(false);
@@ -100,8 +103,10 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       cargarMediciones();
     } else if (tabActivo === 'portal' && !portalInfo) {
       cargarEstadoPortal();
+    } else if (tabActivo === 'membresia' && suscripcion && !sesionesInfo) {
+      cargarSesionesInfo();
     }
-  }, [tabActivo]);
+  }, [tabActivo, suscripcion]);
 
   const cargarDatosIniciales = async () => {
     try {
@@ -178,6 +183,84 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setPortalInfo({ portalActivo: false });
     } finally {
       setCargandoPortal(false);
+    }
+  };
+
+  const cargarSesionesInfo = async () => {
+    if (!suscripcion) return;
+
+    try {
+      const mesActual = new Date().getMonth() + 1;
+      const anioActual = new Date().getFullYear();
+
+      // Calcular sesiones contratadas este mes
+      const diasEntrenamiento = suscripcion.diasEntrenamiento || [];
+      let sesionesContratadas = 0;
+      const primerDia = new Date(anioActual, mesActual - 1, 1);
+      const ultimoDia = new Date(anioActual, mesActual, 0);
+
+      for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+        const fecha = new Date(anioActual, mesActual - 1, dia);
+        const diaSemana = fecha.getDay();
+        if (diaSemana >= 1 && diaSemana <= 5) {
+          const diaConvertido = diaSemana - 1;
+          if (diasEntrenamiento.includes(diaConvertido)) {
+            sesionesContratadas++;
+          }
+        }
+      }
+
+      // Obtener sesiones usadas (reservas confirmadas/completadas)
+      const reservasRes = await reservasAPI.obtenerTodas({ cliente: cliente._id });
+      const inicioMes = new Date(anioActual, mesActual - 1, 1);
+      const finMes = new Date(anioActual, mesActual, 0, 23, 59, 59);
+
+      const sesionesUsadas = reservasRes.data.filter(r => {
+        const fechaReserva = new Date(r.fecha);
+        return fechaReserva >= inicioMes &&
+          fechaReserva <= finMes &&
+          ['confirmada', 'completada'].includes(r.estado);
+      }).length;
+
+      const acumuladas = suscripcion.sesionesAcumuladas || 0;
+      const disponibles = sesionesContratadas + acumuladas - sesionesUsadas;
+
+      setSesionesInfo({
+        contratadas: sesionesContratadas,
+        acumuladas: acumuladas,
+        usadas: sesionesUsadas,
+        disponibles: Math.max(0, disponibles),
+        mes: mesActual,
+        anio: anioActual
+      });
+      setValorAcumuladas(acumuladas);
+    } catch (err) {
+      console.error('Error al calcular sesiones:', err);
+    }
+  };
+
+  const actualizarSesionesAcumuladas = async (nuevoValor) => {
+    if (nuevoValor < 0) return;
+
+    try {
+      setCargando(true);
+      await facturacionAPI.actualizarSesionesAcumuladas(cliente._id, nuevoValor);
+
+      // Actualizar estado local
+      setSuscripcion(prev => ({ ...prev, sesionesAcumuladas: nuevoValor }));
+      setSesionesInfo(prev => ({
+        ...prev,
+        acumuladas: nuevoValor,
+        disponibles: Math.max(0, prev.contratadas + nuevoValor - prev.usadas)
+      }));
+      setValorAcumuladas(nuevoValor);
+      setEditandoAcumuladas(false);
+      setMensaje('Sesiones acumuladas actualizadas');
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      setError('Error al actualizar sesiones acumuladas');
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -552,15 +635,95 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                     </div>
                     <div className="info-item">
                       <span className="info-label">Precio por sesion</span>
-                      <span className="info-value">{formatearDinero(suscripcion.precioSesion)}</span>
+                      <span className="info-value">{formatearDinero(suscripcion.precioUnitarioFijado)}</span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Dias de entrenamiento</span>
                       <span className="info-value">
-                        {suscripcion.diasEspecificos?.join(', ') || 'No especificados'}
+                        {suscripcion.diasEntrenamiento?.map(d => ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'][d]).join(', ') || 'No especificados'}
                       </span>
                     </div>
                   </div>
+
+                  {/* Sección de Sesiones */}
+                  {sesionesInfo && (
+                    <div className="ficha-cliente-sesiones">
+                      <h4 className="sesiones-titulo">
+                        Sesiones del Mes ({sesionesInfo.mes}/{sesionesInfo.anio})
+                      </h4>
+                      <div className="sesiones-grid">
+                        <div className="sesiones-item">
+                          <span className="sesiones-label">Contratadas este mes</span>
+                          <span className="sesiones-valor">{sesionesInfo.contratadas}</span>
+                        </div>
+                        <div className="sesiones-item">
+                          <span className="sesiones-label">Acumuladas de meses ant.</span>
+                          <div className="sesiones-valor-editable">
+                            {editandoAcumuladas ? (
+                              <div className="sesiones-input-group">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={valorAcumuladas}
+                                  onChange={(e) => setValorAcumuladas(parseInt(e.target.value) || 0)}
+                                  className="sesiones-input"
+                                />
+                                <button
+                                  className="btn-sesiones-ok"
+                                  onClick={() => actualizarSesionesAcumuladas(valorAcumuladas)}
+                                  disabled={cargando}
+                                >
+                                  OK
+                                </button>
+                                <button
+                                  className="btn-sesiones-cancel"
+                                  onClick={() => {
+                                    setEditandoAcumuladas(false);
+                                    setValorAcumuladas(sesionesInfo.acumuladas);
+                                  }}
+                                >
+                                  X
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="sesiones-controles">
+                                <button
+                                  className="btn-sesiones"
+                                  onClick={() => actualizarSesionesAcumuladas(sesionesInfo.acumuladas - 1)}
+                                  disabled={sesionesInfo.acumuladas <= 0 || cargando}
+                                >
+                                  -
+                                </button>
+                                <span className="sesiones-numero">{sesionesInfo.acumuladas}</span>
+                                <button
+                                  className="btn-sesiones"
+                                  onClick={() => actualizarSesionesAcumuladas(sesionesInfo.acumuladas + 1)}
+                                  disabled={cargando}
+                                >
+                                  +
+                                </button>
+                                <button
+                                  className="btn-sesiones-edit"
+                                  onClick={() => setEditandoAcumuladas(true)}
+                                  title="Editar valor"
+                                >
+                                  ✎
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="sesiones-item">
+                          <span className="sesiones-label">Usadas este mes</span>
+                          <span className="sesiones-valor">{sesionesInfo.usadas}</span>
+                        </div>
+                        <div className="sesiones-item sesiones-disponibles">
+                          <span className="sesiones-label">Saldo disponible</span>
+                          <span className="sesiones-valor sesiones-saldo">{sesionesInfo.disponibles}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="ficha-cliente-vacio">

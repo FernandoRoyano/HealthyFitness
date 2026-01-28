@@ -92,7 +92,6 @@ const suscripcionClienteSchema = new mongoose.Schema({
 });
 
 // Índices
-suscripcionClienteSchema.index({ cliente: 1 }, { unique: true });
 suscripcionClienteSchema.index({ estado: 1 });
 suscripcionClienteSchema.index({ producto: 1 });
 

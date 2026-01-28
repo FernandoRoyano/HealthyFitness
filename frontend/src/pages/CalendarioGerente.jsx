@@ -22,8 +22,11 @@ function CalendarioGerente() {
     tipoSesion: 'individual',
     estado: 'confirmada',
     notas: '',
-    duracion: 60
+    duracion: 60,
+    recurrente: false,
+    fechaFinRecurrencia: ''
   });
+  const [mensajeExito, setMensajeExito] = useState('');
 
   useEffect(() => {
     cargarEntrenadores();
@@ -76,6 +79,26 @@ function CalendarioGerente() {
     return `${year}-${month}-${day}`;
   };
 
+  // Obtener nombre del día de la semana
+  const obtenerNombreDia = (fecha) => {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+    return dias[new Date(fecha).getDay()];
+  };
+
+  // Calcular número de reservas recurrentes
+  const calcularReservasRecurrentes = () => {
+    if (!formulario.fecha || !formulario.fechaFinRecurrencia) return 0;
+    const fechaInicio = new Date(formulario.fecha);
+    const fechaFin = new Date(formulario.fechaFinRecurrencia);
+    let count = 0;
+    let fecha = new Date(fechaInicio);
+    while (fecha <= fechaFin) {
+      count++;
+      fecha.setDate(fecha.getDate() + 7);
+    }
+    return count;
+  };
+
   // Calcular hora fin basada en hora inicio y duración
   const calcularHoraFin = (horaInicio, duracion) => {
     const [horas, minutos] = horaInicio.split(':').map(Number);
@@ -98,7 +121,9 @@ function CalendarioGerente() {
       tipoSesion: 'individual',
       estado: 'confirmada',
       notas: '',
-      duracion: duracionDefault
+      duracion: duracionDefault,
+      recurrente: false,
+      fechaFinRecurrencia: ''
     });
     setMostrarFormulario(true);
   };
@@ -135,19 +160,46 @@ function CalendarioGerente() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setMensajeExito('');
+
     try {
       const datos = {
         ...formulario,
         entrenador: formulario.entrenador
       };
 
+      // Limpiar campos de recurrencia si no está activo
+      if (!datos.recurrente) {
+        delete datos.recurrente;
+        delete datos.fechaFinRecurrencia;
+      }
+
       if (reservaEditando) {
         await reservasAPI.actualizar(reservaEditando._id, datos);
+        cargarReservasEntrenador(entrenadorSeleccionado);
+        cerrarFormulario();
       } else {
-        await reservasAPI.crear(datos);
+        const response = await reservasAPI.crear(datos);
+
+        // Si es recurrente, mostrar resultado
+        if (formulario.recurrente && response.data.reservas) {
+          const { reservas, errores, mensaje } = response.data;
+          setMensajeExito(mensaje);
+
+          if (errores && errores.length > 0) {
+            const erroresStr = errores.map(e => `${e.fecha}: ${e.error}`).join('\n');
+            setError(`Algunas fechas tuvieron problemas:\n${erroresStr}`);
+          }
+
+          cargarReservasEntrenador(entrenadorSeleccionado);
+          // No cerrar el formulario inmediatamente para mostrar el mensaje
+          setTimeout(() => cerrarFormulario(), 3000);
+        } else {
+          cargarReservasEntrenador(entrenadorSeleccionado);
+          cerrarFormulario();
+        }
       }
-      cargarReservasEntrenador(entrenadorSeleccionado);
-      cerrarFormulario();
     } catch (err) {
       setError(err.response?.data?.mensaje || 'Error al guardar reserva');
     }
@@ -168,6 +220,7 @@ function CalendarioGerente() {
   const cerrarFormulario = () => {
     setMostrarFormulario(false);
     setReservaEditando(null);
+    setMensajeExito('');
     setFormulario({
       cliente: '',
       entrenador: '',
@@ -177,7 +230,9 @@ function CalendarioGerente() {
       tipoSesion: 'individual',
       estado: 'confirmada',
       notas: '',
-      duracion: 60
+      duracion: 60,
+      recurrente: false,
+      fechaFinRecurrencia: ''
     });
   };
 
@@ -370,6 +425,48 @@ function CalendarioGerente() {
                   <option value="cancelada">Cancelada</option>
                 </select>
               </div>
+
+              {/* Opción de reserva recurrente - solo para nuevas reservas */}
+              {!reservaEditando && (
+                <div style={styles.recurrenteContainer}>
+                  <label style={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={formulario.recurrente}
+                      onChange={(e) => setFormulario({ ...formulario, recurrente: e.target.checked })}
+                      style={styles.checkbox}
+                    />
+                    Repetir semanalmente
+                  </label>
+
+                  {formulario.recurrente && (
+                    <div style={styles.recurrenteOpciones}>
+                      <div style={styles.formGroup}>
+                        <label style={styles.label}>Hasta la fecha:</label>
+                        <input
+                          type="date"
+                          name="fechaFinRecurrencia"
+                          value={formulario.fechaFinRecurrencia}
+                          onChange={handleChange}
+                          min={formulario.fecha}
+                          required={formulario.recurrente}
+                          style={styles.input}
+                        />
+                      </div>
+                      {formulario.fecha && formulario.fechaFinRecurrencia && (
+                        <div style={styles.recurrentePreview}>
+                          Se crearan {calcularReservasRecurrentes()} reservas
+                          (todos los {obtenerNombreDia(formulario.fecha)})
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {mensajeExito && (
+                <div style={styles.mensajeExito}>{mensajeExito}</div>
+              )}
 
               <div style={styles.formGroup}>
                 <label style={styles.label}>Notas</label>
@@ -587,6 +684,48 @@ const styles = {
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer'
+  },
+  recurrenteContainer: {
+    padding: '15px',
+    backgroundColor: '#f8fafc',
+    borderRadius: '8px',
+    border: '1px solid #e2e8f0'
+  },
+  checkboxLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '14px',
+    fontWeight: '500',
+    color: '#333',
+    cursor: 'pointer'
+  },
+  checkbox: {
+    width: '18px',
+    height: '18px',
+    cursor: 'pointer'
+  },
+  recurrenteOpciones: {
+    marginTop: '15px',
+    paddingTop: '15px',
+    borderTop: '1px solid #e2e8f0'
+  },
+  recurrentePreview: {
+    marginTop: '10px',
+    padding: '10px 12px',
+    backgroundColor: '#dbeafe',
+    color: '#1e40af',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '500'
+  },
+  mensajeExito: {
+    padding: '12px',
+    backgroundColor: '#d1fae5',
+    color: '#065f46',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '500'
   }
 };
 

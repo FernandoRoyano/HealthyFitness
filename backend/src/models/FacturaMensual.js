@@ -257,7 +257,6 @@ const facturaMensualSchema = new mongoose.Schema({
 facturaMensualSchema.index({ cliente: 1, mes: 1, anio: 1 }, { unique: true });
 facturaMensualSchema.index({ estado: 1 });
 facturaMensualSchema.index({ fechaGeneracion: -1 });
-facturaMensualSchema.index({ numeroFactura: 1 });
 facturaMensualSchema.index({ anio: 1, mes: 1 });
 
 // Generar número de factura automáticamente

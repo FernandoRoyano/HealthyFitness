@@ -48,11 +48,11 @@ export const obtenerPlantillaPorId = async (req, res) => {
 // Obtener plantilla base del mes
 export const obtenerPlantillaBase = async (req, res) => {
   try {
-    const { mes, año } = req.params;
+    const { mes, anio } = req.params;
 
     const plantilla = await PlantillaSemanal.findOne({
       mes: parseInt(mes),
-      año: parseInt(año),
+      año: parseInt(anio),
       esPlantillaBase: true
     })
       .populate('creadoPor', 'nombre')
@@ -447,5 +447,191 @@ export const actualizarSesion = async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar sesión:', error);
     res.status(500).json({ mensaje: 'Error al actualizar sesión' });
+  }
+};
+
+// Preview de aplicar plantilla a una semana específica
+export const previewSemana = async (req, res) => {
+  try {
+    const { fechaLunes } = req.query;
+
+    if (!fechaLunes) {
+      return res.status(400).json({ mensaje: 'Se requiere fechaLunes' });
+    }
+
+    const plantilla = await PlantillaSemanal.findById(req.params.id)
+      .populate('sesiones.entrenador', 'nombre')
+      .populate('sesiones.cliente', 'nombre apellido');
+
+    if (!plantilla) {
+      return res.status(404).json({ mensaje: 'Plantilla no encontrada' });
+    }
+
+    const lunes = new Date(fechaLunes);
+    lunes.setHours(0, 0, 0, 0);
+
+    const sesionesACrear = [];
+    const conflictos = [];
+
+    for (const sesion of plantilla.sesiones) {
+      // Solo considerar sesiones con cliente asignado
+      if (!sesion.cliente) continue;
+
+      // Calcular la fecha real
+      const fechaSesion = new Date(lunes);
+      fechaSesion.setDate(lunes.getDate() + (sesion.diaSemana - 1));
+
+      const infoSesion = {
+        entrenador: sesion.entrenador,
+        cliente: sesion.cliente,
+        fecha: fechaSesion,
+        horaInicio: sesion.horaInicio,
+        horaFin: sesion.horaFin,
+        tipoSesion: sesion.tipoSesion,
+        duracion: sesion.duracion
+      };
+
+      // Verificar conflicto
+      const reservaExistente = await Reserva.findOne({
+        entrenador: sesion.entrenador._id || sesion.entrenador,
+        fecha: fechaSesion,
+        horaInicio: sesion.horaInicio,
+        estado: { $ne: 'cancelada' }
+      });
+
+      if (reservaExistente) {
+        conflictos.push({
+          ...infoSesion,
+          motivo: 'Ya existe reserva en este horario'
+        });
+      } else {
+        sesionesACrear.push(infoSesion);
+      }
+    }
+
+    res.json({
+      plantillaId: plantilla._id,
+      fechaLunes,
+      totalSesiones: plantilla.sesiones.filter(s => s.cliente).length,
+      sesionesACrear,
+      conflictos,
+      resumen: {
+        sinConflicto: sesionesACrear.length,
+        conConflicto: conflictos.length
+      }
+    });
+  } catch (error) {
+    console.error('Error en preview de semana:', error);
+    res.status(500).json({ mensaje: 'Error al obtener preview' });
+  }
+};
+
+// Aplicar plantilla a una semana específica
+export const aplicarPlantillaASemana = async (req, res) => {
+  try {
+    const { fechaLunes, omitirConflictos = true } = req.body;
+
+    if (!fechaLunes) {
+      return res.status(400).json({ mensaje: 'Se requiere fechaLunes' });
+    }
+
+    const plantilla = await PlantillaSemanal.findById(req.params.id)
+      .populate('sesiones.entrenador', 'nombre')
+      .populate('sesiones.cliente', 'nombre apellido');
+
+    if (!plantilla) {
+      return res.status(404).json({ mensaje: 'Plantilla no encontrada' });
+    }
+
+    if (plantilla.sesiones.length === 0) {
+      return res.status(400).json({ mensaje: 'La plantilla no tiene sesiones definidas' });
+    }
+
+    const lunes = new Date(fechaLunes);
+    lunes.setHours(0, 0, 0, 0);
+
+    const reservasCreadas = [];
+    const conflictos = [];
+    const errores = [];
+
+    for (const sesion of plantilla.sesiones) {
+      // Solo crear reservas si hay cliente asignado
+      if (!sesion.cliente) continue;
+
+      // Calcular la fecha real
+      const fechaSesion = new Date(lunes);
+      fechaSesion.setDate(lunes.getDate() + (sesion.diaSemana - 1));
+
+      // Verificar conflicto
+      const reservaExistente = await Reserva.findOne({
+        entrenador: sesion.entrenador._id || sesion.entrenador,
+        fecha: fechaSesion,
+        horaInicio: sesion.horaInicio,
+        estado: { $ne: 'cancelada' }
+      });
+
+      if (reservaExistente) {
+        conflictos.push({
+          fecha: fechaSesion.toLocaleDateString('es-ES'),
+          hora: sesion.horaInicio,
+          cliente: `${sesion.cliente.nombre} ${sesion.cliente.apellido || ''}`,
+          motivo: 'Ya existe reserva'
+        });
+
+        if (!omitirConflictos) {
+          return res.status(400).json({
+            mensaje: 'Hay conflictos de horario',
+            conflictos
+          });
+        }
+        continue;
+      }
+
+      try {
+        const nuevaReserva = new Reserva({
+          cliente: sesion.cliente._id || sesion.cliente,
+          entrenador: sesion.entrenador._id || sesion.entrenador,
+          fecha: fechaSesion,
+          horaInicio: sesion.horaInicio,
+          horaFin: sesion.horaFin,
+          tipoSesion: sesion.tipoSesion,
+          estado: 'confirmada',
+          duracion: sesion.duracion,
+          notas: sesion.notas || '',
+          origen: 'plantilla',
+          plantillaOrigen: plantilla._id,
+          esPlanificada: true
+        });
+
+        await nuevaReserva.save();
+        reservasCreadas.push(nuevaReserva);
+
+        // Notificar al entrenador
+        await crearNotificacion(
+          sesion.entrenador._id || sesion.entrenador,
+          'reserva_creada',
+          'Nueva sesion planificada',
+          `Sesion con ${sesion.cliente.nombre} ${sesion.cliente.apellido || ''} para el ${fechaSesion.toLocaleDateString('es-ES')} a las ${sesion.horaInicio}`,
+          { tipo: 'reserva', id: nuevaReserva._id }
+        );
+      } catch (err) {
+        errores.push({
+          fecha: fechaSesion.toLocaleDateString('es-ES'),
+          hora: sesion.horaInicio,
+          error: err.message
+        });
+      }
+    }
+
+    res.json({
+      mensaje: `Se crearon ${reservasCreadas.length} reservas`,
+      reservasCreadas: reservasCreadas.length,
+      conflictosOmitidos: conflictos.length,
+      errores: errores.length > 0 ? errores : undefined,
+      conflictos: conflictos.length > 0 ? conflictos : undefined
+    });
+  } catch (error) {
+    console.error('Error al aplicar plantilla a semana:', error);
+    res.status(500).json({ mensaje: 'Error al aplicar plantilla' });
   }
 };
