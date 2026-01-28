@@ -8,6 +8,8 @@ import {
   eliminarPlantilla,
   duplicarPlantilla,
   aplicarPlantilla,
+  previewSemana,
+  aplicarPlantillaASemana,
   añadirSesion,
   eliminarSesion,
   actualizarSesion
@@ -21,7 +23,7 @@ router.use(proteger);
 
 // Rutas de consulta (accesibles para todos los usuarios autenticados)
 router.get('/', obtenerPlantillas);
-router.get('/base/:mes/:año', obtenerPlantillaBase);
+router.get('/base/:mes/:anio', obtenerPlantillaBase);
 router.get('/:id', obtenerPlantillaPorId);
 
 // Rutas de modificación (solo gerente)
@@ -32,6 +34,8 @@ router.delete('/:id', esGerente, eliminarPlantilla);
 // Rutas especiales (solo gerente)
 router.post('/:id/duplicar', esGerente, duplicarPlantilla);
 router.post('/:id/aplicar', esGerente, aplicarPlantilla);
+router.get('/:id/preview-semana', previewSemana);
+router.post('/:id/aplicar-semana', esGerente, aplicarPlantillaASemana);
 
 // Rutas para gestionar sesiones dentro de plantillas (solo gerente)
 router.post('/:id/sesiones', esGerente, añadirSesion);

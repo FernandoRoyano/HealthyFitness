@@ -304,13 +304,17 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, onMove
                   >
                     {reserva ? (
                       <div
-                        className={`calendario-reserva ${arrastrando?._id === reserva._id ? 'arrastrando' : ''} span-${rowSpan}`}
+                        className={`calendario-reserva ${arrastrando?._id === reserva._id ? 'arrastrando' : ''} span-${rowSpan}${reserva.origen === 'plantilla' ? ' desde-plantilla' : ''}`}
                         draggable={!soloLectura && !!onMoverReserva}
                         onDragStart={(e) => handleDragStart(e, reserva)}
                         onDragEnd={handleDragEnd}
                         onClick={() => !soloLectura && onEditarReserva && onEditarReserva(reserva)}
                         style={{ '--row-span': rowSpan }}
+                        title={reserva.origen === 'plantilla' ? 'Generada desde plantilla' : ''}
                       >
+                        {reserva.origen === 'plantilla' && (
+                          <span className="calendario-reserva-badge-plantilla" title="Desde plantilla">P</span>
+                        )}
                         <div className="calendario-reserva-nombre">
                           {reserva.cliente?.nombre} {reserva.cliente?.apellido}
                         </div>
@@ -355,9 +359,12 @@ function CalendarioSemanal({ reservas, onAgregarReserva, onEditarReserva, onMove
                 <div className="calendario-dia-contenido">
                   {reserva ? (
                     <div
-                      className="calendario-dia-reserva"
+                      className={`calendario-dia-reserva${reserva.origen === 'plantilla' ? ' desde-plantilla' : ''}`}
                       onClick={() => !soloLectura && onEditarReserva && onEditarReserva(reserva)}
                     >
+                      {reserva.origen === 'plantilla' && (
+                        <span className="calendario-reserva-badge-plantilla" title="Desde plantilla">P</span>
+                      )}
                       <div className="calendario-dia-reserva-nombre">
                         {reserva.cliente?.nombre} {reserva.cliente?.apellido}
                       </div>

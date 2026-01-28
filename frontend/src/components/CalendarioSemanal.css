@@ -468,3 +468,44 @@
     font-size: 12px;
   }
 }
+
+/* ==================== RESERVAS DESDE PLANTILLA ==================== */
+.calendario-reserva.desde-plantilla,
+.calendario-dia-reserva.desde-plantilla {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-left: 4px solid #1e40af;
+}
+
+.calendario-reserva.desde-plantilla:hover {
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.calendario-reserva-badge-plantilla {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 16px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1d4ed8;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11;
+}
+
+.calendario-dia-reserva .calendario-reserva-badge-plantilla {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+}
+
+.calendario-dia-reserva.desde-plantilla {
+  position: relative;
+}

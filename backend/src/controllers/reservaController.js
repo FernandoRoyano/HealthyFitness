@@ -66,10 +66,102 @@ export const obtenerReservaPorId = async (req, res) => {
   }
 };
 
+// Función auxiliar para crear una única reserva
+const crearReservaUnica = async (datosReserva) => {
+  const { fecha, horaInicio, horaFin, entrenador } = datosReserva;
+
+  // Verificar vacaciones
+  const vacacion = await verificarVacacionesEnFecha(entrenador, fecha);
+  if (vacacion) {
+    const fechaInicioVac = new Date(vacacion.fechaInicio).toLocaleDateString('es-ES');
+    const fechaFinVac = new Date(vacacion.fechaFin).toLocaleDateString('es-ES');
+    throw new Error(`Vacaciones del ${fechaInicioVac} al ${fechaFinVac}`);
+  }
+
+  // Verificar conflicto de horario
+  const reservaExiste = await Reserva.findOne({
+    fecha: new Date(fecha),
+    entrenador,
+    $or: [
+      { horaInicio: { $lte: horaInicio }, horaFin: { $gt: horaInicio } },
+      { horaInicio: { $lt: horaFin }, horaFin: { $gte: horaFin } },
+      { horaInicio: { $gte: horaInicio }, horaFin: { $lte: horaFin } }
+    ],
+    estado: { $ne: 'cancelada' }
+  });
+
+  if (reservaExiste) {
+    throw new Error('Horario ocupado');
+  }
+
+  return await Reserva.create(datosReserva);
+};
+
 export const crearReserva = async (req, res) => {
   try {
-    const { fecha, horaInicio, horaFin, entrenador } = req.body;
+    const { fecha, horaInicio, horaFin, entrenador, recurrente, fechaFinRecurrencia } = req.body;
 
+    // Si es recurrente, crear múltiples reservas
+    if (recurrente && fechaFinRecurrencia) {
+      const fechaInicial = new Date(fecha);
+      const fechaFinal = new Date(fechaFinRecurrencia);
+      const diaSemana = fechaInicial.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
+
+      // Calcular todas las fechas del mismo día de la semana
+      const fechasReservas = [];
+      let fechaActual = new Date(fechaInicial);
+
+      while (fechaActual <= fechaFinal) {
+        fechasReservas.push(new Date(fechaActual));
+        fechaActual.setDate(fechaActual.getDate() + 7); // Siguiente semana
+      }
+
+      const resultados = {
+        creadas: [],
+        errores: []
+      };
+
+      // Crear cada reserva
+      for (const fechaReserva of fechasReservas) {
+        try {
+          const datosReserva = {
+            ...req.body,
+            fecha: fechaReserva,
+            recurrente: undefined,
+            fechaFinRecurrencia: undefined
+          };
+          delete datosReserva.recurrente;
+          delete datosReserva.fechaFinRecurrencia;
+
+          const reserva = await crearReservaUnica(datosReserva);
+          const reservaCompleta = await Reserva.findById(reserva._id)
+            .populate('cliente', 'nombre apellido email telefono')
+            .populate('entrenador', 'nombre email');
+          resultados.creadas.push(reservaCompleta);
+        } catch (err) {
+          resultados.errores.push({
+            fecha: fechaReserva.toLocaleDateString('es-ES'),
+            error: err.message
+          });
+        }
+      }
+
+      // Devolver resultados
+      if (resultados.creadas.length === 0) {
+        return res.status(400).json({
+          mensaje: 'No se pudo crear ninguna reserva',
+          errores: resultados.errores
+        });
+      }
+
+      return res.status(201).json({
+        mensaje: `Se crearon ${resultados.creadas.length} de ${fechasReservas.length} reservas`,
+        reservas: resultados.creadas,
+        errores: resultados.errores.length > 0 ? resultados.errores : undefined
+      });
+    }
+
+    // Reserva única (comportamiento original)
     // Verificar si el entrenador tiene vacaciones aprobadas en esa fecha
     const vacacion = await verificarVacacionesEnFecha(entrenador, fecha);
     if (vacacion) {

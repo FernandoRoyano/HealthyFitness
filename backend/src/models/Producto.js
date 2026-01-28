@@ -25,7 +25,6 @@ const productoSchema = new mongoose.Schema({
 });
 
 // Índices
-productoSchema.index({ tipo: 1 });
 productoSchema.index({ activo: 1 });
 
 export default mongoose.model('Producto', productoSchema);
