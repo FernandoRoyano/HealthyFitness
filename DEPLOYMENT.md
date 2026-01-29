@@ -142,6 +142,80 @@ git push
 
 Render automáticamente redesplegará.
 
+## 📖 Cómo se usa
+
+La aplicación tiene **dos portales** independientes: el **Panel de Gestión** (para gerentes y entrenadores) y el **Portal del Cliente**.
+
+---
+
+### Panel de Gestión (Gerente / Entrenador)
+
+**Acceso:** `/login`
+
+El menú lateral está organizado en las siguientes secciones:
+
+#### 🏠 Inicio (Dashboard)
+- Resumen general del centro: sesiones del día, clientes activos, ingresos, etc.
+- Vista rápida de la actividad reciente.
+
+#### 👥 Clientes
+| Apartado | Qué contiene | Funciones principales |
+|----------|-------------|----------------------|
+| **Clientes** | Listado completo de clientes del centro | Crear, editar, eliminar clientes. Ver ficha detallada con historial de sesiones, mediciones y suscripción. Importar/exportar datos. |
+| **Leads** | Clientes potenciales (contactos interesados) | Registrar leads, hacer seguimiento, convertir a cliente activo. |
+
+#### 📆 Agenda
+| Apartado | Qué contiene | Funciones principales |
+|----------|-------------|----------------------|
+| **Agenda** | Calendario visual con todas las reservas | Ver por día/semana. Crear, mover y cancelar sesiones. Filtrar por entrenador. *(Gerente ve todos los entrenadores, entrenador ve solo los suyos)* |
+| **Horario Base** | Plantillas semanales de disponibilidad | Definir franjas horarias recurrentes por entrenador. Sirve como base para generar la agenda semanal automáticamente. |
+
+#### 🏋️ Equipo
+| Apartado | Qué contiene | Funciones principales |
+|----------|-------------|----------------------|
+| **Entrenadores** | Listado del equipo de entrenadores | Ver perfil, horarios y carga de trabajo de cada entrenador. |
+| **Solicitudes** | Solicitudes de cambio de horario/sesión | Los entrenadores crean solicitudes; el gerente las aprueba o rechaza. Badge con contador de pendientes. |
+| **Vacaciones** | Gestión de vacaciones del equipo | Solicitar, aprobar y consultar períodos de vacaciones. Badge con contador de pendientes. |
+
+#### 💶 Finanzas
+| Apartado | Qué contiene | Funciones principales |
+|----------|-------------|----------------------|
+| **Facturación** | Facturas mensuales por cliente | Generar facturas, marcar como pagadas, exportar a PDF. Control de ingresos por mes. |
+| **Tarifas** | Productos y tarifas del centro | Crear y editar tipos de suscripción, precios, bonos de sesiones. |
+
+#### ⚙️ Configuración
+- Datos del centro (nombre, dirección, horario de apertura).
+- Configuraciones generales de la aplicación.
+
+> **Nota sobre roles:**
+> - **Gerente:** Acceso completo a todas las secciones. Ve todos los entrenadores y clientes.
+> - **Entrenador:** Ve solo sus propios clientes, su propia agenda y su facturación. Puede crear solicitudes de cambio pero no aprobarlas.
+
+---
+
+### Portal del Cliente
+
+**Acceso:** `/cliente/login`
+
+Portal independiente donde los clientes acceden con sus propias credenciales.
+
+| Apartado | Icono | Qué contiene |
+|----------|-------|-------------|
+| **Mi Panel** | 🏠 | Dashboard personal: próximas sesiones, resumen de actividad. |
+| **Mi Calendario** | 📆 | Ver su calendario de sesiones programadas. |
+| **Mis Sesiones** | 🏋️ | Historial completo de sesiones realizadas y pendientes. |
+| **Mi Progreso** | 📊 | Evolución de mediciones corporales (peso, medidas, etc.) con gráficas. |
+| **Mi Suscripción** | 💳 | Estado de su suscripción actual, sesiones restantes, próxima renovación. |
+
+---
+
+### Notificaciones (🔔)
+- Icono en la barra superior del Panel de Gestión.
+- Muestra alertas en tiempo real: nuevas solicitudes, cambios en reservas, etc.
+- Contador de notificaciones no leídas.
+
+---
+
 ## ✅ Verificación
 
 1. Visita tu app en Vercel

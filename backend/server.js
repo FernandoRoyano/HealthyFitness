@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import compression from 'compression';
 import connectDB from './src/config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,8 +28,6 @@ import clientePortalRoutes from './src/routes/clientePortalRoutes.js';
 dotenv.config();
 
 const app = express();
-
-connectDB();
 
 // Configurar CORS
 const corsOptions = {
@@ -60,6 +59,7 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+app.use(compression());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -99,8 +99,13 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en puerto ${PORT}`);
-  console.log('Rutas de clientes cargadas: /api/clientes');
-  console.log('Rutas de usuarios cargadas: /api/users');
-});
+const startServer = async () => {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`Servidor ejecutándose en puerto ${PORT}`);
+    console.log('Rutas de clientes cargadas: /api/clientes');
+    console.log('Rutas de usuarios cargadas: /api/users');
+  });
+};
+
+startServer();
