@@ -22,6 +22,7 @@ import Vacaciones from './pages/Vacaciones';
 import Facturacion from './pages/Facturacion';
 import ClientesPotenciales from './pages/ClientesPotenciales';
 import ConfiguracionCentro from './pages/ConfiguracionCentro';
+import Ayuda from './pages/Ayuda';
 // Portal del Cliente
 import LoginCliente from './pages/cliente/LoginCliente';
 import DashboardCliente from './pages/cliente/DashboardCliente';
@@ -195,6 +196,16 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ConfiguracionCentro />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ayuda"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Ayuda />
                 </Layout>
               </ProtectedRoute>
             }
