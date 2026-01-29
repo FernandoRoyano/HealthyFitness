@@ -133,6 +133,7 @@ function Layout({ children }) {
       ]
     },
     { path: '/configuracion-centro', label: 'Configuración', icon: '⚙️' },
+    { path: '/ayuda', label: 'Ayuda', icon: '❓' },
   ];
 
   const menuEntrenador = [
@@ -169,6 +170,7 @@ function Layout({ children }) {
         { path: '/productos', label: 'Tarifas' },
       ]
     },
+    { path: '/ayuda', label: 'Ayuda', icon: '❓' },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'
