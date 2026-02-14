@@ -6,7 +6,10 @@ import {
   obtenerMisMediciones,
   obtenerMiSuscripcion,
   obtenerMisFacturas,
-  obtenerDashboard
+  obtenerDashboard,
+  obtenerMiRutina,
+  obtenerMiHistorial,
+  obtenerMisRecords
 } from '../controllers/clientePortalController.js';
 import { protegerCliente } from '../middleware/clienteAuthMiddleware.js';
 
@@ -29,5 +32,10 @@ router.get('/mis-mediciones', obtenerMisMediciones);
 // Facturación
 router.get('/mi-suscripcion', obtenerMiSuscripcion);
 router.get('/mis-facturas', obtenerMisFacturas);
+
+// Entrenamiento
+router.get('/mi-rutina', obtenerMiRutina);
+router.get('/mi-historial', obtenerMiHistorial);
+router.get('/mis-records', obtenerMisRecords);
 
 export default router;

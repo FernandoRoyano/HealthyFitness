@@ -2,6 +2,8 @@ import Reserva from '../models/Reserva.js';
 import MedicionCorporal from '../models/MedicionCorporal.js';
 import SuscripcionCliente from '../models/SuscripcionCliente.js';
 import FacturaMensual from '../models/FacturaMensual.js';
+import Rutina from '../models/Rutina.js';
+import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 
 // GET /api/cliente-portal/mis-reservas
 export const obtenerMisReservas = async (req, res) => {
@@ -188,5 +190,74 @@ export const obtenerDashboard = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al obtener dashboard', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+  }
+};
+
+// ==================== ENTRENAMIENTO ====================
+
+// GET /api/cliente-portal/mi-rutina
+export const obtenerMiRutina = async (req, res) => {
+  try {
+    const clienteId = req.cliente._id;
+
+    const rutina = await Rutina.findOne({ cliente: clienteId, activa: true })
+      .populate('dias.ejercicios.ejercicio', 'nombre grupoMuscular categoria equipamiento');
+
+    res.json(rutina);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener rutina', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+  }
+};
+
+// GET /api/cliente-portal/mi-historial
+export const obtenerMiHistorial = async (req, res) => {
+  try {
+    const clienteId = req.cliente._id;
+
+    const registros = await RegistroEntrenamiento.find({ cliente: clienteId })
+      .populate('ejercicios.ejercicio', 'nombre grupoMuscular')
+      .sort({ fecha: -1 })
+      .limit(20);
+
+    res.json(registros);
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener historial', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+  }
+};
+
+// GET /api/cliente-portal/mis-records
+export const obtenerMisRecords = async (req, res) => {
+  try {
+    const clienteId = req.cliente._id;
+
+    const registros = await RegistroEntrenamiento.find({ cliente: clienteId })
+      .populate('ejercicios.ejercicio', 'nombre grupoMuscular');
+
+    // Calcular PR por ejercicio
+    const prs = {};
+
+    registros.forEach(registro => {
+      registro.ejercicios.forEach(ejReg => {
+        const ejercicioId = ejReg.ejercicio?._id?.toString();
+        if (!ejercicioId) return;
+
+        ejReg.series.forEach(serie => {
+          if (serie.peso && serie.completada !== false) {
+            if (!prs[ejercicioId] || serie.peso > prs[ejercicioId].pesoMaximo) {
+              prs[ejercicioId] = {
+                ejercicio: ejReg.ejercicio,
+                pesoMaximo: serie.peso,
+                repeticiones: serie.repeticiones,
+                fecha: registro.fecha
+              };
+            }
+          }
+        });
+      });
+    });
+
+    res.json(Object.values(prs).sort((a, b) => b.pesoMaximo - a.pesoMaximo));
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener records', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };

@@ -29,6 +29,7 @@ function LayoutCliente() {
     { path: '/cliente/dashboard', label: 'Mi Panel', icon: '🏠' },
     { path: '/cliente/calendario', label: 'Mi Calendario', icon: '📆' },
     { path: '/cliente/sesiones', label: 'Mis Sesiones', icon: '🏋️' },
+    { path: '/cliente/entrenamiento', label: 'Mi Entrenamiento', icon: '💪' },
     { path: '/cliente/progreso', label: 'Mi Progreso', icon: '📊' },
     { path: '/cliente/suscripcion', label: 'Mi Suscripción', icon: '💳' },
   ];

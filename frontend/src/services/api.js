@@ -256,7 +256,10 @@ export const clientePortalAPI = {
   obtenerMisSesiones: (params) => api.get('/cliente-portal/mis-sesiones', { params }),
   obtenerMisMediciones: () => api.get('/cliente-portal/mis-mediciones'),
   obtenerMiSuscripcion: () => api.get('/cliente-portal/mi-suscripcion'),
-  obtenerMisFacturas: () => api.get('/cliente-portal/mis-facturas')
+  obtenerMisFacturas: () => api.get('/cliente-portal/mis-facturas'),
+  obtenerMiRutina: () => api.get('/cliente-portal/mi-rutina'),
+  obtenerMiHistorial: () => api.get('/cliente-portal/mi-historial'),
+  obtenerMisRecords: () => api.get('/cliente-portal/mis-records')
 };
 
 // API para autenticación de clientes en el portal
