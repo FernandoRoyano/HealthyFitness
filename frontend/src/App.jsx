@@ -32,6 +32,7 @@ import CalendarioCliente from './pages/cliente/CalendarioCliente';
 import MisSesiones from './pages/cliente/MisSesiones';
 import MiProgreso from './pages/cliente/MiProgreso';
 import MiSuscripcion from './pages/cliente/MiSuscripcion';
+import MiEntrenamiento from './pages/cliente/MiEntrenamiento';
 
 function App() {
   return (
@@ -248,6 +249,7 @@ function App() {
               <Route path="calendario" element={<CalendarioCliente />} />
               <Route path="sesiones" element={<MisSesiones />} />
               <Route path="progreso" element={<MiProgreso />} />
+              <Route path="entrenamiento" element={<MiEntrenamiento />} />
               <Route path="suscripcion" element={<MiSuscripcion />} />
             </Route>
           </Routes>
