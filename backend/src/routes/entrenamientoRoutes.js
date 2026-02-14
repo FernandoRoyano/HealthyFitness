@@ -14,7 +14,13 @@ import {
   crearRutina,
   actualizarRutina,
   eliminarRutina,
-  duplicarRutina
+  duplicarRutina,
+  // Registros
+  registrarEntrenamiento,
+  obtenerRegistrosPorCliente,
+  obtenerRegistroPorId,
+  obtenerProgresoPorEjercicio,
+  obtenerPRs
 } from '../controllers/entrenamientoController.js';
 import { proteger, esGerente } from '../middleware/authMiddleware.js';
 
@@ -39,5 +45,12 @@ router.post('/rutinas', crearRutina);
 router.put('/rutinas/:id', actualizarRutina);
 router.delete('/rutinas/:id', eliminarRutina);
 router.post('/rutinas/:id/duplicar', duplicarRutina);
+
+// ==================== REGISTROS DE ENTRENAMIENTO ====================
+router.post('/registros', registrarEntrenamiento);
+router.get('/registros/cliente/:clienteId', obtenerRegistrosPorCliente);
+router.get('/registros/:id', obtenerRegistroPorId);
+router.get('/progreso/:clienteId/:ejercicioId', obtenerProgresoPorEjercicio);
+router.get('/prs/:clienteId', obtenerPRs);
 
 export default router;

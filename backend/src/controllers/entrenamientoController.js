@@ -1,5 +1,6 @@
 import Ejercicio from '../models/Ejercicio.js';
 import Rutina from '../models/Rutina.js';
+import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 import Cliente from '../models/Cliente.js';
 
 // ==================== EJERCICIOS ====================
@@ -376,6 +377,173 @@ export const duplicarRutina = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       mensaje: 'Error al duplicar rutina',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+// ==================== REGISTROS DE ENTRENAMIENTO ====================
+
+export const registrarEntrenamiento = async (req, res) => {
+  try {
+    const { cliente, rutina, diaRutina, fecha, ejercicios,
+      duracionMinutos, notas, completado } = req.body;
+
+    const registro = await RegistroEntrenamiento.create({
+      cliente, rutina, diaRutina, fecha: fecha || new Date(),
+      ejercicios, duracionMinutos, notas,
+      completado: completado !== undefined ? completado : true,
+      registradoPor: req.usuario._id
+    });
+
+    const registroPopulado = await RegistroEntrenamiento.findById(registro._id)
+      .populate('ejercicios.ejercicio', 'nombre grupoMuscular categoria')
+      .populate('rutina', 'nombre')
+      .populate('cliente', 'nombre apellido');
+
+    res.status(201).json(registroPopulado);
+  } catch (error) {
+    res.status(400).json({
+      mensaje: 'Error al registrar entrenamiento',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+export const obtenerRegistrosPorCliente = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+    const { limite } = req.query;
+
+    const query = RegistroEntrenamiento.find({ cliente: clienteId })
+      .populate('ejercicios.ejercicio', 'nombre grupoMuscular categoria')
+      .populate('rutina', 'nombre')
+      .populate('registradoPor', 'nombre')
+      .sort({ fecha: -1 });
+
+    if (limite) query.limit(parseInt(limite));
+
+    const registros = await query;
+    res.json(registros);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener registros',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+export const obtenerRegistroPorId = async (req, res) => {
+  try {
+    const registro = await RegistroEntrenamiento.findById(req.params.id)
+      .populate('ejercicios.ejercicio', 'nombre grupoMuscular categoria equipamiento')
+      .populate('rutina', 'nombre')
+      .populate('cliente', 'nombre apellido')
+      .populate('registradoPor', 'nombre');
+
+    if (!registro) {
+      return res.status(404).json({ mensaje: 'Registro no encontrado' });
+    }
+
+    res.json(registro);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener registro',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+export const obtenerProgresoPorEjercicio = async (req, res) => {
+  try {
+    const { clienteId, ejercicioId } = req.params;
+
+    const registros = await RegistroEntrenamiento.find({
+      cliente: clienteId,
+      'ejercicios.ejercicio': ejercicioId
+    })
+      .select('fecha ejercicios')
+      .sort({ fecha: 1 })
+      .limit(50);
+
+    // Extraer solo los datos del ejercicio específico
+    const progreso = registros.map(reg => {
+      const ejData = reg.ejercicios.find(
+        ej => ej.ejercicio.toString() === ejercicioId
+      );
+      if (!ejData) return null;
+
+      // Calcular mejor serie (mayor peso x reps)
+      let mejorSerie = null;
+      let pesoMaximo = 0;
+      let totalVolumen = 0;
+
+      for (const serie of ejData.series) {
+        if (serie.completada !== false) {
+          const peso = serie.peso || 0;
+          const reps = serie.repeticiones || 0;
+          totalVolumen += peso * reps;
+          if (peso > pesoMaximo) {
+            pesoMaximo = peso;
+            mejorSerie = serie;
+          }
+        }
+      }
+
+      return {
+        fecha: reg.fecha,
+        series: ejData.series,
+        pesoMaximo,
+        totalVolumen,
+        mejorSerie
+      };
+    }).filter(Boolean);
+
+    res.json(progreso);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener progreso',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+export const obtenerPRs = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+
+    const registros = await RegistroEntrenamiento.find({ cliente: clienteId })
+      .populate('ejercicios.ejercicio', 'nombre grupoMuscular categoria')
+      .select('fecha ejercicios');
+
+    // Calcular PRs: máximo peso por ejercicio
+    const prsMap = {};
+
+    for (const registro of registros) {
+      for (const ejReg of registro.ejercicios) {
+        if (!ejReg.ejercicio) continue;
+        const ejId = ejReg.ejercicio._id.toString();
+
+        for (const serie of ejReg.series) {
+          if (serie.completada === false || !serie.peso) continue;
+
+          if (!prsMap[ejId] || serie.peso > prsMap[ejId].peso) {
+            prsMap[ejId] = {
+              ejercicio: ejReg.ejercicio,
+              peso: serie.peso,
+              repeticiones: serie.repeticiones,
+              fecha: registro.fecha
+            };
+          }
+        }
+      }
+    }
+
+    const prs = Object.values(prsMap).sort((a, b) => b.peso - a.peso);
+    res.json(prs);
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener récords personales',
       error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }

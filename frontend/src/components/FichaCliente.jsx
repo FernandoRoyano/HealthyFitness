@@ -7,8 +7,11 @@ import {
   facturacionAPI,
   medicionesAPI,
   productosAPI,
-  clienteAuthAPI
+  clienteAuthAPI,
+  entrenamientoAPI
 } from '../services/api';
+import RegistrarEntrenamiento from './RegistrarEntrenamiento';
+import ProgresoEjercicio from './ProgresoEjercicio';
 import './FichaCliente.css';
 
 // Formatear fecha local sin problemas de zona horaria
@@ -88,6 +91,14 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   const [passwordPortal, setPasswordPortal] = useState('');
   const [cargandoPortal, setCargandoPortal] = useState(false);
 
+  // Estados para entrenamiento
+  const [rutinaActiva, setRutinaActiva] = useState(null);
+  const [registrosEntrenamiento, setRegistrosEntrenamiento] = useState([]);
+  const [prsCliente, setPrsCliente] = useState([]);
+  const [cargandoEntrenamiento, setCargandoEntrenamiento] = useState(false);
+  const [mostrarRegistrarEntrenamiento, setMostrarRegistrarEntrenamiento] = useState(false);
+  const [progresoEjercicio, setProgresoEjercicio] = useState(null);
+
   // Cargar datos iniciales
   useEffect(() => {
     cargarDatosIniciales();
@@ -107,6 +118,8 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       cargarEstadoPortal();
     } else if (tabActivo === 'membresia' && suscripcion && !sesionesInfo) {
       cargarSesionesInfo();
+    } else if (tabActivo === 'entrenamiento' && registrosEntrenamiento.length === 0) {
+      cargarDatosEntrenamiento();
     }
   }, [tabActivo, suscripcion]);
 
@@ -185,6 +198,26 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setPortalInfo({ portalActivo: false });
     } finally {
       setCargandoPortal(false);
+    }
+  };
+
+  const cargarDatosEntrenamiento = async () => {
+    try {
+      setCargandoEntrenamiento(true);
+      const [rutinasRes, registrosRes, prsRes] = await Promise.all([
+        entrenamientoAPI.obtenerRutinasPorCliente(cliente._id),
+        entrenamientoAPI.obtenerRegistrosPorCliente(cliente._id, { limit: 10 }),
+        entrenamientoAPI.obtenerPRs(cliente._id)
+      ]);
+
+      const activa = rutinasRes.data.find(r => r.activa);
+      setRutinaActiva(activa || null);
+      setRegistrosEntrenamiento(registrosRes.data || []);
+      setPrsCliente(prsRes.data || []);
+    } catch (err) {
+      console.error('Error al cargar datos de entrenamiento:', err);
+    } finally {
+      setCargandoEntrenamiento(false);
     }
   };
 
@@ -435,6 +468,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
     { id: 'facturas', label: 'Facturas' },
     { id: 'asistencias', label: 'Asistencias' },
     { id: 'seguimiento', label: 'Seguimiento' },
+    { id: 'entrenamiento', label: 'Entrenamiento' },
     { id: 'portal', label: 'Portal' }
   ];
 
@@ -1152,6 +1186,190 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                   <p>No hay mediciones registradas para este cliente.</p>
                   <p>Registra la primera medicion para hacer seguimiento del progreso.</p>
                 </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB: ENTRENAMIENTO */}
+          {tabActivo === 'entrenamiento' && (
+            <div className="ficha-cliente-seccion">
+              {cargandoEntrenamiento ? (
+                <div className="ficha-cliente-cargando">Cargando datos de entrenamiento...</div>
+              ) : (
+                <>
+                  {/* Rutina activa */}
+                  <div className="ficha-cliente-seccion-header">
+                    <h3>Rutina Activa</h3>
+                    <button
+                      className="btn-primary"
+                      onClick={() => setMostrarRegistrarEntrenamiento(true)}
+                    >
+                      + Registrar Entrenamiento
+                    </button>
+                  </div>
+
+                  {rutinaActiva ? (
+                    <div style={{ marginBottom: '24px' }}>
+                      <div style={{
+                        padding: '16px',
+                        backgroundColor: '#f0f9ee',
+                        borderRadius: '10px',
+                        border: '1px solid #75b760'
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                          <h4 style={{ margin: 0, color: '#1a1a2e', fontSize: '16px' }}>{rutinaActiva.nombre}</h4>
+                          <span style={{
+                            padding: '3px 10px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            backgroundColor: '#75b760',
+                            color: '#fff'
+                          }}>Activa</span>
+                        </div>
+                        {rutinaActiva.objetivo && (
+                          <p style={{ margin: '0 0 6px', fontSize: '13px', color: '#6b7280' }}>
+                            Objetivo: {rutinaActiva.objetivo.replace(/_/g, ' ')}
+                          </p>
+                        )}
+                        <p style={{ margin: 0, fontSize: '13px', color: '#6b7280' }}>
+                          {rutinaActiva.diasPorSemana} dias/semana &middot; {rutinaActiva.dias?.length || 0} dias programados
+                        </p>
+                        {rutinaActiva.dias && rutinaActiva.dias.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '10px' }}>
+                            {rutinaActiva.dias.map((dia, idx) => (
+                              <span key={idx} style={{
+                                padding: '4px 10px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                backgroundColor: '#e8f5e3',
+                                color: '#2d5a1e',
+                                fontWeight: 500
+                              }}>
+                                {dia.nombre} ({dia.ejercicios?.length || 0} ejercicios)
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      padding: '16px',
+                      backgroundColor: '#f9fafb',
+                      borderRadius: '10px',
+                      textAlign: 'center',
+                      marginBottom: '24px',
+                      color: '#6b7280',
+                      fontSize: '14px'
+                    }}>
+                      Este cliente no tiene una rutina activa asignada. Puedes crear una desde el modulo de Rutinas.
+                    </div>
+                  )}
+
+                  {/* Records personales */}
+                  {prsCliente.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#1a1a2e', marginBottom: '12px' }}>
+                        Records Personales (PRs)
+                      </h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '10px' }}>
+                        {prsCliente.slice(0, 8).map((pr, idx) => (
+                          <div
+                            key={idx}
+                            style={{
+                              padding: '12px',
+                              backgroundColor: '#f9fafb',
+                              borderRadius: '8px',
+                              borderLeft: '3px solid #FF6F00',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => setProgresoEjercicio({
+                              id: pr.ejercicio?._id || pr.ejercicioId,
+                              nombre: pr.ejercicio?.nombre || pr.ejercicioNombre
+                            })}
+                            title="Ver progreso de este ejercicio"
+                          >
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: '#1a1a2e', marginBottom: '4px' }}>
+                              {pr.ejercicio?.nombre || pr.ejercicioNombre}
+                            </div>
+                            <div style={{ fontSize: '20px', fontWeight: 700, color: '#FF6F00' }}>
+                              {pr.pesoMaximo} kg
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#9ca3af' }}>
+                              {pr.fecha ? new Date(pr.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Últimos registros */}
+                  <div>
+                    <h3 style={{ fontSize: '15px', fontWeight: 600, color: '#1a1a2e', marginBottom: '12px' }}>
+                      Ultimos Entrenamientos
+                    </h3>
+                    {registrosEntrenamiento.length > 0 ? (
+                      <div className="ficha-cliente-tabla-wrapper">
+                        <table className="ficha-cliente-tabla">
+                          <thead>
+                            <tr>
+                              <th>Fecha</th>
+                              <th>Dia</th>
+                              <th>Ejercicios</th>
+                              <th>Duracion</th>
+                              <th>Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {registrosEntrenamiento.map(registro => (
+                              <tr key={registro._id}>
+                                <td>{formatearFecha(registro.fecha)}</td>
+                                <td>{registro.diaRutina || '-'}</td>
+                                <td>{registro.ejercicios?.length || 0} ejercicios</td>
+                                <td>{registro.duracionMinutos ? `${registro.duracionMinutos} min` : '-'}</td>
+                                <td>
+                                  <span className={`estado-badge ${registro.completado ? 'activa' : 'pendiente'}`}>
+                                    {registro.completado ? 'Completado' : 'Parcial'}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="ficha-cliente-vacio">
+                        <p>No hay entrenamientos registrados para este cliente.</p>
+                        <p>Registra el primer entrenamiento para comenzar el seguimiento.</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Modal Registrar Entrenamiento */}
+              {mostrarRegistrarEntrenamiento && (
+                <RegistrarEntrenamiento
+                  clienteId={cliente._id}
+                  clienteNombre={`${cliente.nombre} ${cliente.apellido}`}
+                  onClose={() => setMostrarRegistrarEntrenamiento(false)}
+                  onRegistrado={() => {
+                    setMostrarRegistrarEntrenamiento(false);
+                    cargarDatosEntrenamiento();
+                  }}
+                />
+              )}
+
+              {/* Modal Progreso Ejercicio */}
+              {progresoEjercicio && (
+                <ProgresoEjercicio
+                  clienteId={cliente._id}
+                  ejercicioId={progresoEjercicio.id}
+                  ejercicioNombre={progresoEjercicio.nombre}
+                  onClose={() => setProgresoEjercicio(null)}
+                />
               )}
             </div>
           )}
