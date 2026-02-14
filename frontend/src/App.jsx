@@ -23,6 +23,8 @@ import Facturacion from './pages/Facturacion';
 import ClientesPotenciales from './pages/ClientesPotenciales';
 import ConfiguracionCentro from './pages/ConfiguracionCentro';
 import Ayuda from './pages/Ayuda';
+import Ejercicios from './pages/Ejercicios';
+import Rutinas from './pages/Rutinas';
 // Portal del Cliente
 import LoginCliente from './pages/cliente/LoginCliente';
 import DashboardCliente from './pages/cliente/DashboardCliente';
@@ -196,6 +198,26 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ConfiguracionCentro />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ejercicios"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Ejercicios />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rutinas"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Rutinas />
                 </Layout>
               </ProtectedRoute>
             }

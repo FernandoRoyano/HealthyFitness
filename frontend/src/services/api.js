@@ -269,3 +269,22 @@ export const clienteAuthAPI = {
   desactivarAcceso: (clienteId) => api.put(`/cliente-auth/desactivar/${clienteId}`),
   verificarEstado: (clienteId) => api.get(`/cliente-auth/estado/${clienteId}`)
 };
+
+export const entrenamientoAPI = {
+  // ==================== EJERCICIOS ====================
+  obtenerEjercicios: (params) => api.get('/entrenamiento/ejercicios', { params }),
+  obtenerEjercicioPorId: (id) => api.get(`/entrenamiento/ejercicios/${id}`),
+  crearEjercicio: (datos) => api.post('/entrenamiento/ejercicios', datos),
+  actualizarEjercicio: (id, datos) => api.put(`/entrenamiento/ejercicios/${id}`, datos),
+  eliminarEjercicio: (id) => api.delete(`/entrenamiento/ejercicios/${id}`),
+
+  // ==================== RUTINAS ====================
+  obtenerRutinas: (params) => api.get('/entrenamiento/rutinas', { params }),
+  obtenerRutinasPorCliente: (clienteId) => api.get(`/entrenamiento/rutinas/cliente/${clienteId}`),
+  obtenerPlantillas: () => api.get('/entrenamiento/rutinas/plantillas'),
+  obtenerRutinaPorId: (id) => api.get(`/entrenamiento/rutinas/${id}`),
+  crearRutina: (datos) => api.post('/entrenamiento/rutinas', datos),
+  actualizarRutina: (id, datos) => api.put(`/entrenamiento/rutinas/${id}`, datos),
+  eliminarRutina: (id) => api.delete(`/entrenamiento/rutinas/${id}`),
+  duplicarRutina: (id, datos) => api.post(`/entrenamiento/rutinas/${id}/duplicar`, datos)
+};
