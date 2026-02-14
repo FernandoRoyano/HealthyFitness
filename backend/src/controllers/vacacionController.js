@@ -1,6 +1,7 @@
 import Vacacion from '../models/Vacacion.js';
 import User from '../models/User.js';
 import { crearNotificacion, notificarGerentes } from './notificacionController.js';
+import { verificarVacacionesEnFecha } from '../utils/vacacionHelper.js';
 
 // Constantes de configuración
 const DIAS_TOTALES_ANUALES = 23;
@@ -153,7 +154,7 @@ export const crearSolicitudVacaciones = async (req, res) => {
     console.error('Error al crear solicitud de vacaciones:', error);
     res.status(400).json({
       mensaje: 'Error al crear solicitud de vacaciones',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -191,7 +192,7 @@ export const obtenerVacaciones = async (req, res) => {
     console.error('Error al obtener vacaciones:', error);
     res.status(500).json({
       mensaje: 'Error al obtener vacaciones',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -232,7 +233,7 @@ export const obtenerResumen = async (req, res) => {
     console.error('Error al obtener resumen:', error);
     res.status(500).json({
       mensaje: 'Error al obtener resumen',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -264,7 +265,7 @@ export const obtenerVacacionPorId = async (req, res) => {
     console.error('Error al obtener vacación:', error);
     res.status(500).json({
       mensaje: 'Error al obtener vacación',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -302,7 +303,7 @@ export const cancelarSolicitud = async (req, res) => {
     console.error('Error al cancelar solicitud:', error);
     res.status(500).json({
       mensaje: 'Error al cancelar solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -372,7 +373,7 @@ export const aprobarSolicitud = async (req, res) => {
     console.error('Error al aprobar solicitud:', error);
     res.status(400).json({
       mensaje: 'Error al aprobar solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -427,7 +428,7 @@ export const rechazarSolicitud = async (req, res) => {
     console.error('Error al rechazar solicitud:', error);
     res.status(400).json({
       mensaje: 'Error al rechazar solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -443,26 +444,57 @@ export const obtenerResumenGlobal = async (req, res) => {
 
     const año = parseInt(req.query.año) || new Date().getFullYear();
 
-    // Obtener todos los entrenadores activos
-    const entrenadores = await User.find({
-      rol: 'entrenador',
-      activo: true
-    }).select('nombre email foto');
+    // Obtener todos los entrenadores activos y todas las vacaciones aprobadas del año en 2 queries
+    const [entrenadores, todasVacaciones] = await Promise.all([
+      User.find({ rol: 'entrenador', activo: true }).select('nombre email foto'),
+      Vacacion.find({ año: año, estado: 'aprobado' })
+    ]);
 
-    const resumenGlobal = await Promise.all(
-      entrenadores.map(async (entrenador) => {
-        const resumen = await obtenerResumenVacaciones(entrenador._id, año);
-        return {
-          entrenador: {
-            _id: entrenador._id,
-            nombre: entrenador.nombre,
-            email: entrenador.email,
-            foto: entrenador.foto
-          },
-          ...resumen
-        };
-      })
-    );
+    // Agrupar vacaciones por entrenador en memoria
+    const vacacionesPorEntrenador = {};
+    for (const v of todasVacaciones) {
+      const eid = v.entrenador.toString();
+      if (!vacacionesPorEntrenador[eid]) vacacionesPorEntrenador[eid] = [];
+      vacacionesPorEntrenador[eid].push(v);
+    }
+
+    const resumenGlobal = entrenadores.map(entrenador => {
+      const vacaciones = vacacionesPorEntrenador[entrenador._id.toString()] || [];
+      let diasEstivalesUsados = 0;
+      let diasNoEstivalesUsados = 0;
+
+      vacaciones.forEach(v => {
+        if (v.tipoPeriodo === 'estival') {
+          diasEstivalesUsados += v.diasLaborables;
+        } else {
+          diasNoEstivalesUsados += v.diasLaborables;
+        }
+      });
+
+      const diasTotalesUsados = diasEstivalesUsados + diasNoEstivalesUsados;
+
+      return {
+        entrenador: {
+          _id: entrenador._id,
+          nombre: entrenador.nombre,
+          email: entrenador.email,
+          foto: entrenador.foto
+        },
+        diasTotales: DIAS_TOTALES_ANUALES,
+        diasUsados: diasTotalesUsados,
+        diasPendientes: DIAS_TOTALES_ANUALES - diasTotalesUsados,
+        estival: {
+          minimo: DIAS_ESTIVALES_MINIMOS,
+          usados: diasEstivalesUsados,
+          pendientes: Math.max(0, DIAS_ESTIVALES_MINIMOS - diasEstivalesUsados)
+        },
+        noEstival: {
+          maximo: DIAS_NO_ESTIVALES_MAXIMOS,
+          usados: diasNoEstivalesUsados,
+          disponibles: Math.max(0, DIAS_NO_ESTIVALES_MAXIMOS - diasNoEstivalesUsados)
+        }
+      };
+    });
 
     res.json({
       año,
@@ -472,7 +504,7 @@ export const obtenerResumenGlobal = async (req, res) => {
     console.error('Error al obtener resumen global:', error);
     res.status(500).json({
       mensaje: 'Error al obtener resumen global',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -486,22 +518,10 @@ export const contarPendientes = async (req, res) => {
     console.error('Error al contar solicitudes:', error);
     res.status(500).json({
       mensaje: 'Error al contar solicitudes',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
 
-// Verificar si un entrenador tiene vacaciones en una fecha específica
-export const verificarVacacionesEnFecha = async (entrenadorId, fecha) => {
-  const fechaConsulta = new Date(fecha);
-  fechaConsulta.setHours(0, 0, 0, 0);
-
-  const vacacion = await Vacacion.findOne({
-    entrenador: entrenadorId,
-    estado: 'aprobado',
-    fechaInicio: { $lte: fechaConsulta },
-    fechaFin: { $gte: fechaConsulta }
-  });
-
-  return vacacion;
-};
+// Re-exportar para mantener compatibilidad si se importa desde aquí
+export { verificarVacacionesEnFecha } from '../utils/vacacionHelper.js';

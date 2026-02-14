@@ -37,6 +37,8 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   const [sesionesInfo, setSesionesInfo] = useState(null);
   const [editandoAcumuladas, setEditandoAcumuladas] = useState(false);
   const [valorAcumuladas, setValorAcumuladas] = useState(0);
+  const [editandoSaldo, setEditandoSaldo] = useState(false);
+  const [valorSaldo, setValorSaldo] = useState(0);
 
   // Estados de carga
   const [cargando, setCargando] = useState(false);
@@ -196,7 +198,6 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       // Calcular sesiones contratadas este mes
       const diasEntrenamiento = suscripcion.diasEntrenamiento || [];
       let sesionesContratadas = 0;
-      const primerDia = new Date(anioActual, mesActual - 1, 1);
       const ultimoDia = new Date(anioActual, mesActual, 0);
 
       for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
@@ -210,30 +211,34 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
         }
       }
 
-      // Obtener sesiones usadas (reservas confirmadas/completadas)
+      // Obtener sesiones usadas (reservas confirmadas/completadas del mes)
       const reservasRes = await reservasAPI.obtenerTodas({ cliente: cliente._id });
       const inicioMes = new Date(anioActual, mesActual - 1, 1);
       const finMes = new Date(anioActual, mesActual, 0, 23, 59, 59);
 
-      const sesionesUsadas = reservasRes.data.filter(r => {
+      const sesionesUsadasMes = reservasRes.data.filter(r => {
         const fechaReserva = new Date(r.fecha);
         return fechaReserva >= inicioMes &&
           fechaReserva <= finMes &&
-          ['confirmada', 'completada'].includes(r.estado);
+          ['confirmada', 'completada', 'pendiente'].includes(r.estado);
       }).length;
 
+      // Obtener saldo real del servidor
+      const saldoRes = await facturacionAPI.obtenerSaldoSesiones(cliente._id);
+      const saldoSesiones = saldoRes.data.saldoSesiones || 0;
+
       const acumuladas = suscripcion.sesionesAcumuladas || 0;
-      const disponibles = sesionesContratadas + acumuladas - sesionesUsadas;
 
       setSesionesInfo({
         contratadas: sesionesContratadas,
         acumuladas: acumuladas,
-        usadas: sesionesUsadas,
-        disponibles: Math.max(0, disponibles),
+        usadasMes: sesionesUsadasMes,
+        saldoSesiones: saldoSesiones,
         mes: mesActual,
         anio: anioActual
       });
       setValorAcumuladas(acumuladas);
+      setValorSaldo(saldoSesiones);
     } catch (err) {
       console.error('Error al calcular sesiones:', err);
     }
@@ -250,8 +255,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setSuscripcion(prev => ({ ...prev, sesionesAcumuladas: nuevoValor }));
       setSesionesInfo(prev => ({
         ...prev,
-        acumuladas: nuevoValor,
-        disponibles: Math.max(0, prev.contratadas + nuevoValor - prev.usadas)
+        acumuladas: nuevoValor
       }));
       setValorAcumuladas(nuevoValor);
       setEditandoAcumuladas(false);
@@ -259,6 +263,29 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setTimeout(() => setMensaje(''), 3000);
     } catch (err) {
       setError('Error al actualizar sesiones acumuladas');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const actualizarSaldoSesiones = async (nuevoValor) => {
+    if (nuevoValor < 0) return;
+
+    try {
+      setCargando(true);
+      const motivo = window.prompt('Motivo del ajuste (opcional):') || '';
+      await facturacionAPI.actualizarSaldoSesiones(cliente._id, nuevoValor, motivo);
+
+      setSesionesInfo(prev => ({
+        ...prev,
+        saldoSesiones: nuevoValor
+      }));
+      setValorSaldo(nuevoValor);
+      setEditandoSaldo(false);
+      setMensaje('Saldo de sesiones actualizado');
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      setError('Error al actualizar saldo de sesiones');
     } finally {
       setCargando(false);
     }
@@ -715,11 +742,52 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                         </div>
                         <div className="sesiones-item">
                           <span className="sesiones-label">Usadas este mes</span>
-                          <span className="sesiones-valor">{sesionesInfo.usadas}</span>
+                          <span className="sesiones-valor">{sesionesInfo.usadasMes}</span>
                         </div>
                         <div className="sesiones-item sesiones-disponibles">
-                          <span className="sesiones-label">Saldo disponible</span>
-                          <span className="sesiones-valor sesiones-saldo">{sesionesInfo.disponibles}</span>
+                          <span className="sesiones-label">Saldo de sesiones</span>
+                          <div className="sesiones-valor-editable">
+                            {editandoSaldo ? (
+                              <div className="sesiones-input-group">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={valorSaldo}
+                                  onChange={(e) => setValorSaldo(parseInt(e.target.value) || 0)}
+                                  className="sesiones-input"
+                                />
+                                <button
+                                  className="btn-sesiones-ok"
+                                  onClick={() => actualizarSaldoSesiones(valorSaldo)}
+                                  disabled={cargando}
+                                >
+                                  OK
+                                </button>
+                                <button
+                                  className="btn-sesiones-cancel"
+                                  onClick={() => {
+                                    setEditandoSaldo(false);
+                                    setValorSaldo(sesionesInfo.saldoSesiones);
+                                  }}
+                                >
+                                  X
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="sesiones-controles">
+                                <span className="sesiones-numero sesiones-saldo">{sesionesInfo.saldoSesiones}</span>
+                                {esGerente && (
+                                  <button
+                                    className="btn-sesiones-edit"
+                                    onClick={() => setEditandoSaldo(true)}
+                                    title="Ajustar saldo manualmente"
+                                  >
+                                    ✎
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

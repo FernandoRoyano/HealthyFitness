@@ -1,19 +1,36 @@
 import Reserva from '../models/Reserva.js';
-import Vacacion from '../models/Vacacion.js';
+import SuscripcionCliente from '../models/SuscripcionCliente.js';
+import { verificarVacacionesEnFecha } from '../utils/vacacionHelper.js';
 
-// Función auxiliar para verificar si un entrenador tiene vacaciones en una fecha
-const verificarVacacionesEnFecha = async (entrenadorId, fecha) => {
-  const fechaConsulta = new Date(fecha);
-  fechaConsulta.setHours(0, 0, 0, 0);
+// Función auxiliar para verificar saldo de sesiones del cliente
+const verificarSaldoSesiones = async (clienteId) => {
+  const suscripcion = await SuscripcionCliente.findOne({ cliente: clienteId });
+  if (!suscripcion) {
+    return { tieneSuscripcion: false, saldo: 0, aviso: 'Cliente sin suscripción activa' };
+  }
+  return {
+    tieneSuscripcion: true,
+    saldo: suscripcion.saldoSesiones || 0,
+    aviso: suscripcion.saldoSesiones <= 0 ? 'Cliente sin sesiones disponibles' : null
+  };
+};
 
-  const vacacion = await Vacacion.findOne({
-    entrenador: entrenadorId,
-    estado: 'aprobado',
-    fechaInicio: { $lte: fechaConsulta },
-    fechaFin: { $gte: fechaConsulta }
-  });
+// Función para descontar sesión del saldo
+const descontarSesion = async (clienteId) => {
+  const resultado = await SuscripcionCliente.findOneAndUpdate(
+    { cliente: clienteId, saldoSesiones: { $gt: 0 } },
+    { $inc: { saldoSesiones: -1 } },
+    { new: true }
+  );
+  return resultado !== null;
+};
 
-  return vacacion;
+// Función para devolver sesión al saldo (cancelación por el centro)
+const devolverSesion = async (clienteId) => {
+  await SuscripcionCliente.findOneAndUpdate(
+    { cliente: clienteId },
+    { $inc: { saldoSesiones: 1 } }
+  );
 };
 
 export const obtenerReservas = async (req, res) => {
@@ -21,33 +38,23 @@ export const obtenerReservas = async (req, res) => {
     const { fecha, entrenador, cliente } = req.query;
     let filtro = {};
 
-    console.log('📅 Query params:', req.query);
-
     if (fecha) {
       const fechaInicio = new Date(fecha);
       const fechaFin = new Date(fecha);
       fechaFin.setDate(fechaFin.getDate() + 1);
       filtro.fecha = { $gte: fechaInicio, $lt: fechaFin };
-      console.log('📅 Filtro fecha:', { fechaInicio, fechaFin });
     }
     if (entrenador) filtro.entrenador = entrenador;
     if (cliente) filtro.cliente = cliente;
-
-    console.log('📅 Filtro completo:', filtro);
 
     const reservas = await Reserva.find(filtro)
       .populate('cliente', 'nombre apellido email telefono')
       .populate('entrenador', 'nombre email')
       .sort({ fecha: 1, horaInicio: 1 });
 
-    console.log('📅 Reservas encontradas:', reservas.length);
-    reservas.forEach(r => {
-      console.log(`  - ${r.fecha.toISOString()} | ${r.horaInicio}-${r.horaFin} | ${r.entrenador.nombre} | ${r.cliente.nombre}`);
-    });
-
     res.json(reservas);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener reservas', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener reservas', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -62,13 +69,14 @@ export const obtenerReservaPorId = async (req, res) => {
     }
     res.json(reserva);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener reserva', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener reserva', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
 // Función auxiliar para crear una única reserva
-const crearReservaUnica = async (datosReserva) => {
-  const { fecha, horaInicio, horaFin, entrenador } = datosReserva;
+const crearReservaUnica = async (datosReserva, opciones = {}) => {
+  const { fecha, horaInicio, horaFin, entrenador, cliente } = datosReserva;
+  const { verificarSaldo = true, descontarDelSaldo = true } = opciones;
 
   // Verificar vacaciones
   const vacacion = await verificarVacacionesEnFecha(entrenador, fecha);
@@ -94,18 +102,44 @@ const crearReservaUnica = async (datosReserva) => {
     throw new Error('Horario ocupado');
   }
 
-  return await Reserva.create(datosReserva);
+  // Verificar y descontar saldo de sesiones
+  let avisoSaldo = null;
+  if (cliente && verificarSaldo) {
+    const infoSaldo = await verificarSaldoSesiones(cliente);
+    if (infoSaldo.saldo <= 0) {
+      avisoSaldo = infoSaldo.aviso || 'Sin sesiones disponibles';
+    }
+
+    // Descontar sesión si tiene saldo
+    if (descontarDelSaldo && infoSaldo.saldo > 0) {
+      await descontarSesion(cliente);
+    }
+  }
+
+  const reserva = await Reserva.create({
+    cliente: datosReserva.cliente,
+    entrenador: datosReserva.entrenador,
+    fecha: datosReserva.fecha,
+    horaInicio: datosReserva.horaInicio,
+    horaFin: datosReserva.horaFin,
+    tipoSesion: datosReserva.tipoSesion,
+    notas: datosReserva.notas,
+    duracion: datosReserva.duracion,
+    origen: datosReserva.origen,
+    plantillaOrigen: datosReserva.plantillaOrigen,
+    esPlanificada: datosReserva.esPlanificada
+  });
+  return { reserva, avisoSaldo };
 };
 
 export const crearReserva = async (req, res) => {
   try {
-    const { fecha, horaInicio, horaFin, entrenador, recurrente, fechaFinRecurrencia } = req.body;
+    const { fecha, horaInicio, horaFin, entrenador, cliente, recurrente, fechaFinRecurrencia } = req.body;
 
     // Si es recurrente, crear múltiples reservas
     if (recurrente && fechaFinRecurrencia) {
       const fechaInicial = new Date(fecha);
       const fechaFinal = new Date(fechaFinRecurrencia);
-      const diaSemana = fechaInicial.getDay(); // 0=Dom, 1=Lun, ..., 6=Sab
 
       // Calcular todas las fechas del mismo día de la semana
       const fechasReservas = [];
@@ -118,22 +152,33 @@ export const crearReserva = async (req, res) => {
 
       const resultados = {
         creadas: [],
-        errores: []
+        errores: [],
+        avisoSaldo: null
       };
+
+      // Verificar saldo antes de crear reservas recurrentes
+      if (cliente) {
+        const infoSaldo = await verificarSaldoSesiones(cliente);
+        if (infoSaldo.saldo < fechasReservas.length) {
+          resultados.avisoSaldo = `El cliente tiene ${infoSaldo.saldo} sesiones disponibles pero se intentan crear ${fechasReservas.length} reservas`;
+        }
+      }
 
       // Crear cada reserva
       for (const fechaReserva of fechasReservas) {
         try {
           const datosReserva = {
-            ...req.body,
+            cliente,
+            entrenador,
             fecha: fechaReserva,
-            recurrente: undefined,
-            fechaFinRecurrencia: undefined
+            horaInicio,
+            horaFin,
+            tipoSesion: req.body.tipoSesion,
+            notas: req.body.notas,
+            duracion: req.body.duracion
           };
-          delete datosReserva.recurrente;
-          delete datosReserva.fechaFinRecurrencia;
 
-          const reserva = await crearReservaUnica(datosReserva);
+          const { reserva } = await crearReservaUnica(datosReserva);
           const reservaCompleta = await Reserva.findById(reserva._id)
             .populate('cliente', 'nombre apellido email telefono')
             .populate('entrenador', 'nombre email');
@@ -157,7 +202,8 @@ export const crearReserva = async (req, res) => {
       return res.status(201).json({
         mensaje: `Se crearon ${resultados.creadas.length} de ${fechasReservas.length} reservas`,
         reservas: resultados.creadas,
-        errores: resultados.errores.length > 0 ? resultados.errores : undefined
+        errores: resultados.errores.length > 0 ? resultados.errores : undefined,
+        avisoSaldo: resultados.avisoSaldo
       });
     }
 
@@ -189,14 +235,44 @@ export const crearReserva = async (req, res) => {
       });
     }
 
-    const reserva = await Reserva.create(req.body);
+    // Verificar saldo de sesiones del cliente
+    let avisoSaldo = null;
+    if (cliente) {
+      const infoSaldo = await verificarSaldoSesiones(cliente);
+      if (infoSaldo.saldo <= 0) {
+        avisoSaldo = infoSaldo.aviso || 'Cliente sin sesiones disponibles';
+      } else {
+        // Descontar sesión del saldo
+        await descontarSesion(cliente);
+      }
+    }
+
+    const reserva = await Reserva.create({
+      cliente,
+      entrenador,
+      fecha,
+      horaInicio,
+      horaFin,
+      tipoSesion: req.body.tipoSesion,
+      notas: req.body.notas,
+      duracion: req.body.duracion,
+      origen: req.body.origen,
+      plantillaOrigen: req.body.plantillaOrigen,
+      esPlanificada: req.body.esPlanificada
+    });
     const reservaCompleta = await Reserva.findById(reserva._id)
       .populate('cliente', 'nombre apellido email telefono')
       .populate('entrenador', 'nombre email');
 
-    res.status(201).json(reservaCompleta);
+    // Incluir aviso en la respuesta si el cliente no tiene sesiones
+    const respuesta = reservaCompleta.toObject();
+    if (avisoSaldo) {
+      respuesta.avisoSaldo = avisoSaldo;
+    }
+
+    res.status(201).json(respuesta);
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al crear reserva', error: error.message });
+    res.status(400).json({ mensaje: 'Error al crear reserva', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -244,9 +320,15 @@ export const actualizarReserva = async (req, res) => {
       }
     }
 
+    const camposPermitidos = {};
+    const camposEditables = ['cliente', 'entrenador', 'fecha', 'horaInicio', 'horaFin', 'tipoSesion', 'estado', 'notas', 'duracion'];
+    for (const campo of camposEditables) {
+      if (req.body[campo] !== undefined) camposPermitidos[campo] = req.body[campo];
+    }
+
     const reservaActualizada = await Reserva.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      camposPermitidos,
       { new: true, runValidators: true }
     )
       .populate('cliente', 'nombre apellido email telefono')
@@ -254,7 +336,7 @@ export const actualizarReserva = async (req, res) => {
 
     res.json(reservaActualizada);
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al actualizar reserva', error: error.message });
+    res.status(400).json({ mensaje: 'Error al actualizar reserva', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -268,6 +350,70 @@ export const eliminarReserva = async (req, res) => {
     await Reserva.findByIdAndDelete(req.params.id);
     res.json({ mensaje: 'Reserva eliminada correctamente' });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al eliminar reserva', error: error.message });
+    res.status(500).json({ mensaje: 'Error al eliminar reserva', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+  }
+};
+
+// Cancelar reserva (devuelve sesión si es cancelación del centro)
+export const cancelarReserva = async (req, res) => {
+  try {
+    const { motivo } = req.body; // 'centro' o 'cliente'
+    const reserva = await Reserva.findById(req.params.id);
+
+    if (!reserva) {
+      return res.status(404).json({ mensaje: 'Reserva no encontrada' });
+    }
+
+    if (reserva.estado === 'cancelada') {
+      return res.status(400).json({ mensaje: 'La reserva ya está cancelada' });
+    }
+
+    // Actualizar estado de la reserva
+    reserva.estado = 'cancelada';
+    reserva.notas = `${reserva.notas || ''} [Cancelada: ${motivo === 'centro' ? 'por el centro' : 'por el cliente'}]`;
+    await reserva.save();
+
+    // Si la cancelación es por el centro, devolver la sesión al cliente
+    let sesionDevuelta = false;
+    if (motivo === 'centro' && reserva.cliente) {
+      await devolverSesion(reserva.cliente);
+      sesionDevuelta = true;
+    }
+
+    res.json({
+      mensaje: 'Reserva cancelada correctamente',
+      sesionDevuelta,
+      reserva
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al cancelar reserva', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
+  }
+};
+
+// Obtener saldo de sesiones de un cliente
+export const obtenerSaldoSesiones = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+    const suscripcion = await SuscripcionCliente.findOne({ cliente: clienteId })
+      .populate('cliente', 'nombre apellido')
+      .populate('producto', 'nombre tipo');
+
+    if (!suscripcion) {
+      return res.status(404).json({
+        mensaje: 'Cliente sin suscripción',
+        saldoSesiones: 0,
+        tieneSuscripcion: false
+      });
+    }
+
+    res.json({
+      saldoSesiones: suscripcion.saldoSesiones || 0,
+      tieneSuscripcion: true,
+      estado: suscripcion.estado,
+      producto: suscripcion.producto?.nombre,
+      diasPorSemana: suscripcion.diasPorSemana
+    });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al obtener saldo', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };

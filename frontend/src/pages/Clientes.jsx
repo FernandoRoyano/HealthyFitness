@@ -67,21 +67,11 @@ function Clientes() {
 
   const cargarDatos = async () => {
     try {
-      // LOG TEMPORAL para depuración
-      console.log('=== DEBUG Clientes ===');
-      console.log('Usuario logueado:', usuario?.nombre);
-      console.log('Email:', usuario?.email);
-      console.log('Rol:', usuario?.rol);
-      console.log('ID:', usuario?._id);
-
       const [clientesRes, entrenadoresRes, productosRes] = await Promise.all([
         clientesAPI.obtenerTodos(),
         usersAPI.obtenerEntrenadores(),
         productosAPI.obtenerTodos({ activo: true })
       ]);
-
-      console.log('Clientes recibidos:', clientesRes.data.length);
-      console.log('======================');
 
       setClientes(clientesRes.data);
       setEntrenadores(entrenadoresRes.data);

@@ -93,7 +93,7 @@ export const crearSolicitudCambio = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       mensaje: 'Error al crear solicitud de cambio',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -125,7 +125,7 @@ export const obtenerSolicitudes = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al obtener solicitudes',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -157,7 +157,7 @@ export const obtenerSolicitudPorId = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al obtener solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -247,7 +247,7 @@ export const aprobarSolicitud = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       mensaje: 'Error al aprobar solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -303,7 +303,7 @@ export const rechazarSolicitud = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       mensaje: 'Error al rechazar solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -337,7 +337,7 @@ export const cancelarSolicitud = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al cancelar solicitud',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -350,7 +350,7 @@ export const contarSolicitudesPendientes = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al contar solicitudes',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };

@@ -49,7 +49,7 @@ export const loginCliente = async (req, res) => {
       token: generarTokenCliente(cliente._id)
     });
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al iniciar sesión', error: error.message });
+    res.status(400).json({ mensaje: 'Error al iniciar sesión', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -62,7 +62,7 @@ export const obtenerPerfilCliente = async (req, res) => {
 
     res.json(cliente);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener perfil', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener perfil', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -94,7 +94,7 @@ export const cambiarPasswordCliente = async (req, res) => {
 
     res.json({ mensaje: 'Contraseña actualizada correctamente' });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al cambiar contraseña', error: error.message });
+    res.status(500).json({ mensaje: 'Error al cambiar contraseña', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -124,7 +124,7 @@ export const crearAccesoPortal = async (req, res) => {
       portalActivo: true
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al crear acceso al portal', error: error.message });
+    res.status(500).json({ mensaje: 'Error al crear acceso al portal', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -146,7 +146,7 @@ export const desactivarAccesoPortal = async (req, res) => {
       portalActivo: false
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al desactivar acceso', error: error.message });
+    res.status(500).json({ mensaje: 'Error al desactivar acceso', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -166,6 +166,6 @@ export const verificarEstadoPortal = async (req, res) => {
       email: cliente.email
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al verificar estado', error: error.message });
+    res.status(500).json({ mensaje: 'Error al verificar estado', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };

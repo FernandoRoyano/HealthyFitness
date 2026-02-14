@@ -12,11 +12,13 @@ export const obtenerTodos = async (req, res) => {
     }
 
     if (buscar) {
+      // Escapar caracteres especiales de regex para prevenir ReDoS
+      const buscarSafe = buscar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       filtro.$or = [
-        { nombre: { $regex: buscar, $options: 'i' } },
-        { telefono: { $regex: buscar, $options: 'i' } },
-        { email: { $regex: buscar, $options: 'i' } },
-        { busca: { $regex: buscar, $options: 'i' } }
+        { nombre: { $regex: buscarSafe, $options: 'i' } },
+        { telefono: { $regex: buscarSafe, $options: 'i' } },
+        { email: { $regex: buscarSafe, $options: 'i' } },
+        { busca: { $regex: buscarSafe, $options: 'i' } }
       ];
     }
 
@@ -73,7 +75,7 @@ export const crear = async (req, res) => {
     res.status(201).json(leadPopulado);
   } catch (error) {
     console.error('Error al crear cliente potencial:', error);
-    res.status(500).json({ mensaje: error.message || 'Error al crear cliente potencial' });
+    res.status(500).json({ mensaje: 'Error al crear cliente potencial' });
   }
 };
 
@@ -105,7 +107,7 @@ export const actualizar = async (req, res) => {
     res.json(leadPopulado);
   } catch (error) {
     console.error('Error al actualizar cliente potencial:', error);
-    res.status(500).json({ mensaje: error.message || 'Error al actualizar cliente potencial' });
+    res.status(500).json({ mensaje: 'Error al actualizar cliente potencial' });
   }
 };
 
@@ -209,7 +211,7 @@ export const convertirACliente = async (req, res) => {
     });
   } catch (error) {
     console.error('Error al convertir a cliente:', error);
-    res.status(500).json({ mensaje: error.message || 'Error al convertir a cliente' });
+    res.status(500).json({ mensaje: 'Error al convertir a cliente' });
   }
 };
 
