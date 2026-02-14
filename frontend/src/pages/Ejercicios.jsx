@@ -28,10 +28,10 @@ const etiquetasGrupoMuscular = {
   pecho: 'Pecho',
   espalda: 'Espalda',
   hombros: 'Hombros',
-  biceps: 'B\u00edceps',
-  triceps: 'Tr\u00edceps',
+  biceps: 'Bíceps',
+  triceps: 'Tríceps',
   piernas: 'Piernas',
-  gluteos: 'Gl\u00fateos',
+  gluteos: 'Glúteos',
   core: 'Core',
   cardio: 'Cardio',
   cuerpo_completo: 'Cuerpo Completo'
@@ -156,7 +156,7 @@ function Ejercicios() {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm('¿Est\u00e1s seguro de eliminar este ejercicio? Esta acci\u00f3n no se puede deshacer.')) {
+    if (window.confirm('¿Estás seguro de eliminar este ejercicio? Esta acción no se puede deshacer.')) {
       try {
         await entrenamientoAPI.eliminarEjercicio(id);
         await cargarEjercicios();
@@ -244,13 +244,13 @@ function Ejercicios() {
           </select>
         </div>
         <div style={styles.filtroGroup}>
-          <label style={styles.filtroLabel}>Categor\u00eda</label>
+          <label style={styles.filtroLabel}>Categoría</label>
           <select
             value={filtroCategoria}
             onChange={(e) => setFiltroCategoria(e.target.value)}
             style={styles.filtroSelect}
           >
-            <option value="">Todas las categor\u00edas</option>
+            <option value="">Todas las categorías</option>
             {categorias.map(cat => (
               <option key={cat} value={cat}>{etiquetasCategoria[cat]}</option>
             ))}
@@ -358,7 +358,7 @@ function Ejercicios() {
                 </div>
                 <div style={styles.cardInfo}>
                   <div style={styles.cardInfoItem}>
-                    <span style={styles.cardInfoLabel}>Categor\u00eda</span>
+                    <span style={styles.cardInfoLabel}>Categoría</span>
                     <span style={styles.cardInfoValue}>
                       {etiquetasCategoria[ejercicio.categoria] || ejercicio.categoria}
                     </span>
@@ -422,13 +422,13 @@ function Ejercicios() {
               </div>
 
               <div style={styles.formGroup}>
-                <label style={styles.label}>Descripci\u00f3n</label>
+                <label style={styles.label}>Descripción</label>
                 <textarea
                   name="descripcion"
                   value={formulario.descripcion}
                   onChange={handleChange}
                   rows="3"
-                  placeholder="Descripci\u00f3n del ejercicio..."
+                  placeholder="Descripción del ejercicio..."
                   style={{ ...styles.input, resize: 'vertical' }}
                 />
               </div>
@@ -451,7 +451,7 @@ function Ejercicios() {
                   </select>
                 </div>
                 <div style={styles.formGroup}>
-                  <label style={styles.label}>Categor\u00eda*</label>
+                  <label style={styles.label}>Categoría*</label>
                   <select
                     name="categoria"
                     value={formulario.categoria}
