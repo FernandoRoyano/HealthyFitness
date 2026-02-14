@@ -313,6 +313,12 @@ function ModalEditarRutina({ clienteId, clienteNombre, rutina, onClose, onGuarda
     return true;
   });
 
+  const getImageUrl = (imagen) => {
+    if (!imagen) return null;
+    const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    return `${apiUrl}${imagen}`;
+  };
+
   // ========== RENDER ==========
 
   // Vista de carga
@@ -483,7 +489,15 @@ function ModalEditarRutina({ clienteId, clienteNombre, rutina, onClose, onGuarda
                     {dia.ejercicios.map((ej, ejIdx) => (
                       <div key={ejIdx} style={styles.ejercicioRow}>
                         <div style={styles.ejercicioInfo}>
-                          <span style={styles.ejercicioOrden}>{ejIdx + 1}</span>
+                          {ej.ejercicio?.imagen ? (
+                            <img
+                              src={getImageUrl(ej.ejercicio.imagen)}
+                              alt={ej.ejercicio.nombre}
+                              style={styles.ejercicioMiniatura}
+                            />
+                          ) : (
+                            <span style={styles.ejercicioOrden}>{ejIdx + 1}</span>
+                          )}
                           <div>
                             <div style={styles.ejercicioNombre}>
                               {ej.ejercicio?.nombre || 'Ejercicio'}
@@ -980,6 +994,13 @@ const styles = {
     justifyContent: 'center',
     fontSize: '11px',
     fontWeight: 700,
+    flexShrink: 0
+  },
+  ejercicioMiniatura: {
+    width: '40px',
+    height: '40px',
+    borderRadius: '6px',
+    objectFit: 'cover',
     flexShrink: 0
   },
   ejercicioNombre: {

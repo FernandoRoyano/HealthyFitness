@@ -1,7 +1,11 @@
+import fs from 'fs';
 import Ejercicio from '../models/Ejercicio.js';
 import Rutina from '../models/Rutina.js';
 import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 import Cliente from '../models/Cliente.js';
+import { createImageUpload, eliminarFotoAnterior } from '../utils/uploadHelper.js';
+
+export const ejercicioImageUpload = createImageUpload('ejercicio');
 
 // ==================== EJERCICIOS ====================
 
@@ -79,7 +83,7 @@ export const actualizarEjercicio = async (req, res) => {
 
     const camposEditables = [
       'nombre', 'descripcion', 'grupoMuscular', 'grupoMuscularSecundario',
-      'categoria', 'dificultad', 'equipamiento', 'instrucciones', 'videoUrl', 'activo'
+      'categoria', 'dificultad', 'equipamiento', 'instrucciones', 'videoUrl', 'activo', 'imagen'
     ];
     const camposPermitidos = {};
     for (const campo of camposEditables) {
@@ -108,11 +112,59 @@ export const eliminarEjercicio = async (req, res) => {
       return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
     }
 
+    eliminarFotoAnterior(ejercicio.imagen);
     await Ejercicio.findByIdAndDelete(req.params.id);
     res.json({ mensaje: 'Ejercicio eliminado correctamente' });
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al eliminar ejercicio',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+export const subirImagenEjercicio = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ mensaje: 'No se proporcionó ninguna imagen' });
+    }
+
+    const ejercicio = await Ejercicio.findById(req.params.id);
+    if (!ejercicio) {
+      fs.unlinkSync(req.file.path);
+      return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
+    }
+
+    eliminarFotoAnterior(ejercicio.imagen);
+
+    const imagenUrl = `/uploads/${req.file.filename}`;
+    ejercicio.imagen = imagenUrl;
+    await ejercicio.save();
+
+    res.json({ mensaje: 'Imagen subida correctamente', imagen: imagenUrl });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al subir la imagen',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+export const eliminarImagenEjercicio = async (req, res) => {
+  try {
+    const ejercicio = await Ejercicio.findById(req.params.id);
+    if (!ejercicio) {
+      return res.status(404).json({ mensaje: 'Ejercicio no encontrado' });
+    }
+
+    eliminarFotoAnterior(ejercicio.imagen);
+    ejercicio.imagen = null;
+    await ejercicio.save();
+
+    res.json({ mensaje: 'Imagen eliminada correctamente' });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al eliminar la imagen',
       error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }

@@ -45,6 +45,9 @@ const ejercicioSchema = new mongoose.Schema({
   videoUrl: {
     type: String
   },
+  imagen: {
+    type: String
+  },
   activo: {
     type: Boolean,
     default: true

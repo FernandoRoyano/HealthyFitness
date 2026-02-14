@@ -280,6 +280,8 @@ export const entrenamientoAPI = {
   crearEjercicio: (datos) => api.post('/entrenamiento/ejercicios', datos),
   actualizarEjercicio: (id, datos) => api.put(`/entrenamiento/ejercicios/${id}`, datos),
   eliminarEjercicio: (id) => api.delete(`/entrenamiento/ejercicios/${id}`),
+  subirImagenEjercicio: (id, formData) => api.post(`/entrenamiento/ejercicios/${id}/imagen`, formData),
+  eliminarImagenEjercicio: (id) => api.delete(`/entrenamiento/ejercicios/${id}/imagen`),
 
   // ==================== RUTINAS ====================
   obtenerRutinas: (params) => api.get('/entrenamiento/rutinas', { params }),
