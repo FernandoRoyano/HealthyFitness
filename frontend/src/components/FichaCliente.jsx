@@ -12,6 +12,7 @@ import {
 } from '../services/api';
 import RegistrarEntrenamiento from './RegistrarEntrenamiento';
 import ProgresoEjercicio from './ProgresoEjercicio';
+import ModalEditarRutina from './ModalEditarRutina';
 import './FichaCliente.css';
 
 // Formatear fecha local sin problemas de zona horaria
@@ -98,6 +99,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   const [cargandoEntrenamiento, setCargandoEntrenamiento] = useState(false);
   const [mostrarRegistrarEntrenamiento, setMostrarRegistrarEntrenamiento] = useState(false);
   const [progresoEjercicio, setProgresoEjercicio] = useState(null);
+  const [mostrarModalRutina, setMostrarModalRutina] = useState(false);
 
   // Cargar datos iniciales
   useEffect(() => {
@@ -1200,12 +1202,16 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                   {/* Rutina activa */}
                   <div className="ficha-cliente-seccion-header">
                     <h3>Rutina Activa</h3>
-                    <button
-                      className="btn-primary"
-                      onClick={() => setMostrarRegistrarEntrenamiento(true)}
-                    >
-                      + Registrar Entrenamiento
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      {rutinaActiva && (
+                        <button
+                          className="btn-primary"
+                          onClick={() => setMostrarRegistrarEntrenamiento(true)}
+                        >
+                          + Registrar Entrenamiento
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {rutinaActiva ? (
@@ -1218,14 +1224,16 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                           <h4 style={{ margin: 0, color: '#1a1a2e', fontSize: '16px' }}>{rutinaActiva.nombre}</h4>
-                          <span style={{
-                            padding: '3px 10px',
-                            borderRadius: '12px',
-                            fontSize: '12px',
-                            fontWeight: 600,
-                            backgroundColor: '#75b760',
-                            color: '#fff'
-                          }}>Activa</span>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <span style={{
+                              padding: '3px 10px',
+                              borderRadius: '12px',
+                              fontSize: '12px',
+                              fontWeight: 600,
+                              backgroundColor: '#75b760',
+                              color: '#fff'
+                            }}>Activa</span>
+                          </div>
                         </div>
                         {rutinaActiva.objetivo && (
                           <p style={{ margin: '0 0 6px', fontSize: '13px', color: '#6b7280' }}>
@@ -1251,19 +1259,42 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                             ))}
                           </div>
                         )}
+                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #c8e6c0' }}>
+                          <button
+                            style={{
+                              padding: '6px 14px',
+                              backgroundColor: '#fff',
+                              color: '#75b760',
+                              border: '1px solid #75b760',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: 600
+                            }}
+                            onClick={() => setMostrarModalRutina(true)}
+                          >
+                            Ver / Editar Rutina
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : (
                     <div style={{
-                      padding: '16px',
+                      padding: '24px 16px',
                       backgroundColor: '#f9fafb',
                       borderRadius: '10px',
                       textAlign: 'center',
-                      marginBottom: '24px',
-                      color: '#6b7280',
-                      fontSize: '14px'
+                      marginBottom: '24px'
                     }}>
-                      Este cliente no tiene una rutina activa asignada. Puedes crear una desde el modulo de Rutinas.
+                      <p style={{ color: '#6b7280', fontSize: '14px', margin: '0 0 12px' }}>
+                        Este cliente no tiene una rutina activa asignada.
+                      </p>
+                      <button
+                        className="btn-primary"
+                        onClick={() => setMostrarModalRutina(true)}
+                      >
+                        + Crear Rutina
+                      </button>
                     </div>
                   )}
 
@@ -1369,6 +1400,20 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                   ejercicioId={progresoEjercicio.id}
                   ejercicioNombre={progresoEjercicio.nombre}
                   onClose={() => setProgresoEjercicio(null)}
+                />
+              )}
+
+              {/* Modal Ver/Editar Rutina */}
+              {mostrarModalRutina && (
+                <ModalEditarRutina
+                  clienteId={cliente._id}
+                  clienteNombre={`${cliente.nombre} ${cliente.apellido}`}
+                  rutina={rutinaActiva}
+                  onClose={() => setMostrarModalRutina(false)}
+                  onGuardado={() => {
+                    setMostrarModalRutina(false);
+                    cargarDatosEntrenamiento();
+                  }}
                 />
               )}
             </div>
