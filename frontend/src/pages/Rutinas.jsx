@@ -258,10 +258,12 @@ function Rutinas() {
         ...formulario,
         cliente: formulario.esPlantilla ? null : (formulario.cliente || null),
         diasPorSemana: parseInt(formulario.diasPorSemana) || 3,
-        dias: formulario.dias.map(dia => ({
+        dias: formulario.dias.map((dia, diaIdx) => ({
           nombre: dia.nombre,
-          ejercicios: dia.ejercicios.map(ej => ({
+          orden: diaIdx + 1,
+          ejercicios: dia.ejercicios.map((ej, ejIdx) => ({
             ejercicio: ej.ejercicio,
+            orden: ejIdx + 1,
             series: parseInt(ej.series) || 3,
             repeticiones: ej.repeticiones || '10',
             descansoSegundos: parseInt(ej.descansoSegundos) || 60,
