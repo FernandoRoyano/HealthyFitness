@@ -80,6 +80,8 @@ function Ejercicios() {
   const [ejercicioEditando, setEjercicioEditando] = useState(null);
   const [guardando, setGuardando] = useState(false);
   const [formulario, setFormulario] = useState({ ...formularioVacio });
+  const [archivoImagen, setArchivoImagen] = useState(null);
+  const [previewImagen, setPreviewImagen] = useState(null);
 
   // Filtros
   const [filtroGrupo, setFiltroGrupo] = useState('');
@@ -125,11 +127,22 @@ function Ejercicios() {
     setGuardando(true);
     setError('');
     try {
+      let ejercicioId;
       if (ejercicioEditando) {
         await entrenamientoAPI.actualizarEjercicio(ejercicioEditando._id, formulario);
+        ejercicioId = ejercicioEditando._id;
       } else {
-        await entrenamientoAPI.crearEjercicio(formulario);
+        const { data } = await entrenamientoAPI.crearEjercicio(formulario);
+        ejercicioId = data._id;
       }
+
+      // Subir imagen si hay archivo seleccionado
+      if (archivoImagen && ejercicioId) {
+        const formData = new FormData();
+        formData.append('foto', archivoImagen);
+        await entrenamientoAPI.subirImagenEjercicio(ejercicioId, formData);
+      }
+
       await cargarEjercicios();
       cerrarFormulario();
     } catch (err) {
@@ -152,6 +165,13 @@ function Ejercicios() {
       instrucciones: ejercicio.instrucciones || '',
       videoUrl: ejercicio.videoUrl || ''
     });
+    if (ejercicio.imagen) {
+      const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+      setPreviewImagen(`${apiUrl}${ejercicio.imagen}`);
+    } else {
+      setPreviewImagen(null);
+    }
+    setArchivoImagen(null);
     setMostrarFormulario(true);
   };
 
@@ -170,14 +190,46 @@ function Ejercicios() {
     setMostrarFormulario(false);
     setEjercicioEditando(null);
     setFormulario({ ...formularioVacio });
+    setArchivoImagen(null);
+    setPreviewImagen(null);
     setError('');
   };
 
   const abrirNuevo = () => {
     setEjercicioEditando(null);
     setFormulario({ ...formularioVacio });
+    setArchivoImagen(null);
+    setPreviewImagen(null);
     setError('');
     setMostrarFormulario(true);
+  };
+
+  const handleImagenChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setArchivoImagen(file);
+      setPreviewImagen(URL.createObjectURL(file));
+    }
+  };
+
+  const handleEliminarImagen = async () => {
+    if (ejercicioEditando?.imagen) {
+      try {
+        await entrenamientoAPI.eliminarImagenEjercicio(ejercicioEditando._id);
+        await cargarEjercicios();
+      } catch (err) {
+        setError('Error al eliminar imagen');
+        return;
+      }
+    }
+    setArchivoImagen(null);
+    setPreviewImagen(null);
+  };
+
+  const getImageUrl = (imagen) => {
+    if (!imagen) return null;
+    const apiUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    return `${apiUrl}${imagen}`;
   };
 
   // Filtrar ejercicios
@@ -309,6 +361,15 @@ function Ejercicios() {
         <div style={styles.grid}>
           {ejerciciosFiltrados.map((ejercicio) => (
             <div key={ejercicio._id} style={styles.card}>
+              {ejercicio.imagen && (
+                <div style={styles.cardImageContainer}>
+                  <img
+                    src={getImageUrl(ejercicio.imagen)}
+                    alt={ejercicio.nombre}
+                    style={styles.cardImage}
+                  />
+                </div>
+              )}
               <div style={styles.cardHeader}>
                 <h3 style={styles.cardTitle}>{ejercicio.nombre}</h3>
                 {esGerente && (
@@ -552,6 +613,33 @@ function Ejercicios() {
                 <span style={{ fontSize: '12px', color: '#666' }}>
                   Opcional - Enlace a un video demostrativo
                 </span>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Imagen del ejercicio</label>
+                {previewImagen ? (
+                  <div style={styles.imagenPreviewContainer}>
+                    <img src={previewImagen} alt="Preview" style={styles.imagenPreview} />
+                    <button
+                      type="button"
+                      onClick={handleEliminarImagen}
+                      style={styles.imagenEliminarBtn}
+                    >
+                      Eliminar imagen
+                    </button>
+                  </div>
+                ) : (
+                  <div style={styles.imagenUploadZone}>
+                    <span style={{ fontSize: '28px' }}>📷</span>
+                    <span style={{ fontSize: '13px', color: '#666' }}>Selecciona una imagen (JPEG, PNG, WebP - max 5MB)</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleImagenChange}
+                      style={styles.imagenFileInput}
+                    />
+                  </div>
+                )}
               </div>
 
               <div style={styles.formActions}>
@@ -982,6 +1070,66 @@ const styles = {
     justifyContent: 'flex-end',
     gap: '10px',
     marginTop: '10px'
+  },
+  // Imagen en card
+  cardImageContainer: {
+    width: '100%',
+    height: '180px',
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5'
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  // Imagen en formulario
+  imagenPreviewContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '1px solid #e9ecef'
+  },
+  imagenPreview: {
+    maxWidth: '100%',
+    maxHeight: '200px',
+    borderRadius: '6px',
+    objectFit: 'contain'
+  },
+  imagenEliminarBtn: {
+    padding: '6px 14px',
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#dc3545',
+    backgroundColor: 'transparent',
+    border: '1px solid #dc3545',
+    borderRadius: '5px',
+    cursor: 'pointer'
+  },
+  imagenUploadZone: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '24px',
+    backgroundColor: '#f8f9fa',
+    borderRadius: '8px',
+    border: '2px dashed #d1d5db',
+    cursor: 'pointer',
+    position: 'relative'
+  },
+  imagenFileInput: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0,
+    cursor: 'pointer'
   }
 };
 

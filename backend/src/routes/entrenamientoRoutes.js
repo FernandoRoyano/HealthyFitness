@@ -6,6 +6,9 @@ import {
   crearEjercicio,
   actualizarEjercicio,
   eliminarEjercicio,
+  ejercicioImageUpload,
+  subirImagenEjercicio,
+  eliminarImagenEjercicio,
   // Rutinas
   obtenerRutinas,
   obtenerRutinasPorCliente,
@@ -35,6 +38,8 @@ router.get('/ejercicios/:id', obtenerEjercicioPorId);
 router.post('/ejercicios', esGerente, crearEjercicio);
 router.put('/ejercicios/:id', esGerente, actualizarEjercicio);
 router.delete('/ejercicios/:id', esGerente, eliminarEjercicio);
+router.post('/ejercicios/:id/imagen', esGerente, ejercicioImageUpload, subirImagenEjercicio);
+router.delete('/ejercicios/:id/imagen', esGerente, eliminarImagenEjercicio);
 
 // ==================== RUTINAS ====================
 router.get('/rutinas', obtenerRutinas);
