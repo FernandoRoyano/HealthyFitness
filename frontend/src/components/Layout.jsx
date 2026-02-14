@@ -125,6 +125,14 @@ function Layout({ children }) {
       ]
     },
     {
+      label: 'Entrenamiento',
+      icon: '💪',
+      submenu: [
+        { path: '/ejercicios', label: 'Ejercicios' },
+        { path: '/rutinas', label: 'Rutinas' },
+      ]
+    },
+    {
       label: 'Finanzas',
       icon: '💶',
       submenu: [
@@ -151,6 +159,13 @@ function Layout({ children }) {
       icon: '📆',
       submenu: [
         { path: '/calendario', label: 'Mi Agenda' },
+      ]
+    },
+    {
+      label: 'Entrenamiento',
+      icon: '💪',
+      submenu: [
+        { path: '/rutinas', label: 'Rutinas' },
       ]
     },
     {

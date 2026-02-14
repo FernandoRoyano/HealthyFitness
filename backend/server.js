@@ -24,6 +24,7 @@ import medicionRoutes from './src/routes/medicionRoutes.js';
 import centroRoutes from './src/routes/centroRoutes.js';
 import clienteAuthRoutes from './src/routes/clienteAuthRoutes.js';
 import clientePortalRoutes from './src/routes/clientePortalRoutes.js';
+import entrenamientoRoutes from './src/routes/entrenamientoRoutes.js';
 
 dotenv.config();
 
@@ -85,6 +86,7 @@ app.use('/api/mediciones', medicionRoutes);
 app.use('/api/centro', centroRoutes);
 app.use('/api/cliente-auth', clienteAuthRoutes);
 app.use('/api/cliente-portal', clientePortalRoutes);
+app.use('/api/entrenamiento', entrenamientoRoutes);
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
