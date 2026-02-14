@@ -100,24 +100,21 @@ export const obtenerEstadisticas = async (req, res) => {
         Vacacion.aggregate([
           {
             $match: {
-              usuario: usuario._id,
-              estado: 'aprobada',
-              $or: [
-                { fechaInicio: { $gte: new Date(anioActual, 0, 1) } },
-                { fechaFin: { $lte: new Date(anioActual, 11, 31) } }
-              ]
+              entrenador: usuario._id,
+              estado: 'aprobado',
+              año: anioActual
             }
           },
           {
             $group: {
               _id: null,
-              diasUsados: { $sum: '$diasSolicitados' }
+              diasUsados: { $sum: '$diasLaborables' }
             }
           }
         ])
       ]);
 
-      const diasVacacionesTotales = 22; // Días de vacaciones anuales
+      const diasVacacionesTotales = 23; // Días de vacaciones anuales
       const diasUsados = miResumenVacaciones[0]?.diasUsados || 0;
 
       res.json({

@@ -4,43 +4,25 @@ import multer from 'multer';
 import csv from 'csv-parser';
 import { Readable } from 'stream';
 import * as XLSX from 'xlsx';
-import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsPath = path.join(__dirname, '../../uploads');
+import { createImageUpload, eliminarFotoAnterior } from '../utils/uploadHelper.js';
 
 export const obtenerClientes = async (req, res) => {
   try {
     // Si es entrenador, solo ver sus clientes asignados
     const filtro = {};
 
-    // LOG TEMPORAL para depuración
-    console.log('=== DEPURACIÓN obtenerClientes ===');
-    console.log('Usuario:', req.usuario?.nombre);
-    console.log('Email:', req.usuario?.email);
-    console.log('Rol:', req.usuario?.rol);
-    console.log('ID:', req.usuario?._id);
-
     if (req.usuario.rol === 'entrenador') {
       filtro.entrenador = req.usuario._id;
-      console.log('Filtro aplicado:', filtro);
-    } else {
-      console.log('Sin filtro - usuario es gerente');
     }
 
     const clientes = await Cliente.find(filtro)
       .populate('entrenador', 'nombre email')
       .sort({ createdAt: -1 });
 
-    console.log('Clientes encontrados:', clientes.length);
-    console.log('================================');
-
     res.json(clientes);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener clientes', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener clientes', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -53,7 +35,7 @@ export const obtenerClientePorId = async (req, res) => {
     }
     res.json(cliente);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener cliente', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener cliente', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -64,10 +46,18 @@ export const crearCliente = async (req, res) => {
       return res.status(400).json({ mensaje: 'El email ya está registrado' });
     }
 
-    const cliente = await Cliente.create(req.body);
+    const { nombre, apellido, email, telefono, fechaNacimiento, genero, direccion,
+      objetivos, condicionesMedicas, peso, altura, nivelActividad, notas, numeroCuenta,
+      entrenador, activo } = req.body;
+
+    const cliente = await Cliente.create({
+      nombre, apellido, email, telefono, fechaNacimiento, genero, direccion,
+      objetivos, condicionesMedicas, peso, altura, nivelActividad, notas, numeroCuenta,
+      entrenador, activo
+    });
     res.status(201).json(cliente);
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al crear cliente', error: error.message });
+    res.status(400).json({ mensaje: 'Error al crear cliente', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -85,14 +75,22 @@ export const actualizarCliente = async (req, res) => {
       }
     }
 
+    const camposPermitidos = {};
+    const camposEditables = ['nombre', 'apellido', 'email', 'telefono', 'fechaNacimiento',
+      'genero', 'direccion', 'objetivos', 'condicionesMedicas', 'peso', 'altura',
+      'nivelActividad', 'notas', 'numeroCuenta', 'entrenador', 'activo'];
+    for (const campo of camposEditables) {
+      if (req.body[campo] !== undefined) camposPermitidos[campo] = req.body[campo];
+    }
+
     const clienteActualizado = await Cliente.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      camposPermitidos,
       { new: true, runValidators: true }
     ).populate('entrenador', 'nombre email');
     res.json(clienteActualizado);
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al actualizar cliente', error: error.message });
+    res.status(400).json({ mensaje: 'Error al actualizar cliente', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -106,7 +104,7 @@ export const eliminarCliente = async (req, res) => {
     await Cliente.findByIdAndDelete(req.params.id);
     res.json({ mensaje: 'Cliente eliminado correctamente' });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al eliminar cliente', error: error.message });
+    res.status(500).json({ mensaje: 'Error al eliminar cliente', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -257,77 +255,114 @@ export const importarClientes = async (req, res) => {
       results = await parseCSVFile(req.file.buffer);
     }
 
-    // Procesar cada fila
+    // Pre-cargar todos los emails existentes en una sola query
+    const emailsEnArchivo = results
+      .map(row => (row.email || row.correo || '').toLowerCase().trim())
+      .filter(e => e);
+    const emailsExistentes = new Set(
+      (await Cliente.find({ email: { $in: emailsEnArchivo } }).select('email')).map(c => c.email)
+    );
+    const emailsVistos = new Set();
+
+    // Validar todas las filas y preparar datos para inserción bulk
+    const clientesParaInsertar = [];
+
     for (let i = 0; i < results.length; i++) {
       const row = results[i];
-      const lineNumber = i + 2; // +2 porque la primera línea es el header
+      const lineNumber = i + 2;
 
+      // Validar campos requeridos
+      if (!row.nombre && !row.name) {
+        errors.push({ linea: lineNumber, error: 'Falta el nombre' });
+        continue;
+      }
+      if (!row.apellido && !row.lastname && !row.surname) {
+        errors.push({ linea: lineNumber, error: 'Falta el apellido' });
+        continue;
+      }
+      if (!row.email && !row.correo) {
+        errors.push({ linea: lineNumber, error: 'Falta el email' });
+        continue;
+      }
+      if (!row.telefono && !row.phone && !row.teléfono) {
+        errors.push({ linea: lineNumber, error: 'Falta el teléfono' });
+        continue;
+      }
+
+      const emailValue = (row.email || row.correo || '').toLowerCase().trim();
+
+      if (emailsExistentes.has(emailValue)) {
+        errors.push({ linea: lineNumber, error: `El email ${emailValue} ya está registrado` });
+        continue;
+      }
+      if (emailsVistos.has(emailValue)) {
+        errors.push({ linea: lineNumber, error: `El email ${emailValue} está duplicado en el archivo` });
+        continue;
+      }
+      emailsVistos.add(emailValue);
+
+      const clienteData = {
+        nombre: (row.nombre || row.name || '').trim(),
+        apellido: (row.apellido || row.lastname || row.surname || '').trim(),
+        email: emailValue,
+        telefono: (row.telefono || row.phone || row.teléfono || '').trim(),
+        fechaNacimiento: parseFecha(row.fechanacimiento || row.fecha_nacimiento || row.birthdate || row.dateofbirth),
+        genero: mapearGenero(row.genero || row.gender || row.sexo),
+        direccion: (row.direccion || row.address || '').trim(),
+        objetivos: (row.objetivos || row.goals || row.objetivo || '').trim(),
+        condicionesMedicas: (row.condicionesmedicas || row.condiciones_medicas || row.medical_conditions || '').trim(),
+        peso: parseFloat(row.peso || row.weight) || undefined,
+        altura: parseFloat(row.altura || row.height) || undefined,
+        nivelActividad: mapearNivelActividad(row.nivelactividad || row.nivel_actividad || row.activity_level),
+        notas: (row.notas || row.notes || row.comentarios || '').trim(),
+        entrenador: entrenadorId || undefined,
+        activo: true
+      };
+
+      // Limpiar campos undefined
+      Object.keys(clienteData).forEach(key => {
+        if (clienteData[key] === undefined || clienteData[key] === '') {
+          delete clienteData[key];
+        }
+      });
+
+      clientesParaInsertar.push({ data: clienteData, linea: lineNumber });
+    }
+
+    // Insertar en bulk
+    if (clientesParaInsertar.length > 0) {
       try {
-        // Validar campos requeridos
-        if (!row.nombre && !row.name) {
-          errors.push({ linea: lineNumber, error: 'Falta el nombre' });
-          continue;
+        const insertados = await Cliente.insertMany(
+          clientesParaInsertar.map(c => c.data),
+          { ordered: false }
+        );
+        for (const cliente of insertados) {
+          clientesImportados.push({
+            nombre: cliente.nombre,
+            apellido: cliente.apellido,
+            email: cliente.email
+          });
         }
-        if (!row.apellido && !row.lastname && !row.surname) {
-          errors.push({ linea: lineNumber, error: 'Falta el apellido' });
-          continue;
-        }
-        if (!row.email && !row.correo) {
-          errors.push({ linea: lineNumber, error: 'Falta el email' });
-          continue;
-        }
-        if (!row.telefono && !row.phone && !row.teléfono) {
-          errors.push({ linea: lineNumber, error: 'Falta el teléfono' });
-          continue;
-        }
-
-        // Verificar si el email ya existe
-        const emailValue = (row.email || row.correo || '').toLowerCase().trim();
-        const clienteExiste = await Cliente.findOne({ email: emailValue });
-        if (clienteExiste) {
-          errors.push({ linea: lineNumber, error: `El email ${emailValue} ya está registrado` });
-          continue;
-        }
-
-        // Construir objeto cliente
-        const clienteData = {
-          nombre: (row.nombre || row.name || '').trim(),
-          apellido: (row.apellido || row.lastname || row.surname || '').trim(),
-          email: emailValue,
-          telefono: (row.telefono || row.phone || row.teléfono || '').trim(),
-          fechaNacimiento: parseFecha(row.fechanacimiento || row.fecha_nacimiento || row.birthdate || row.dateofbirth),
-          genero: mapearGenero(row.genero || row.gender || row.sexo),
-          direccion: (row.direccion || row.address || '').trim(),
-          objetivos: (row.objetivos || row.goals || row.objetivo || '').trim(),
-          condicionesMedicas: (row.condicionesmedicas || row.condiciones_medicas || row.medical_conditions || '').trim(),
-          peso: parseFloat(row.peso || row.weight) || undefined,
-          altura: parseFloat(row.altura || row.height) || undefined,
-          nivelActividad: mapearNivelActividad(row.nivelactividad || row.nivel_actividad || row.activity_level),
-          notas: (row.notas || row.notes || row.comentarios || '').trim(),
-          entrenador: entrenadorId || undefined,
-          activo: true
-        };
-
-        // Limpiar campos undefined
-        Object.keys(clienteData).forEach(key => {
-          if (clienteData[key] === undefined || clienteData[key] === '') {
-            delete clienteData[key];
+      } catch (bulkError) {
+        // insertMany con ordered:false continúa tras errores individuales
+        if (bulkError.insertedDocs) {
+          for (const cliente of bulkError.insertedDocs) {
+            clientesImportados.push({
+              nombre: cliente.nombre,
+              apellido: cliente.apellido,
+              email: cliente.email
+            });
           }
-        });
-
-        // Crear cliente
-        const cliente = await Cliente.create(clienteData);
-        clientesImportados.push({
-          nombre: cliente.nombre,
-          apellido: cliente.apellido,
-          email: cliente.email
-        });
-
-      } catch (error) {
-        errors.push({
-          linea: lineNumber,
-          error: error.message || 'Error al procesar esta línea'
-        });
+        }
+        if (bulkError.writeErrors) {
+          for (const writeErr of bulkError.writeErrors) {
+            const idx = writeErr.index;
+            errors.push({
+              linea: clientesParaInsertar[idx]?.linea,
+              error: process.env.NODE_ENV !== 'production' ? writeErr.errmsg : 'Error al procesar esta línea'
+            });
+          }
+        }
       }
     }
 
@@ -342,41 +377,12 @@ export const importarClientes = async (req, res) => {
     console.error('Error al importar clientes:', error);
     res.status(500).json({
       mensaje: 'Error al importar clientes',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
 
-// Configuración de Multer para imágenes
-const imageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadsPath)) {
-      fs.mkdirSync(uploadsPath, { recursive: true });
-    }
-    cb(null, uploadsPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `cliente-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
-
-const imageUpload = multer({
-  storage: imageStorage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'), false);
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB máximo
-  }
-});
-
-export const imageUploadMiddleware = imageUpload.single('foto');
+export const imageUploadMiddleware = createImageUpload('cliente');
 
 export const subirFotoCliente = async (req, res) => {
   try {
@@ -392,12 +398,7 @@ export const subirFotoCliente = async (req, res) => {
     }
 
     // Si el cliente ya tiene una foto, eliminar la anterior
-    if (cliente.foto) {
-      const oldPhotoPath = path.join(uploadsPath, path.basename(cliente.foto));
-      if (fs.existsSync(oldPhotoPath)) {
-        fs.unlinkSync(oldPhotoPath);
-      }
-    }
+    eliminarFotoAnterior(cliente.foto);
 
     // Guardar la URL de la nueva foto
     const fotoUrl = `/uploads/${req.file.filename}`;
@@ -412,7 +413,7 @@ export const subirFotoCliente = async (req, res) => {
     console.error('Error al subir foto:', error);
     res.status(500).json({
       mensaje: 'Error al subir la foto',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -425,10 +426,7 @@ export const eliminarFotoCliente = async (req, res) => {
     }
 
     if (cliente.foto) {
-      const photoPath = path.join(uploadsPath, path.basename(cliente.foto));
-      if (fs.existsSync(photoPath)) {
-        fs.unlinkSync(photoPath);
-      }
+      eliminarFotoAnterior(cliente.foto);
       cliente.foto = undefined;
       await cliente.save();
     }
@@ -437,7 +435,7 @@ export const eliminarFotoCliente = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al eliminar la foto',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };

@@ -72,6 +72,13 @@ const suscripcionClienteSchema = new mongoose.Schema({
     min: 0
   },
 
+  // Saldo de sesiones disponibles (se suma al pagar, se resta al asignar)
+  saldoSesiones: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+
   // Notas adicionales
   notas: {
     type: String,

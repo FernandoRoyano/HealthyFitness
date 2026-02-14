@@ -61,6 +61,8 @@ const reservaSchema = new mongoose.Schema({
 });
 
 reservaSchema.index({ fecha: 1, horaInicio: 1 });
+reservaSchema.index({ entrenador: 1, fecha: 1 });
+reservaSchema.index({ cliente: 1, fecha: 1 });
 
 const Reserva = mongoose.model('Reserva', reservaSchema);
 

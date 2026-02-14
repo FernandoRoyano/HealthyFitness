@@ -14,7 +14,7 @@ export const obtenerMisReservas = async (req, res) => {
 
     res.json(reservas);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener reservas', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener reservas', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -47,7 +47,7 @@ export const obtenerMiCalendario = async (req, res) => {
 
     res.json(reservas);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener calendario', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener calendario', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -75,7 +75,7 @@ export const obtenerMisSesiones = async (req, res) => {
 
     res.json(sesiones);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener sesiones', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener sesiones', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -90,7 +90,7 @@ export const obtenerMisMediciones = async (req, res) => {
 
     res.json(mediciones);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener mediciones', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener mediciones', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -125,7 +125,7 @@ export const obtenerMiSuscripcion = async (req, res) => {
       sesionesUsadas
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener suscripción', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener suscripción', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -140,7 +140,7 @@ export const obtenerMisFacturas = async (req, res) => {
 
     res.json(facturas);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener facturas', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener facturas', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -187,6 +187,6 @@ export const obtenerDashboard = async (req, res) => {
       suscripcion
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener dashboard', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener dashboard', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };

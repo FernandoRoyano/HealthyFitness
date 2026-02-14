@@ -190,32 +190,22 @@ export const guardarTodasTarifas = async (req, res) => {
       return res.status(404).json({ mensaje: 'Producto no encontrado' });
     }
 
-    const resultados = [];
+    const tarifasValidas = tarifas.filter(t => ['1', '2', '3+'].includes(t.rangoDias));
 
-    for (const { rangoDias, precio } of tarifas) {
-      if (!['1', '2', '3+'].includes(rangoDias)) {
-        continue;
+    const ops = tarifasValidas.map(({ rangoDias, precio }) => ({
+      updateOne: {
+        filter: { producto: productoId, rangoDias },
+        update: { $set: { precio } },
+        upsert: true
       }
+    }));
 
-      let tarifa = await TarifaProducto.findOne({
-        producto: productoId,
-        rangoDias
-      });
-
-      if (tarifa) {
-        tarifa.precio = precio;
-        await tarifa.save();
-      } else {
-        tarifa = new TarifaProducto({
-          producto: productoId,
-          rangoDias,
-          precio
-        });
-        await tarifa.save();
-      }
-
-      resultados.push(tarifa);
+    if (ops.length > 0) {
+      await TarifaProducto.bulkWrite(ops);
     }
+
+    const resultados = await TarifaProducto.find({ producto: productoId })
+      .sort({ rangoDias: 1 });
 
     res.json(resultados);
   } catch (error) {
@@ -288,33 +278,41 @@ export const obtenerTablaPreciosCompleta = async (req, res) => {
     const filtroProducto = soloActivos === 'true' ? { activo: true } : {};
 
     const productos = await Producto.find(filtroProducto).sort({ tipo: 1 });
+    const productoIds = productos.map(p => p._id);
 
-    const tablaPrecios = await Promise.all(
-      productos.map(async (producto) => {
-        const tarifas = await TarifaProducto.find({ producto: producto._id })
-          .sort({ rangoDias: 1 });
+    // Una sola query para todas las tarifas
+    const todasTarifas = await TarifaProducto.find({ producto: { $in: productoIds } })
+      .sort({ rangoDias: 1 });
 
-        // Convertir tarifas a objeto para fácil acceso
-        const preciosPorRango = {};
-        tarifas.forEach(t => {
-          preciosPorRango[t.rangoDias] = t.precio;
-        });
+    // Agrupar tarifas por producto
+    const tarifasPorProducto = {};
+    for (const tarifa of todasTarifas) {
+      const pid = tarifa.producto.toString();
+      if (!tarifasPorProducto[pid]) tarifasPorProducto[pid] = [];
+      tarifasPorProducto[pid].push(tarifa);
+    }
 
-        return {
-          _id: producto._id,
-          nombre: producto.nombre,
-          tipo: producto.tipo,
-          descripcion: producto.descripcion,
-          activo: producto.activo,
-          precios: {
-            '1': preciosPorRango['1'] || null,
-            '2': preciosPorRango['2'] || null,
-            '3+': preciosPorRango['3+'] || null
-          },
-          tarifas
-        };
-      })
-    );
+    const tablaPrecios = productos.map(producto => {
+      const tarifas = tarifasPorProducto[producto._id.toString()] || [];
+      const preciosPorRango = {};
+      tarifas.forEach(t => {
+        preciosPorRango[t.rangoDias] = t.precio;
+      });
+
+      return {
+        _id: producto._id,
+        nombre: producto.nombre,
+        tipo: producto.tipo,
+        descripcion: producto.descripcion,
+        activo: producto.activo,
+        precios: {
+          '1': preciosPorRango['1'] || null,
+          '2': preciosPorRango['2'] || null,
+          '3+': preciosPorRango['3+'] || null
+        },
+        tarifas
+      };
+    });
 
     res.json(tablaPrecios);
   } catch (error) {

@@ -32,26 +32,21 @@ const app = express();
 // Configurar CORS
 const corsOptions = {
   origin: function (origin, callback) {
-    // Permitir todas las peticiones en producción si FRONTEND_URL es '*'
-    if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL === '*') {
-      callback(null, true);
-    }
-    // Permitir URLs específicas en producción
-    else if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
+    if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
+      // En producción: solo orígenes explícitos (nunca wildcard con credentials)
       const allowedOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim());
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));
       }
-    }
-    // Desarrollo: permitir localhost
-    else {
+    } else {
+      // Desarrollo: permitir localhost
       const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, true); // En desarrollo, permitir todo
+        callback(null, true);
       }
     }
   },
@@ -89,11 +84,11 @@ app.use('/api/cliente-auth', clienteAuthRoutes);
 app.use('/api/cliente-portal', clientePortalRoutes);
 
 app.use((err, req, res, next) => {
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
-  res.status(statusCode);
-  res.json({
-    mensaje: err.message,
-    stack: process.env.NODE_ENV === 'production' ? null : err.stack
+  const statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+  console.error('Error no controlado:', err);
+  res.status(statusCode).json({
+    mensaje: process.env.NODE_ENV === 'production' ? 'Error interno del servidor' : err.message,
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
   });
 });
 

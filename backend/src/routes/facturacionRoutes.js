@@ -6,6 +6,8 @@ import {
   guardarSuscripcion,
   cambiarEstadoSuscripcion,
   actualizarSesionesAcumuladas,
+  obtenerSaldoSesiones,
+  actualizarSaldoSesiones,
   obtenerClientesSinSuscripcion,
 
   // Asistencias
@@ -61,6 +63,12 @@ router.put('/suscripciones/cliente/:clienteId/estado', esGerente, cambiarEstadoS
 
 // PUT /api/facturacion/suscripciones/cliente/:clienteId/sesiones-acumuladas
 router.put('/suscripciones/cliente/:clienteId/sesiones-acumuladas', esGerente, actualizarSesionesAcumuladas);
+
+// GET /api/facturacion/suscripciones/cliente/:clienteId/saldo-sesiones
+router.get('/suscripciones/cliente/:clienteId/saldo-sesiones', obtenerSaldoSesiones);
+
+// PUT /api/facturacion/suscripciones/cliente/:clienteId/saldo-sesiones
+router.put('/suscripciones/cliente/:clienteId/saldo-sesiones', esGerente, actualizarSaldoSesiones);
 
 // ==================== ASISTENCIAS ====================
 

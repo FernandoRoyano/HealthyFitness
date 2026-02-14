@@ -9,14 +9,23 @@ const generarToken = (id) => {
 
 export const registrarUsuario = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { nombre, email, password } = req.body;
+
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ mensaje: 'Nombre, email y contraseña son requeridos' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
+    }
 
     const usuarioExiste = await User.findOne({ email });
     if (usuarioExiste) {
       return res.status(400).json({ mensaje: 'El usuario ya existe' });
     }
 
-    const usuario = await User.create(req.body);
+    // Solo se permiten los campos explícitos, rol forzado a 'entrenador'
+    const usuario = await User.create({ nombre, email, password, rol: 'entrenador' });
 
     res.status(201).json({
       _id: usuario._id,
@@ -26,7 +35,8 @@ export const registrarUsuario = async (req, res) => {
       token: generarToken(usuario._id)
     });
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al registrar usuario', error: error.message });
+    console.error('Error al registrar usuario:', error);
+    res.status(400).json({ mensaje: 'Error al registrar usuario' });
   }
 };
 
@@ -34,7 +44,11 @@ export const loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const usuario = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ mensaje: 'Email y contraseña son requeridos' });
+    }
+
+    const usuario = await User.findOne({ email }).select('+password');
 
     if (usuario && (await usuario.matchPassword(password))) {
       res.json({
@@ -48,15 +62,17 @@ export const loginUsuario = async (req, res) => {
       res.status(401).json({ mensaje: 'Email o contraseña incorrectos' });
     }
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al iniciar sesión', error: error.message });
+    console.error('Error al iniciar sesión:', error);
+    res.status(400).json({ mensaje: 'Error al iniciar sesión' });
   }
 };
 
 export const obtenerPerfil = async (req, res) => {
   try {
-    const usuario = await User.findById(req.user._id).select('-password');
+    const usuario = await User.findById(req.usuario._id).select('-password');
     res.json(usuario);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener perfil', error: error.message });
+    console.error('Error al obtener perfil:', error);
+    res.status(500).json({ mensaje: 'Error al obtener perfil' });
   }
 };

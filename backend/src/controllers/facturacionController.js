@@ -17,25 +17,18 @@ export const obtenerSuscripciones = async (req, res) => {
 
     if (estado) filtro.estado = estado;
 
-    let suscripciones = await SuscripcionCliente.find(filtro)
+    // Filtrar por entrenador a nivel de query (no en memoria)
+    const entrenadorFiltro = entrenador || (req.usuario.rol === 'entrenador' ? req.usuario._id.toString() : null);
+    if (entrenadorFiltro) {
+      const clientesDelEntrenador = await Cliente.find({ entrenador: entrenadorFiltro }).select('_id');
+      filtro.cliente = { $in: clientesDelEntrenador.map(c => c._id) };
+    }
+
+    const suscripciones = await SuscripcionCliente.find(filtro)
       .populate('cliente', 'nombre apellido email telefono entrenador activo')
       .populate('producto', 'nombre tipo')
       .populate('creadoPor', 'nombre')
       .sort({ createdAt: -1 });
-
-    // Filtrar por entrenador si se especifica
-    if (entrenador) {
-      suscripciones = suscripciones.filter(s =>
-        s.cliente?.entrenador?.toString() === entrenador
-      );
-    }
-
-    // Si es entrenador, solo mostrar sus clientes
-    if (req.usuario.rol === 'entrenador') {
-      suscripciones = suscripciones.filter(s =>
-        s.cliente?.entrenador?.toString() === req.usuario._id.toString()
-      );
-    }
 
     res.json(suscripciones);
   } catch (error) {
@@ -125,7 +118,7 @@ export const guardarSuscripcion = async (req, res) => {
     res.json(suscripcionPopulada);
   } catch (error) {
     console.error('Error al guardar suscripción:', error);
-    res.status(500).json({ mensaje: error.message || 'Error al guardar suscripción' });
+    res.status(500).json({ mensaje: 'Error al guardar suscripción' });
   }
 };
 
@@ -155,6 +148,75 @@ export const actualizarSesionesAcumuladas = async (req, res) => {
   } catch (error) {
     console.error('Error al actualizar sesiones acumuladas:', error);
     res.status(500).json({ mensaje: 'Error al actualizar sesiones acumuladas' });
+  }
+};
+
+// Obtener saldo de sesiones de un cliente
+export const obtenerSaldoSesiones = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+
+    const suscripcion = await SuscripcionCliente.findOne({ cliente: clienteId })
+      .populate('cliente', 'nombre apellido')
+      .populate('producto', 'nombre tipo');
+
+    if (!suscripcion) {
+      return res.json({
+        tieneSuscripcion: false,
+        saldoSesiones: 0,
+        mensaje: 'Cliente sin suscripción activa'
+      });
+    }
+
+    res.json({
+      tieneSuscripcion: true,
+      saldoSesiones: suscripcion.saldoSesiones || 0,
+      sesionesAcumuladas: suscripcion.sesionesAcumuladas || 0,
+      estado: suscripcion.estado,
+      producto: suscripcion.producto,
+      diasPorSemana: suscripcion.diasPorSemana
+    });
+  } catch (error) {
+    console.error('Error al obtener saldo de sesiones:', error);
+    res.status(500).json({ mensaje: 'Error al obtener saldo de sesiones' });
+  }
+};
+
+// Actualizar saldo de sesiones manualmente
+export const actualizarSaldoSesiones = async (req, res) => {
+  try {
+    const { clienteId } = req.params;
+    const { saldoSesiones, motivo } = req.body;
+
+    if (saldoSesiones === undefined || saldoSesiones < 0) {
+      return res.status(400).json({ mensaje: 'Valor de saldo inválido' });
+    }
+
+    const suscripcion = await SuscripcionCliente.findOne({ cliente: clienteId });
+    if (!suscripcion) {
+      return res.status(404).json({ mensaje: 'Suscripción no encontrada' });
+    }
+
+    const saldoAnterior = suscripcion.saldoSesiones || 0;
+    suscripcion.saldoSesiones = parseInt(saldoSesiones);
+    suscripcion.actualizadoPor = req.usuario._id;
+
+    // Registrar en notas el cambio manual
+    const notaAjuste = `[${new Date().toLocaleDateString('es-ES')}] Ajuste manual: ${saldoAnterior} → ${saldoSesiones} sesiones. ${motivo || ''}`;
+    suscripcion.notas = suscripcion.notas
+      ? `${suscripcion.notas}\n${notaAjuste}`
+      : notaAjuste;
+
+    await suscripcion.save();
+
+    res.json({
+      mensaje: 'Saldo de sesiones actualizado',
+      saldoAnterior,
+      saldoSesiones: suscripcion.saldoSesiones
+    });
+  } catch (error) {
+    console.error('Error al actualizar saldo de sesiones:', error);
+    res.status(500).json({ mensaje: 'Error al actualizar saldo de sesiones' });
   }
 };
 
@@ -239,7 +301,7 @@ export const registrarAsistencia = async (req, res) => {
     res.json(asistenciaPopulada);
   } catch (error) {
     console.error('Error al registrar asistencia:', error);
-    res.status(500).json({ mensaje: error.message || 'Error al registrar asistencia' });
+    res.status(500).json({ mensaje: 'Error al registrar asistencia' });
   }
 };
 
@@ -393,7 +455,7 @@ export const generarFactura = async (req, res) => {
     res.status(201).json(facturaPopulada);
   } catch (error) {
     console.error('Error al generar factura:', error);
-    res.status(400).json({ mensaje: error.message });
+    res.status(400).json({ mensaje: 'Error al generar factura' });
   }
 };
 
@@ -491,24 +553,17 @@ export const obtenerFacturas = async (req, res) => {
     if (estado) filtro.estado = estado;
     if (clienteId) filtro.cliente = clienteId;
 
-    let facturas = await FacturaMensual.find(filtro)
+    // Filtrar por entrenador a nivel de query (no en memoria)
+    const entrenadorFiltro = entrenadorId || (req.usuario.rol === 'entrenador' ? req.usuario._id.toString() : null);
+    if (entrenadorFiltro && !clienteId) {
+      const clientesDelEntrenador = await Cliente.find({ entrenador: entrenadorFiltro }).select('_id');
+      filtro.cliente = { $in: clientesDelEntrenador.map(c => c._id) };
+    }
+
+    const facturas = await FacturaMensual.find(filtro)
       .populate('cliente', 'nombre apellido email telefono numeroCuenta entrenador')
       .populate('generadaPor', 'nombre')
       .sort({ fechaGeneracion: -1 });
-
-    // Filtrar por entrenador si se especifica
-    if (entrenadorId) {
-      facturas = facturas.filter(f =>
-        f.cliente?.entrenador?.toString() === entrenadorId
-      );
-    }
-
-    // Si es entrenador, solo mostrar facturas de sus clientes
-    if (req.usuario.rol === 'entrenador') {
-      facturas = facturas.filter(f =>
-        f.cliente?.entrenador?.toString() === req.usuario._id.toString()
-      );
-    }
 
     res.json(facturas);
   } catch (error) {
@@ -618,6 +673,10 @@ export const registrarPago = async (req, res) => {
       return res.status(400).json({ mensaje: 'No se puede pagar una factura anulada' });
     }
 
+    // Guardar estado anterior para detectar si pasa a pagada
+    const estadoAnterior = factura.estado;
+    const totalPagadoAnterior = factura.totalPagado;
+
     factura.pagos.push({
       monto: parseFloat(monto),
       metodoPago,
@@ -628,10 +687,26 @@ export const registrarPago = async (req, res) => {
     factura.calcularTotales();
     await factura.save();
 
+    // Si la factura pasa a estado 'pagada', sumar sesiones al saldo del cliente
+    if (factura.estado === 'pagada' && estadoAnterior !== 'pagada') {
+      const sesionesASumar = factura.totalSesionesACobrar || 0;
+      if (sesionesASumar > 0) {
+        await SuscripcionCliente.findOneAndUpdate(
+          { cliente: factura.cliente },
+          { $inc: { saldoSesiones: sesionesASumar } }
+        );
+      }
+    }
+
     const facturaActualizada = await FacturaMensual.findById(factura._id)
       .populate('pagos.registradoPor', 'nombre');
 
-    res.json(facturaActualizada);
+    res.json({
+      ...facturaActualizada.toObject(),
+      sesionesAcreditadas: factura.estado === 'pagada' && estadoAnterior !== 'pagada'
+        ? factura.totalSesionesACobrar
+        : 0
+    });
   } catch (error) {
     console.error('Error al registrar pago:', error);
     res.status(500).json({ mensaje: 'Error al registrar pago' });
@@ -675,13 +750,28 @@ export const anularFactura = async (req, res) => {
       return res.status(404).json({ mensaje: 'Factura no encontrada' });
     }
 
+    const estabaPagada = factura.estado === 'pagada';
+
     factura.estado = 'anulada';
     factura.notasInternas = `${factura.notasInternas || ''}\n[ANULADA] ${motivo || 'Sin motivo especificado'}`;
     factura.modificadaPor = req.usuario._id;
 
     await factura.save();
 
-    res.json({ mensaje: 'Factura anulada', factura });
+    // Si la factura estaba pagada, revertir las sesiones acreditadas al saldo
+    let sesionesRevertidas = 0;
+    if (estabaPagada && factura.cliente) {
+      const sesionesARevertir = factura.totalSesionesACobrar || 0;
+      if (sesionesARevertir > 0) {
+        await SuscripcionCliente.findOneAndUpdate(
+          { cliente: factura.cliente },
+          { $inc: { saldoSesiones: -sesionesARevertir } }
+        );
+        sesionesRevertidas = sesionesARevertir;
+      }
+    }
+
+    res.json({ mensaje: 'Factura anulada', factura, sesionesRevertidas });
   } catch (error) {
     console.error('Error al anular factura:', error);
     res.status(500).json({ mensaje: 'Error al anular factura' });
@@ -736,7 +826,7 @@ export const previewFactura = async (req, res) => {
     res.json({ existente: false, preview: factura });
   } catch (error) {
     console.error('Error en preview:', error);
-    res.status(400).json({ mensaje: error.message });
+    res.status(400).json({ mensaje: 'Error al previsualizar factura' });
   }
 };
 
@@ -859,7 +949,7 @@ export const crearFacturaManual = async (req, res) => {
     res.status(201).json(facturaPopulada);
   } catch (error) {
     console.error('Error al crear factura manual:', error);
-    res.status(500).json({ mensaje: error.message || 'Error al crear factura manual' });
+    res.status(500).json({ mensaje: 'Error al crear factura manual' });
   }
 };
 
@@ -882,7 +972,7 @@ export const descargarPDFFactura = async (req, res) => {
     res.send(pdfBuffer);
   } catch (error) {
     console.error('Error al generar PDF:', error);
-    res.status(500).json({ mensaje: 'Error al generar PDF: ' + error.message });
+    res.status(500).json({ mensaje: 'Error al generar PDF' });
   }
 };
 
@@ -916,7 +1006,7 @@ export const enviarFacturaEmail = async (req, res) => {
     res.json({ mensaje: 'Factura enviada correctamente por email' });
   } catch (error) {
     console.error('Error al enviar factura por email:', error);
-    res.status(500).json({ mensaje: 'Error al enviar factura: ' + error.message });
+    res.status(500).json({ mensaje: 'Error al enviar factura por email' });
   }
 };
 
@@ -926,6 +1016,6 @@ export const verificarEmail = async (req, res) => {
     const resultado = await verificarConfiguracionEmail();
     res.json(resultado);
   } catch (error) {
-    res.status(500).json({ configurado: false, mensaje: error.message });
+    res.status(500).json({ configurado: false, mensaje: 'Error al verificar configuración de email' });
   }
 };

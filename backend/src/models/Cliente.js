@@ -115,6 +115,8 @@ clienteSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.portalPassword);
 };
 
+clienteSchema.index({ entrenador: 1, activo: 1 });
+
 const Cliente = mongoose.model('Cliente', clienteSchema);
 
 export default Cliente;

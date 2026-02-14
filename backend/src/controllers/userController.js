@@ -1,14 +1,8 @@
 import User from '../models/User.js';
 import Cliente from '../models/Cliente.js';
 import bcrypt from 'bcryptjs';
-import multer from 'multer';
-import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsPath = path.join(__dirname, '../../uploads');
+import { createImageUpload, eliminarFotoAnterior } from '../utils/uploadHelper.js';
 
 export const obtenerEntrenadores = async (req, res) => {
   try {
@@ -17,7 +11,7 @@ export const obtenerEntrenadores = async (req, res) => {
       .sort({ nombre: 1 });
     res.json(entrenadores);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener entrenadores', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener entrenadores', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -28,7 +22,7 @@ export const obtenerUsuarios = async (req, res) => {
       .sort({ nombre: 1 });
     res.json(usuarios);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener usuarios', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener usuarios', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -67,7 +61,7 @@ export const actualizarEntrenador = async (req, res) => {
       rol: entrenador.rol
     });
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al actualizar entrenador', error: error.message });
+    res.status(400).json({ mensaje: 'Error al actualizar entrenador', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -86,18 +80,13 @@ export const obtenerClientesPorEntrenador = async (req, res) => {
 
     res.json(clientes);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener clientes del entrenador', error: error.message });
+    res.status(500).json({ mensaje: 'Error al obtener clientes del entrenador', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
 export const crearEntrenador = async (req, res) => {
   try {
     const { nombre, email, telefono, password } = req.body;
-
-    // Validar que el usuario que hace la petición es gerente
-    if (req.user.rol !== 'gerente') {
-      return res.status(403).json({ mensaje: 'No tienes permisos para crear entrenadores' });
-    }
 
     // Verificar si el email ya existe
     const usuarioExiste = await User.findOne({ email });
@@ -123,7 +112,7 @@ export const crearEntrenador = async (req, res) => {
       rol: entrenador.rol
     });
   } catch (error) {
-    res.status(400).json({ mensaje: 'Error al crear entrenador', error: error.message });
+    res.status(400).json({ mensaje: 'Error al crear entrenador', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -158,7 +147,7 @@ export const reasignarClientes = async (req, res) => {
       clientesActualizados: resultado.modifiedCount
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al reasignar clientes', error: error.message });
+    res.status(500).json({ mensaje: 'Error al reasignar clientes', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
@@ -166,11 +155,6 @@ export const resetearPasswordEntrenador = async (req, res) => {
   try {
     const { id } = req.params;
     const { nuevaPassword } = req.body;
-
-    // Validar que el usuario que hace la petición es gerente
-    if (req.user.rol !== 'gerente') {
-      return res.status(403).json({ mensaje: 'No tienes permisos para resetear contraseñas' });
-    }
 
     if (!nuevaPassword || nuevaPassword.length < 6) {
       return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
@@ -198,40 +182,11 @@ export const resetearPasswordEntrenador = async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al resetear contraseña', error: error.message });
+    res.status(500).json({ mensaje: 'Error al resetear contraseña', error: process.env.NODE_ENV !== 'production' ? error.message : undefined });
   }
 };
 
-// Configuración de Multer para imágenes de usuarios
-const userImageStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (!fs.existsSync(uploadsPath)) {
-      fs.mkdirSync(uploadsPath, { recursive: true });
-    }
-    cb(null, uploadsPath);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, `user-${uniqueSuffix}${path.extname(file.originalname)}`);
-  }
-});
-
-const userImageUpload = multer({
-  storage: userImageStorage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten imágenes (JPEG, PNG, WebP)'), false);
-    }
-  },
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB máximo
-  }
-});
-
-export const userImageUploadMiddleware = userImageUpload.single('foto');
+export const userImageUploadMiddleware = createImageUpload('user');
 
 export const subirFotoEntrenador = async (req, res) => {
   try {
@@ -246,12 +201,7 @@ export const subirFotoEntrenador = async (req, res) => {
     }
 
     // Si ya tiene foto, eliminar la anterior
-    if (user.foto) {
-      const oldPhotoPath = path.join(uploadsPath, path.basename(user.foto));
-      if (fs.existsSync(oldPhotoPath)) {
-        fs.unlinkSync(oldPhotoPath);
-      }
-    }
+    eliminarFotoAnterior(user.foto);
 
     const fotoUrl = `/uploads/${req.file.filename}`;
     user.foto = fotoUrl;
@@ -265,7 +215,7 @@ export const subirFotoEntrenador = async (req, res) => {
     console.error('Error al subir foto:', error);
     res.status(500).json({
       mensaje: 'Error al subir la foto',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };
@@ -278,10 +228,7 @@ export const eliminarFotoEntrenador = async (req, res) => {
     }
 
     if (user.foto) {
-      const photoPath = path.join(uploadsPath, path.basename(user.foto));
-      if (fs.existsSync(photoPath)) {
-        fs.unlinkSync(photoPath);
-      }
+      eliminarFotoAnterior(user.foto);
       user.foto = undefined;
       await user.save();
     }
@@ -290,7 +237,7 @@ export const eliminarFotoEntrenador = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al eliminar la foto',
-      error: error.message
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 };

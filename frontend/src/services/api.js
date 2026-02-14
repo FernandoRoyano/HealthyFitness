@@ -32,6 +32,31 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Interceptor de respuesta: redirigir a login en caso de 401
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      const isPortalRoute = error.config?.url?.includes('/cliente-portal/') ||
+        error.config?.url?.includes('/cliente-auth/');
+
+      if (isPortalRoute) {
+        localStorage.removeItem('clienteToken');
+        if (window.location.pathname.startsWith('/portal')) {
+          window.location.href = '/portal/login';
+        }
+      } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authAPI = {
   login: (credenciales) => api.post('/auth/login', credenciales),
   registro: (datos) => api.post('/auth/registro', datos),
@@ -58,7 +83,9 @@ export const reservasAPI = {
   obtenerPorId: (id) => api.get(`/reservas/${id}`),
   crear: (datos) => api.post('/reservas', datos),
   actualizar: (id, datos) => api.put(`/reservas/${id}`, datos),
-  eliminar: (id) => api.delete(`/reservas/${id}`)
+  eliminar: (id) => api.delete(`/reservas/${id}`),
+  cancelar: (id, motivo) => api.put(`/reservas/${id}/cancelar`, { motivo }),
+  obtenerSaldoSesiones: (clienteId) => api.get(`/reservas/saldo/${clienteId}`)
 };
 
 export default api;
@@ -158,6 +185,10 @@ export const facturacionAPI = {
     api.put(`/facturacion/suscripciones/cliente/${clienteId}/estado`, { estado }),
   actualizarSesionesAcumuladas: (clienteId, sesionesAcumuladas) =>
     api.put(`/facturacion/suscripciones/cliente/${clienteId}/sesiones-acumuladas`, { sesionesAcumuladas }),
+  obtenerSaldoSesiones: (clienteId) =>
+    api.get(`/facturacion/suscripciones/cliente/${clienteId}/saldo-sesiones`),
+  actualizarSaldoSesiones: (clienteId, saldoSesiones, motivo) =>
+    api.put(`/facturacion/suscripciones/cliente/${clienteId}/saldo-sesiones`, { saldoSesiones, motivo }),
   obtenerClientesSinSuscripcion: () => api.get('/facturacion/suscripciones/clientes-sin-suscripcion'),
 
   // ==================== ASISTENCIAS ====================
@@ -215,6 +246,17 @@ export const medicionesAPI = {
 export const centroAPI = {
   obtener: () => api.get('/centro'),
   actualizar: (datos) => api.put('/centro', datos)
+};
+
+// API para el portal de cliente (rutas protegidas con token de cliente)
+export const clientePortalAPI = {
+  obtenerDashboard: () => api.get('/cliente-portal/dashboard'),
+  obtenerMisReservas: () => api.get('/cliente-portal/mis-reservas'),
+  obtenerMiCalendario: (params) => api.get('/cliente-portal/mi-calendario', { params }),
+  obtenerMisSesiones: (params) => api.get('/cliente-portal/mis-sesiones', { params }),
+  obtenerMisMediciones: () => api.get('/cliente-portal/mis-mediciones'),
+  obtenerMiSuscripcion: () => api.get('/cliente-portal/mi-suscripcion'),
+  obtenerMisFacturas: () => api.get('/cliente-portal/mis-facturas')
 };
 
 // API para autenticación de clientes en el portal

@@ -8,7 +8,7 @@ import {
   verificarEstadoPortal
 } from '../controllers/clienteAuthController.js';
 import { protegerCliente } from '../middleware/clienteAuthMiddleware.js';
-import { proteger } from '../middleware/authMiddleware.js';
+import { proteger, esGerente } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -19,9 +19,9 @@ router.post('/login', loginCliente);
 router.get('/perfil', protegerCliente, obtenerPerfilCliente);
 router.put('/cambiar-password', protegerCliente, cambiarPasswordCliente);
 
-// Rutas para administración del portal (requieren autenticación de usuario/gerente)
-router.post('/crear-acceso/:clienteId', proteger, crearAccesoPortal);
-router.put('/desactivar/:clienteId', proteger, desactivarAccesoPortal);
+// Rutas para administración del portal (solo gerente)
+router.post('/crear-acceso/:clienteId', proteger, esGerente, crearAccesoPortal);
+router.put('/desactivar/:clienteId', proteger, esGerente, desactivarAccesoPortal);
 router.get('/estado/:clienteId', proteger, verificarEstadoPortal);
 
 export default router;
