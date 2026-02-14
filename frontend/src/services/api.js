@@ -286,5 +286,14 @@ export const entrenamientoAPI = {
   crearRutina: (datos) => api.post('/entrenamiento/rutinas', datos),
   actualizarRutina: (id, datos) => api.put(`/entrenamiento/rutinas/${id}`, datos),
   eliminarRutina: (id) => api.delete(`/entrenamiento/rutinas/${id}`),
-  duplicarRutina: (id, datos) => api.post(`/entrenamiento/rutinas/${id}/duplicar`, datos)
+  duplicarRutina: (id, datos) => api.post(`/entrenamiento/rutinas/${id}/duplicar`, datos),
+
+  // ==================== REGISTROS DE ENTRENAMIENTO ====================
+  registrarEntrenamiento: (datos) => api.post('/entrenamiento/registros', datos),
+  obtenerRegistrosPorCliente: (clienteId, params) =>
+    api.get(`/entrenamiento/registros/cliente/${clienteId}`, { params }),
+  obtenerRegistroPorId: (id) => api.get(`/entrenamiento/registros/${id}`),
+  obtenerProgresoPorEjercicio: (clienteId, ejercicioId) =>
+    api.get(`/entrenamiento/progreso/${clienteId}/${ejercicioId}`),
+  obtenerPRs: (clienteId) => api.get(`/entrenamiento/prs/${clienteId}`)
 };
