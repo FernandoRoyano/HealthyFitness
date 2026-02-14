@@ -30,24 +30,27 @@ dotenv.config();
 const app = express();
 
 // Configurar CORS
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:3000',
+  'https://healthy-fitness-kcfd.vercel.app'
+];
+
+// Añadir orígenes extra desde variable de entorno si existe
+if (process.env.FRONTEND_URL) {
+  process.env.FRONTEND_URL.split(',').map(url => url.trim()).forEach(url => {
+    if (!allowedOrigins.includes(url)) allowedOrigins.push(url);
+  });
+}
+
 const corsOptions = {
   origin: function (origin, callback) {
-    if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
-      // En producción: solo orígenes explícitos (nunca wildcard con credentials)
-      const allowedOrigins = process.env.FRONTEND_URL.split(',').map(url => url.trim());
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
-      // Desarrollo: permitir localhost
-      const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175', 'http://localhost:3000'];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(null, true);
-      }
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
