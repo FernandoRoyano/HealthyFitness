@@ -306,5 +306,8 @@ export const entrenamientoAPI = {
   obtenerRegistroPorId: (id) => api.get(`/entrenamiento/registros/${id}`),
   obtenerProgresoPorEjercicio: (clienteId, ejercicioId) =>
     api.get(`/entrenamiento/progreso/${clienteId}/${ejercicioId}`),
-  obtenerPRs: (clienteId) => api.get(`/entrenamiento/prs/${clienteId}`)
+  obtenerPRs: (clienteId) => api.get(`/entrenamiento/prs/${clienteId}`),
+
+  // ==================== ESTADÍSTICAS ====================
+  obtenerEstadisticasEntrenadores: (params) => api.get('/entrenamiento/estadisticas/entrenadores', { params })
 };

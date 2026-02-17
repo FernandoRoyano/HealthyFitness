@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { usersAPI } from '../services/api';
+import { usersAPI, entrenamientoAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import './Entrenadores.css';
 
@@ -36,9 +36,23 @@ function Entrenadores() {
   const [entrenadorPassword, setEntrenadorPassword] = useState(null);
   const [nuevaPassword, setNuevaPassword] = useState('');
 
+  // Estado para estadísticas de entrenamientos
+  const ahora = new Date();
+  const [mesSeleccionado, setMesSeleccionado] = useState(ahora.getMonth() + 1);
+  const [anioSeleccionado, setAnioSeleccionado] = useState(ahora.getFullYear());
+  const [estadisticasEntrenamientos, setEstadisticasEntrenamientos] = useState([]);
+  const [cargandoEstadisticas, setCargandoEstadisticas] = useState(false);
+  const [detalleExpandido, setDetalleExpandido] = useState(null);
+
   useEffect(() => {
     cargarEntrenadores();
   }, []);
+
+  useEffect(() => {
+    if (esGerente) {
+      cargarEstadisticasEntrenamientos();
+    }
+  }, [mesSeleccionado, anioSeleccionado]);
 
   const cargarEntrenadores = async () => {
     try {
@@ -50,6 +64,40 @@ function Entrenadores() {
       setCargando(false);
     }
   };
+
+  const cargarEstadisticasEntrenamientos = async () => {
+    setCargandoEstadisticas(true);
+    try {
+      const { data } = await entrenamientoAPI.obtenerEstadisticasEntrenadores({
+        mes: mesSeleccionado,
+        anio: anioSeleccionado
+      });
+      setEstadisticasEntrenamientos(data.estadisticas || []);
+    } catch {
+      console.error('Error al cargar estadísticas de entrenamientos');
+    } finally {
+      setCargandoEstadisticas(false);
+    }
+  };
+
+  const nombresMeses = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  const cambiarMes = (direccion) => {
+    let nuevoMes = mesSeleccionado + direccion;
+    let nuevoAnio = anioSeleccionado;
+    if (nuevoMes < 1) { nuevoMes = 12; nuevoAnio--; }
+    if (nuevoMes > 12) { nuevoMes = 1; nuevoAnio++; }
+    setMesSeleccionado(nuevoMes);
+    setAnioSeleccionado(nuevoAnio);
+    setDetalleExpandido(null);
+  };
+
+  const totalEntrenamientosMes = estadisticasEntrenamientos.reduce(
+    (sum, e) => sum + e.totalEntrenamientos, 0
+  );
 
   const handleChange = (e) => {
     setFormulario({
@@ -324,6 +372,96 @@ function Entrenadores() {
           );
         })}
       </div>
+
+      {/* Sección de Entrenamientos e Incentivos - Solo Gerente */}
+      {esGerente && (
+        <div style={styles.statsSection}>
+          <div style={styles.statsHeader}>
+            <h2 style={styles.statsTitle}>Entrenamientos e Incentivos</h2>
+            <div style={styles.mesSelector}>
+              <button onClick={() => cambiarMes(-1)} style={styles.mesBtn}>◀</button>
+              <span style={styles.mesTexto}>
+                {nombresMeses[mesSeleccionado - 1]} {anioSeleccionado}
+              </span>
+              <button onClick={() => cambiarMes(1)} style={styles.mesBtn}>▶</button>
+            </div>
+          </div>
+
+          <div style={styles.statsTotalBar}>
+            <span>Total del mes:</span>
+            <strong>{totalEntrenamientosMes} {totalEntrenamientosMes === 1 ? 'entrenamiento' : 'entrenamientos'}</strong>
+          </div>
+
+          {cargandoEstadisticas ? (
+            <p style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Cargando estadísticas...</p>
+          ) : estadisticasEntrenamientos.length === 0 ? (
+            <p style={{ textAlign: 'center', padding: '20px', color: '#999' }}>No hay entrenadores registrados</p>
+          ) : (
+            <div style={styles.statsTabla}>
+              {/* Cabecera */}
+              <div style={styles.statsFilaCabecera}>
+                <span style={{ ...styles.statsCelda, flex: 2 }}>Entrenador</span>
+                <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'center' }}>Sesiones</span>
+                <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'center' }}>Detalle</span>
+              </div>
+
+              {/* Filas */}
+              {estadisticasEntrenamientos.map((item) => (
+                <div key={item.entrenador._id}>
+                  <div style={{
+                    ...styles.statsFila,
+                    ...(detalleExpandido === item.entrenador._id ? styles.statsFilaActiva : {})
+                  }}>
+                    <span style={{ ...styles.statsCelda, flex: 2, fontWeight: '500' }}>
+                      {item.entrenador.nombre}
+                    </span>
+                    <span style={{
+                      ...styles.statsCelda,
+                      flex: 1,
+                      textAlign: 'center',
+                      fontWeight: '700',
+                      fontSize: '18px',
+                      color: item.totalEntrenamientos > 0 ? '#75b760' : '#999'
+                    }}>
+                      {item.totalEntrenamientos}
+                    </span>
+                    <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'center' }}>
+                      {item.totalEntrenamientos > 0 ? (
+                        <button
+                          onClick={() => setDetalleExpandido(
+                            detalleExpandido === item.entrenador._id ? null : item.entrenador._id
+                          )}
+                          style={styles.statsDetalleBtn}
+                        >
+                          {detalleExpandido === item.entrenador._id ? 'Ocultar' : 'Ver'}
+                        </button>
+                      ) : (
+                        <span style={{ color: '#ccc', fontSize: '13px' }}>—</span>
+                      )}
+                    </span>
+                  </div>
+
+                  {/* Desglose por cliente */}
+                  {detalleExpandido === item.entrenador._id && item.clientes?.length > 0 && (
+                    <div style={styles.statsDesglose}>
+                      <div style={styles.statsDesgloseHeader}>
+                        <span>Cliente</span>
+                        <span>Sesiones</span>
+                      </div>
+                      {item.clientes.map((cliente, idx) => (
+                        <div key={idx} style={styles.statsDesgloseFila}>
+                          <span>{cliente.nombre?.trim() || 'Sin nombre'}</span>
+                          <span style={{ fontWeight: '600', color: '#1a1a2e' }}>{cliente.cantidad}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {mostrarFormulario && (
         <div className="modal-overlay" style={styles.modal}>
@@ -892,6 +1030,130 @@ const styles = {
     borderRadius: '12px',
     fontSize: '12px',
     fontWeight: '600'
+  },
+
+  // Estilos para sección de Entrenamientos e Incentivos
+  statsSection: {
+    marginTop: '40px',
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+    padding: '24px',
+    border: '1px solid rgba(0,0,0,0.06)'
+  },
+  statsHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    gap: '12px'
+  },
+  statsTitle: {
+    fontSize: '22px',
+    fontWeight: 'bold',
+    color: '#333',
+    margin: 0
+  },
+  mesSelector: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px'
+  },
+  mesBtn: {
+    width: '32px',
+    height: '32px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    fontSize: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#333'
+  },
+  mesTexto: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#1a1a2e',
+    minWidth: '160px',
+    textAlign: 'center'
+  },
+  statsTotalBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '12px 16px',
+    backgroundColor: '#f0f9ed',
+    borderRadius: '8px',
+    marginBottom: '16px',
+    fontSize: '15px',
+    color: '#333',
+    border: '1px solid #d4edcc'
+  },
+  statsTabla: {
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    overflow: 'hidden'
+  },
+  statsFilaCabecera: {
+    display: 'flex',
+    padding: '12px 16px',
+    backgroundColor: '#f9fafb',
+    borderBottom: '2px solid #e5e7eb',
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  },
+  statsFila: {
+    display: 'flex',
+    padding: '14px 16px',
+    borderBottom: '1px solid #f3f4f6',
+    alignItems: 'center',
+    transition: 'background-color 0.15s'
+  },
+  statsFilaActiva: {
+    backgroundColor: '#f0f9ed'
+  },
+  statsCelda: {
+    fontSize: '14px',
+    color: '#333'
+  },
+  statsDetalleBtn: {
+    padding: '5px 14px',
+    fontSize: '13px',
+    fontWeight: '500',
+    color: '#007bff',
+    backgroundColor: 'transparent',
+    border: '1px solid #007bff',
+    borderRadius: '4px',
+    cursor: 'pointer'
+  },
+  statsDesglose: {
+    backgroundColor: '#fafbfc',
+    borderBottom: '1px solid #e5e7eb',
+    padding: '8px 16px 8px 48px'
+  },
+  statsDesgloseHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '8px 12px',
+    fontSize: '12px',
+    fontWeight: '600',
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    borderBottom: '1px solid #e5e7eb'
+  },
+  statsDesgloseFila: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '8px 12px',
+    fontSize: '13px',
+    color: '#555',
+    borderBottom: '1px solid #f3f4f6'
   }
 };
 

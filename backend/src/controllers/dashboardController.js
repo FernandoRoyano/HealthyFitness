@@ -4,6 +4,8 @@ import Reserva from '../models/Reserva.js';
 import SolicitudCambio from '../models/SolicitudCambio.js';
 import Vacacion from '../models/Vacacion.js';
 import FacturaMensual from '../models/FacturaMensual.js';
+import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
+import User from '../models/User.js';
 
 // @desc    Obtener estadísticas del dashboard
 // @route   GET /api/dashboard/stats
@@ -21,13 +23,21 @@ export const obtenerEstadisticas = async (req, res) => {
 
     if (usuario.rol === 'gerente') {
       // Estadísticas para gerente
+      // Obtener IDs de entrenadores para la query de entrenamientos
+      const entrenadores = await User.find({ rol: 'entrenador', activo: true }).select('_id nombre');
+      const idsEntrenadores = entrenadores.map(e => e._id);
+
+      const inicioMes = new Date(anioActual, mesActual - 1, 1);
+      const finMes = new Date(anioActual, mesActual, 0, 23, 59, 59, 999);
+
       const [
         clientesActivos,
         leadsStats,
         reservasHoy,
         solicitudesPendientes,
         vacacionesPendientes,
-        facturasMes
+        facturasMes,
+        entrenamientosPorEntrenador
       ] = await Promise.all([
         // Clientes activos
         Cliente.countDocuments({ activo: true }),
@@ -61,8 +71,36 @@ export const obtenerEstadisticas = async (req, res) => {
               total: { $sum: '$total' }
             }
           }
+        ]),
+
+        // Entrenamientos del mes por entrenador
+        RegistroEntrenamiento.aggregate([
+          {
+            $match: {
+              fecha: { $gte: inicioMes, $lte: finMes },
+              registradoPor: { $in: idsEntrenadores }
+            }
+          },
+          {
+            $group: {
+              _id: '$registradoPor',
+              total: { $sum: 1 }
+            }
+          }
         ])
       ]);
+
+      // Mapear entrenamientos con nombres de entrenadores
+      const mapaEntrenamientos = {};
+      entrenamientosPorEntrenador.forEach(e => {
+        mapaEntrenamientos[e._id.toString()] = e.total;
+      });
+
+      const entrenamientosMes = entrenadores.map(e => ({
+        entrenadorId: e._id,
+        nombre: e.nombre,
+        total: mapaEntrenamientos[e._id.toString()] || 0
+      })).sort((a, b) => b.total - a.total);
 
       res.json({
         clientesActivos,
@@ -70,7 +108,8 @@ export const obtenerEstadisticas = async (req, res) => {
         reservasHoy,
         solicitudesPendientes,
         vacacionesPendientes,
-        facturacionMes: facturasMes[0]?.total || 0
+        facturacionMes: facturasMes[0]?.total || 0,
+        entrenamientosMes
       });
 
     } else {
