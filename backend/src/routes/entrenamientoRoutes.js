@@ -23,7 +23,9 @@ import {
   obtenerRegistrosPorCliente,
   obtenerRegistroPorId,
   obtenerProgresoPorEjercicio,
-  obtenerPRs
+  obtenerPRs,
+  // Estadísticas
+  obtenerEstadisticasEntrenadores
 } from '../controllers/entrenamientoController.js';
 import { proteger, esGerente } from '../middleware/authMiddleware.js';
 
@@ -50,6 +52,9 @@ router.post('/rutinas', crearRutina);
 router.put('/rutinas/:id', actualizarRutina);
 router.delete('/rutinas/:id', eliminarRutina);
 router.post('/rutinas/:id/duplicar', duplicarRutina);
+
+// ==================== ESTADÍSTICAS ====================
+router.get('/estadisticas/entrenadores', esGerente, obtenerEstadisticasEntrenadores);
 
 // ==================== REGISTROS DE ENTRENAMIENTO ====================
 router.post('/registros', registrarEntrenamiento);

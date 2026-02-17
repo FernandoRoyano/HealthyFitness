@@ -3,6 +3,7 @@ import Ejercicio from '../models/Ejercicio.js';
 import Rutina from '../models/Rutina.js';
 import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 import Cliente from '../models/Cliente.js';
+import User from '../models/User.js';
 import { createImageUpload, eliminarFotoAnterior } from '../utils/uploadHelper.js';
 
 export const ejercicioImageUpload = createImageUpload('ejercicio');
@@ -596,6 +597,116 @@ export const obtenerPRs = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       mensaje: 'Error al obtener récords personales',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
+};
+
+// ==================== ESTADÍSTICAS ENTRENADORES ====================
+
+// @desc    Obtener estadísticas de entrenamientos por entrenador (mes/año)
+// @route   GET /api/entrenamiento/estadisticas/entrenadores
+// @access  Solo gerente
+export const obtenerEstadisticasEntrenadores = async (req, res) => {
+  try {
+    const ahora = new Date();
+    const mes = parseInt(req.query.mes) || (ahora.getMonth() + 1);
+    const anio = parseInt(req.query.anio) || ahora.getFullYear();
+
+    // Rango de fechas del mes
+    const inicioMes = new Date(anio, mes - 1, 1);
+    const finMes = new Date(anio, mes, 0, 23, 59, 59, 999);
+
+    // Obtener IDs de entrenadores (excluir gerentes)
+    const entrenadores = await User.find({ rol: 'entrenador', activo: true }).select('_id nombre');
+    const idsEntrenadores = entrenadores.map(e => e._id);
+
+    // Aggregation: desglose por entrenador y cliente
+    const resultados = await RegistroEntrenamiento.aggregate([
+      {
+        $match: {
+          fecha: { $gte: inicioMes, $lte: finMes },
+          registradoPor: { $in: idsEntrenadores }
+        }
+      },
+      {
+        $group: {
+          _id: { entrenador: '$registradoPor', cliente: '$cliente' },
+          cantidad: { $sum: 1 }
+        }
+      },
+      {
+        $group: {
+          _id: '$_id.entrenador',
+          totalEntrenamientos: { $sum: '$cantidad' },
+          clientes: {
+            $push: {
+              clienteId: '$_id.cliente',
+              cantidad: '$cantidad'
+            }
+          }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'entrenadorInfo'
+        }
+      },
+      { $unwind: '$entrenadorInfo' },
+      { $unwind: '$clientes' },
+      {
+        $lookup: {
+          from: 'clientes',
+          localField: 'clientes.clienteId',
+          foreignField: '_id',
+          as: 'clienteInfo'
+        }
+      },
+      {
+        $group: {
+          _id: '$_id',
+          entrenador: { $first: { _id: '$entrenadorInfo._id', nombre: '$entrenadorInfo.nombre' } },
+          totalEntrenamientos: { $first: '$totalEntrenamientos' },
+          clientes: {
+            $push: {
+              _id: { $arrayElemAt: ['$clienteInfo._id', 0] },
+              nombre: {
+                $concat: [
+                  { $ifNull: [{ $arrayElemAt: ['$clienteInfo.nombre', 0] }, ''] },
+                  ' ',
+                  { $ifNull: [{ $arrayElemAt: ['$clienteInfo.apellido', 0] }, ''] }
+                ]
+              },
+              cantidad: '$clientes.cantidad'
+            }
+          }
+        }
+      },
+      { $sort: { totalEntrenamientos: -1 } }
+    ]);
+
+    // Incluir entrenadores sin entrenamientos en el mes
+    const idsConRegistros = resultados.map(r => r._id.toString());
+    const sinRegistros = entrenadores
+      .filter(e => !idsConRegistros.includes(e._id.toString()))
+      .map(e => ({
+        _id: e._id,
+        entrenador: { _id: e._id, nombre: e.nombre },
+        totalEntrenamientos: 0,
+        clientes: []
+      }));
+
+    res.json({
+      mes,
+      anio,
+      estadisticas: [...resultados, ...sinRegistros]
+    });
+  } catch (error) {
+    res.status(500).json({
+      mensaje: 'Error al obtener estadísticas de entrenadores',
       error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }

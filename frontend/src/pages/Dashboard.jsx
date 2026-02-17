@@ -170,6 +170,32 @@ function Dashboard() {
         </div>
       </div>
 
+      {/* Sección de Entrenamientos del Mes - Solo Gerente */}
+      {usuario?.rol === 'gerente' && stats?.entrenamientosMes && stats.entrenamientosMes.length > 0 && (
+        <div style={styles.entrenamientosSection}>
+          <h2 style={styles.sectionTitle}>Entrenamientos del Mes</h2>
+          <div style={styles.entrenamientosGrid}>
+            {stats.entrenamientosMes.map((item) => (
+              <div key={item.entrenadorId} style={styles.entrenamientoCard}>
+                <div style={styles.entrenamientoAvatar}>
+                  {item.nombre?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div style={styles.entrenamientoInfo}>
+                  <span style={styles.entrenamientoNombre}>{item.nombre}</span>
+                  <span style={styles.entrenamientoTotal}>
+                    {item.total} {item.total === 1 ? 'sesión' : 'sesiones'}
+                  </span>
+                </div>
+                <div style={styles.entrenamientoNumero}>{item.total}</div>
+              </div>
+            ))}
+          </div>
+          <Link to="/entrenadores" style={styles.entrenamientosLink}>
+            Ver detalle completo →
+          </Link>
+        </div>
+      )}
+
       {/* Sección de Accesos Rápidos */}
       <div style={styles.quickAccessSection}>
         <h2 style={styles.sectionTitle}>Accesos Rápidos</h2>
@@ -537,6 +563,82 @@ const styles = {
   cardArrowVisible: {
     opacity: 1,
     transform: 'translateX(0)',
+  },
+
+  // Sección de Entrenamientos del Mes
+  entrenamientosSection: {
+    marginBottom: '32px',
+  },
+
+  entrenamientosGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '12px',
+  },
+
+  entrenamientoCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    backgroundColor: 'white',
+    borderRadius: '12px',
+    padding: '16px 20px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    border: '1px solid rgba(0,0,0,0.04)',
+  },
+
+  entrenamientoAvatar: {
+    width: '42px',
+    height: '42px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #75b760, #5fa047)',
+    color: 'white',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: '700',
+    fontSize: '18px',
+    flexShrink: 0,
+    fontFamily: "'Niramit', sans-serif",
+  },
+
+  entrenamientoInfo: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+
+  entrenamientoNombre: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: '#1a1a2e',
+    fontFamily: "'Niramit', sans-serif",
+  },
+
+  entrenamientoTotal: {
+    fontSize: '12px',
+    color: '#6b7280',
+    fontFamily: "'Niramit', sans-serif",
+  },
+
+  entrenamientoNumero: {
+    fontSize: '24px',
+    fontWeight: '700',
+    color: '#75b760',
+    fontFamily: "'Niramit', sans-serif",
+    minWidth: '40px',
+    textAlign: 'right',
+  },
+
+  entrenamientosLink: {
+    display: 'inline-block',
+    marginTop: '12px',
+    fontSize: '13px',
+    color: '#75b760',
+    fontWeight: '600',
+    textDecoration: 'none',
+    fontFamily: "'Niramit', sans-serif",
   },
 };
 
