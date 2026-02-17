@@ -99,6 +99,17 @@ function Entrenadores() {
     (sum, e) => sum + e.totalEntrenamientos, 0
   );
 
+  const totalIngresosMes = estadisticasEntrenamientos.reduce(
+    (sum, e) => sum + (e.ingresos || 0), 0
+  );
+
+  const etiquetaTipoSesion = {
+    individual: 'Individual',
+    pareja: 'Pareja',
+    express: 'Express',
+    'pareja-express': 'Pareja Express'
+  };
+
   const handleChange = (e) => {
     setFormulario({
       ...formulario,
@@ -388,8 +399,8 @@ function Entrenadores() {
           </div>
 
           <div style={styles.statsTotalBar}>
-            <span>Total del mes:</span>
-            <strong>{totalEntrenamientosMes} {totalEntrenamientosMes === 1 ? 'entrenamiento' : 'entrenamientos'}</strong>
+            <span>Total del mes: <strong>{totalEntrenamientosMes} {totalEntrenamientosMes === 1 ? 'sesión' : 'sesiones'}</strong></span>
+            <strong style={{ color: '#75b760' }}>{totalIngresosMes.toFixed(2)}€ en incentivos</strong>
           </div>
 
           {cargandoEstadisticas ? (
@@ -402,6 +413,7 @@ function Entrenadores() {
               <div style={styles.statsFilaCabecera}>
                 <span style={{ ...styles.statsCelda, flex: 2 }}>Entrenador</span>
                 <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'center' }}>Sesiones</span>
+                <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'right' }}>Incentivos</span>
                 <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'center' }}>Detalle</span>
               </div>
 
@@ -425,6 +437,15 @@ function Entrenadores() {
                     }}>
                       {item.totalEntrenamientos}
                     </span>
+                    <span style={{
+                      ...styles.statsCelda,
+                      flex: 1,
+                      textAlign: 'right',
+                      fontWeight: '700',
+                      color: (item.ingresos || 0) > 0 ? '#1a1a2e' : '#999'
+                    }}>
+                      {(item.ingresos || 0).toFixed(2)}€
+                    </span>
                     <span style={{ ...styles.statsCelda, flex: 1, textAlign: 'center' }}>
                       {item.totalEntrenamientos > 0 ? (
                         <button
@@ -445,13 +466,23 @@ function Entrenadores() {
                   {detalleExpandido === item.entrenador._id && item.clientes?.length > 0 && (
                     <div style={styles.statsDesglose}>
                       <div style={styles.statsDesgloseHeader}>
-                        <span>Cliente</span>
-                        <span>Sesiones</span>
+                        <span style={{ flex: 2 }}>Cliente</span>
+                        <span style={{ flex: 1, textAlign: 'center' }}>Sesiones</span>
+                        <span style={{ flex: 1, textAlign: 'center' }}>Tipo</span>
+                        <span style={{ flex: 1, textAlign: 'right' }}>Subtotal</span>
                       </div>
                       {item.clientes.map((cliente, idx) => (
                         <div key={idx} style={styles.statsDesgloseFila}>
-                          <span>{cliente.nombre?.trim() || 'Sin nombre'}</span>
-                          <span style={{ fontWeight: '600', color: '#1a1a2e' }}>{cliente.cantidad}</span>
+                          <span style={{ flex: 2 }}>{cliente.nombre?.trim() || 'Sin nombre'}</span>
+                          <span style={{ flex: 1, textAlign: 'center', fontWeight: '600', color: '#1a1a2e' }}>{cliente.cantidad}</span>
+                          <span style={{ flex: 1, textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
+                            {cliente.tiposSesion ? Object.entries(cliente.tiposSesion).map(
+                              ([tipo, cant]) => `${etiquetaTipoSesion[tipo] || tipo} (${cant})`
+                            ).join(', ') : '—'}
+                          </span>
+                          <span style={{ flex: 1, textAlign: 'right', fontWeight: '600', color: '#1a1a2e' }}>
+                            {(cliente.ingresos || 0).toFixed(2)}€
+                          </span>
                         </div>
                       ))}
                     </div>

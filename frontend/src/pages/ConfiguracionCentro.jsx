@@ -34,7 +34,13 @@ function ConfiguracionCentro() {
     condicionesPago: '',
     emailRemitente: '',
     nombreRemitente: '',
-    prefijoFactura: ''
+    prefijoFactura: '',
+    preciosIncentivos: {
+      individual: 10,
+      pareja: 15,
+      express: 7,
+      parejaExpress: 10
+    }
   });
 
   useEffect(() => {
@@ -70,7 +76,13 @@ function ConfiguracionCentro() {
         condicionesPago: centroRes.data.condicionesPago || '',
         emailRemitente: centroRes.data.emailRemitente || '',
         nombreRemitente: centroRes.data.nombreRemitente || '',
-        prefijoFactura: centroRes.data.prefijoFactura || ''
+        prefijoFactura: centroRes.data.prefijoFactura || '',
+        preciosIncentivos: {
+          individual: centroRes.data.preciosIncentivos?.individual ?? 10,
+          pareja: centroRes.data.preciosIncentivos?.pareja ?? 15,
+          express: centroRes.data.preciosIncentivos?.express ?? 7,
+          parejaExpress: centroRes.data.preciosIncentivos?.parejaExpress ?? 10
+        }
       });
 
       setEmailStatus(emailRes.data);
@@ -85,6 +97,16 @@ function ConfiguracionCentro() {
     setFormulario({
       ...formulario,
       [e.target.name]: e.target.value
+    });
+  };
+
+  const handlePrecioChange = (tipo, valor) => {
+    setFormulario({
+      ...formulario,
+      preciosIncentivos: {
+        ...formulario.preciosIncentivos,
+        [tipo]: parseFloat(valor) || 0
+      }
     });
   };
 
@@ -354,6 +376,72 @@ function ConfiguracionCentro() {
                 rows="2"
                 placeholder="Ej: Pago a 30 dias desde la fecha de emision"
               />
+            </div>
+          </div>
+        </div>
+
+        {/* Seccion: Precios de Incentivos */}
+        <div className="config-centro-seccion">
+          <h2>Precios de Incentivos</h2>
+          <p className="config-centro-seccion-desc">
+            Define cuanto cobra cada entrenador por tipo de sesion completada. Estos valores se usan para calcular los incentivos mensuales.
+          </p>
+          <div className="config-centro-grid">
+            <div className="config-centro-field">
+              <label>Individual</label>
+              <div className="config-centro-precio-input">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formulario.preciosIncentivos.individual}
+                  onChange={(e) => handlePrecioChange('individual', e.target.value)}
+                  placeholder="10"
+                />
+                <span className="config-centro-precio-suffix">&euro;</span>
+              </div>
+            </div>
+            <div className="config-centro-field">
+              <label>Pareja</label>
+              <div className="config-centro-precio-input">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formulario.preciosIncentivos.pareja}
+                  onChange={(e) => handlePrecioChange('pareja', e.target.value)}
+                  placeholder="15"
+                />
+                <span className="config-centro-precio-suffix">&euro;</span>
+              </div>
+            </div>
+            <div className="config-centro-field">
+              <label>Express</label>
+              <div className="config-centro-precio-input">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formulario.preciosIncentivos.express}
+                  onChange={(e) => handlePrecioChange('express', e.target.value)}
+                  placeholder="7"
+                />
+                <span className="config-centro-precio-suffix">&euro;</span>
+              </div>
+            </div>
+            <div className="config-centro-field">
+              <label>Pareja Express</label>
+              <div className="config-centro-precio-input">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={formulario.preciosIncentivos.parejaExpress}
+                  onChange={(e) => handlePrecioChange('parejaExpress', e.target.value)}
+                  placeholder="10"
+                />
+                <span className="config-centro-precio-suffix">&euro;</span>
+              </div>
             </div>
           </div>
         </div>

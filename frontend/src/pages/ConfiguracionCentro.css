@@ -198,6 +198,37 @@
   cursor: not-allowed;
 }
 
+/* Input con sufijo de precio */
+.config-centro-precio-input {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.config-centro-precio-input input {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.config-centro-precio-input input:focus {
+  outline: none;
+  border-color: #75b760;
+  box-shadow: 0 0 0 3px rgba(117, 183, 96, 0.1);
+}
+
+.config-centro-precio-suffix {
+  position: absolute;
+  right: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 14px;
+  pointer-events: none;
+}
+
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
   .config-centro-container {
