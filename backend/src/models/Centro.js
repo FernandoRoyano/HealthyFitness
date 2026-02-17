@@ -108,6 +108,14 @@ const centroSchema = new mongoose.Schema({
   ultimoNumeroFactura: {
     type: Number,
     default: 0
+  },
+
+  // Precios de incentivos por tipo de sesion
+  preciosIncentivos: {
+    individual: { type: Number, default: 10 },
+    pareja: { type: Number, default: 15 },
+    express: { type: Number, default: 7 },
+    parejaExpress: { type: Number, default: 10 }
   }
 }, {
   timestamps: true

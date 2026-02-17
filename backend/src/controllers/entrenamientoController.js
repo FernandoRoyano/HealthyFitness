@@ -5,6 +5,7 @@ import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 import Cliente from '../models/Cliente.js';
 import User from '../models/User.js';
 import Reserva from '../models/Reserva.js';
+import Centro from '../models/Centro.js';
 import { createImageUpload, eliminarFotoAnterior } from '../utils/uploadHelper.js';
 
 export const ejercicioImageUpload = createImageUpload('ejercicio');
@@ -618,12 +619,25 @@ export const obtenerEstadisticasEntrenadores = async (req, res) => {
     const inicioMes = new Date(anio, mes - 1, 1);
     const finMes = new Date(anio, mes, 0, 23, 59, 59, 999);
 
-    // Obtener IDs de entrenadores (excluir gerentes)
-    const entrenadores = await User.find({ rol: 'entrenador', activo: true }).select('_id nombre');
+    // Obtener precios de incentivos y entrenadores en paralelo
+    const [centro, entrenadores] = await Promise.all([
+      Centro.obtenerCentro(),
+      User.find({ rol: 'entrenador', activo: true }).select('_id nombre')
+    ]);
+
+    const precios = centro.preciosIncentivos || { individual: 10, pareja: 15, express: 7, parejaExpress: 10 };
+    // Mapeo de tipoSesion de BD a campo del modelo Centro
+    const preciosPorTipo = {
+      individual: precios.individual,
+      pareja: precios.pareja,
+      express: precios.express,
+      'pareja-express': precios.parejaExpress
+    };
+
     const idsEntrenadores = entrenadores.map(e => e._id);
 
-    // Aggregation: desglose por entrenador y cliente usando Reservas
-    const resultados = await Reserva.aggregate([
+    // Aggregation: desglose por entrenador, cliente y tipo de sesión
+    const resultadosRaw = await Reserva.aggregate([
       {
         $match: {
           fecha: { $gte: inicioMes, $lte: finMes },
@@ -633,78 +647,108 @@ export const obtenerEstadisticasEntrenadores = async (req, res) => {
       },
       {
         $group: {
-          _id: { entrenador: '$entrenador', cliente: '$cliente' },
+          _id: {
+            entrenador: '$entrenador',
+            cliente: '$cliente',
+            tipoSesion: '$tipoSesion'
+          },
           cantidad: { $sum: 1 }
-        }
-      },
-      {
-        $group: {
-          _id: '$_id.entrenador',
-          totalEntrenamientos: { $sum: '$cantidad' },
-          clientes: {
-            $push: {
-              clienteId: '$_id.cliente',
-              cantidad: '$cantidad'
-            }
-          }
         }
       },
       {
         $lookup: {
           from: 'users',
-          localField: '_id',
+          localField: '_id.entrenador',
           foreignField: '_id',
           as: 'entrenadorInfo'
         }
       },
       { $unwind: '$entrenadorInfo' },
-      { $unwind: '$clientes' },
       {
         $lookup: {
           from: 'clientes',
-          localField: 'clientes.clienteId',
+          localField: '_id.cliente',
           foreignField: '_id',
           as: 'clienteInfo'
         }
       },
       {
-        $group: {
-          _id: '$_id',
-          entrenador: { $first: { _id: '$entrenadorInfo._id', nombre: '$entrenadorInfo.nombre' } },
-          totalEntrenamientos: { $first: '$totalEntrenamientos' },
-          clientes: {
-            $push: {
-              _id: { $arrayElemAt: ['$clienteInfo._id', 0] },
-              nombre: {
-                $concat: [
-                  { $ifNull: [{ $arrayElemAt: ['$clienteInfo.nombre', 0] }, ''] },
-                  ' ',
-                  { $ifNull: [{ $arrayElemAt: ['$clienteInfo.apellido', 0] }, ''] }
-                ]
-              },
-              cantidad: '$clientes.cantidad'
-            }
-          }
+        $project: {
+          entrenadorId: '$_id.entrenador',
+          entrenadorNombre: '$entrenadorInfo.nombre',
+          clienteId: '$_id.cliente',
+          clienteNombre: {
+            $concat: [
+              { $ifNull: [{ $arrayElemAt: ['$clienteInfo.nombre', 0] }, ''] },
+              ' ',
+              { $ifNull: [{ $arrayElemAt: ['$clienteInfo.apellido', 0] }, ''] }
+            ]
+          },
+          tipoSesion: '$_id.tipoSesion',
+          cantidad: 1
         }
-      },
-      { $sort: { totalEntrenamientos: -1 } }
+      }
     ]);
 
+    // Agrupar resultados en JS para tener estructura limpia
+    const mapaEntrenadores = {};
+    for (const row of resultadosRaw) {
+      const eId = row.entrenadorId.toString();
+      if (!mapaEntrenadores[eId]) {
+        mapaEntrenadores[eId] = {
+          entrenador: { _id: row.entrenadorId, nombre: row.entrenadorNombre },
+          totalEntrenamientos: 0,
+          ingresos: 0,
+          clientes: {},
+          tiposSesion: {}
+        };
+      }
+      const e = mapaEntrenadores[eId];
+      const precio = preciosPorTipo[row.tipoSesion] || preciosPorTipo.individual;
+      const subtotal = row.cantidad * precio;
+
+      e.totalEntrenamientos += row.cantidad;
+      e.ingresos += subtotal;
+
+      // Por tipo de sesión
+      e.tiposSesion[row.tipoSesion] = (e.tiposSesion[row.tipoSesion] || 0) + row.cantidad;
+
+      // Por cliente
+      const cId = row.clienteId.toString();
+      if (!e.clientes[cId]) {
+        e.clientes[cId] = { _id: row.clienteId, nombre: row.clienteNombre?.trim(), cantidad: 0, ingresos: 0, tiposSesion: {} };
+      }
+      e.clientes[cId].cantidad += row.cantidad;
+      e.clientes[cId].ingresos += subtotal;
+      e.clientes[cId].tiposSesion[row.tipoSesion] = (e.clientes[cId].tiposSesion[row.tipoSesion] || 0) + row.cantidad;
+    }
+
+    // Convertir a array
+    const estadisticas = Object.values(mapaEntrenadores).map(e => ({
+      ...e,
+      clientes: Object.values(e.clientes).sort((a, b) => b.cantidad - a.cantidad)
+    })).sort((a, b) => b.totalEntrenamientos - a.totalEntrenamientos);
+
     // Incluir entrenadores sin reservas en el mes
-    const idsConRegistros = resultados.map(r => r._id.toString());
+    const idsConRegistros = new Set(estadisticas.map(e => e.entrenador._id.toString()));
     const sinRegistros = entrenadores
-      .filter(e => !idsConRegistros.includes(e._id.toString()))
+      .filter(e => !idsConRegistros.has(e._id.toString()))
       .map(e => ({
-        _id: e._id,
         entrenador: { _id: e._id, nombre: e.nombre },
         totalEntrenamientos: 0,
-        clientes: []
+        ingresos: 0,
+        clientes: [],
+        tiposSesion: {}
       }));
+
+    const totalIngresos = estadisticas.reduce((sum, e) => sum + e.ingresos, 0);
 
     res.json({
       mes,
       anio,
-      estadisticas: [...resultados, ...sinRegistros]
+      preciosIncentivos: preciosPorTipo,
+      totalIngresos,
+      estadisticas: [...estadisticas, ...sinRegistros]
     });
   } catch (error) {
     res.status(500).json({

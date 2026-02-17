@@ -173,7 +173,14 @@ function Dashboard() {
       {/* Sección de Entrenamientos del Mes - Solo Gerente */}
       {usuario?.rol === 'gerente' && stats?.entrenamientosMes && stats.entrenamientosMes.length > 0 && (
         <div style={styles.entrenamientosSection}>
-          <h2 style={styles.sectionTitle}>Entrenamientos del Mes</h2>
+          <div style={styles.entrenamientosTitleRow}>
+            <h2 style={styles.sectionTitle}>Entrenamientos del Mes</h2>
+            {stats.totalIngresosMes > 0 && (
+              <span style={styles.entrenamientosTotalIngresos}>
+                Total incentivos: {stats.totalIngresosMes.toFixed(2)}€
+              </span>
+            )}
+          </div>
           <div style={styles.entrenamientosGrid}>
             {stats.entrenamientosMes.map((item) => (
               <div key={item.entrenadorId} style={styles.entrenamientoCard}>
@@ -184,6 +191,7 @@ function Dashboard() {
                   <span style={styles.entrenamientoNombre}>{item.nombre}</span>
                   <span style={styles.entrenamientoTotal}>
                     {item.total} {item.total === 1 ? 'sesión' : 'sesiones'}
+                    {item.ingresos > 0 && ` · ${item.ingresos.toFixed(2)}€`}
                   </span>
                 </div>
                 <div style={styles.entrenamientoNumero}>{item.total}</div>
@@ -568,6 +576,23 @@ const styles = {
   // Sección de Entrenamientos del Mes
   entrenamientosSection: {
     marginBottom: '32px',
+  },
+
+  entrenamientosTitleRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '16px',
+  },
+
+  entrenamientosTotalIngresos: {
+    fontSize: '15px',
+    fontWeight: '700',
+    color: '#75b760',
+    backgroundColor: '#f0f9ed',
+    padding: '6px 14px',
+    borderRadius: '20px',
+    fontFamily: "'Niramit', sans-serif",
   },
 
   entrenamientosGrid: {

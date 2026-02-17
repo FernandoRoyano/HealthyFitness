@@ -5,6 +5,7 @@ import SolicitudCambio from '../models/SolicitudCambio.js';
 import Vacacion from '../models/Vacacion.js';
 import FacturaMensual from '../models/FacturaMensual.js';
 import User from '../models/User.js';
+import Centro from '../models/Centro.js';
 
 // @desc    Obtener estadísticas del dashboard
 // @route   GET /api/dashboard/stats
@@ -22,9 +23,20 @@ export const obtenerEstadisticas = async (req, res) => {
 
     if (usuario.rol === 'gerente') {
       // Estadísticas para gerente
-      // Obtener IDs de entrenadores para la query de entrenamientos
-      const entrenadores = await User.find({ rol: 'entrenador', activo: true }).select('_id nombre');
+      // Obtener entrenadores y precios de incentivos
+      const [entrenadores, centro] = await Promise.all([
+        User.find({ rol: 'entrenador', activo: true }).select('_id nombre'),
+        Centro.obtenerCentro()
+      ]);
       const idsEntrenadores = entrenadores.map(e => e._id);
+
+      const precios = centro.preciosIncentivos || { individual: 10, pareja: 15, express: 7, parejaExpress: 10 };
+      const preciosPorTipo = {
+        individual: precios.individual,
+        pareja: precios.pareja,
+        express: precios.express,
+        'pareja-express': precios.parejaExpress
+      };
 
       const inicioMes = new Date(anioActual, mesActual - 1, 1);
       const finMes = new Date(anioActual, mesActual, 0, 23, 59, 59, 999);
@@ -72,7 +84,7 @@ export const obtenerEstadisticas = async (req, res) => {
           }
         ]),
 
-        // Reservas del mes por entrenador (completadas o confirmadas)
+        // Reservas del mes por entrenador y tipo (completadas o confirmadas)
         Reserva.aggregate([
           {
             $match: {
@@ -83,24 +95,33 @@ export const obtenerEstadisticas = async (req, res) => {
           },
           {
             $group: {
-              _id: '$entrenador',
+              _id: { entrenador: '$entrenador', tipoSesion: '$tipoSesion' },
               total: { $sum: 1 }
             }
           }
         ])
       ]);
 
-      // Mapear entrenamientos con nombres de entrenadores
+      // Calcular sesiones e ingresos por entrenador
       const mapaEntrenamientos = {};
-      entrenamientosPorEntrenador.forEach(e => {
-        mapaEntrenamientos[e._id.toString()] = e.total;
+      entrenamientosPorEntrenador.forEach(row => {
+        const eId = row._id.entrenador.toString();
+        const precio = preciosPorTipo[row._id.tipoSesion] || preciosPorTipo.individual;
+        if (!mapaEntrenamientos[eId]) {
+          mapaEntrenamientos[eId] = { total: 0, ingresos: 0 };
+        }
+        mapaEntrenamientos[eId].total += row.total;
+        mapaEntrenamientos[eId].ingresos += row.total * precio;
       });
 
       const entrenamientosMes = entrenadores.map(e => ({
         entrenadorId: e._id,
         nombre: e.nombre,
-        total: mapaEntrenamientos[e._id.toString()] || 0
+        total: mapaEntrenamientos[e._id.toString()]?.total || 0,
+        ingresos: mapaEntrenamientos[e._id.toString()]?.ingresos || 0
       })).sort((a, b) => b.total - a.total);
+
+      const totalIngresosMes = entrenamientosMes.reduce((sum, e) => sum + e.ingresos, 0);
 
       res.json({
         clientesActivos,
@@ -109,7 +130,8 @@ export const obtenerEstadisticas = async (req, res) => {
         solicitudesPendientes,
         vacacionesPendientes,
         facturacionMes: facturasMes[0]?.total || 0,
-        entrenamientosMes
+        entrenamientosMes,
+        totalIngresosMes
       });
 
     } else {
