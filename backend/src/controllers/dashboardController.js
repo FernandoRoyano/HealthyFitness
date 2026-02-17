@@ -4,7 +4,6 @@ import Reserva from '../models/Reserva.js';
 import SolicitudCambio from '../models/SolicitudCambio.js';
 import Vacacion from '../models/Vacacion.js';
 import FacturaMensual from '../models/FacturaMensual.js';
-import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 import User from '../models/User.js';
 
 // @desc    Obtener estadísticas del dashboard
@@ -73,17 +72,18 @@ export const obtenerEstadisticas = async (req, res) => {
           }
         ]),
 
-        // Entrenamientos del mes por entrenador
-        RegistroEntrenamiento.aggregate([
+        // Reservas del mes por entrenador (completadas o confirmadas)
+        Reserva.aggregate([
           {
             $match: {
               fecha: { $gte: inicioMes, $lte: finMes },
-              registradoPor: { $in: idsEntrenadores }
+              entrenador: { $in: idsEntrenadores },
+              estado: { $in: ['completada', 'confirmada'] }
             }
           },
           {
             $group: {
-              _id: '$registradoPor',
+              _id: '$entrenador',
               total: { $sum: 1 }
             }
           }

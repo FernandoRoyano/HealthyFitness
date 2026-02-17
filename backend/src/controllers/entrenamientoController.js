@@ -4,6 +4,7 @@ import Rutina from '../models/Rutina.js';
 import RegistroEntrenamiento from '../models/RegistroEntrenamiento.js';
 import Cliente from '../models/Cliente.js';
 import User from '../models/User.js';
+import Reserva from '../models/Reserva.js';
 import { createImageUpload, eliminarFotoAnterior } from '../utils/uploadHelper.js';
 
 export const ejercicioImageUpload = createImageUpload('ejercicio');
@@ -604,7 +605,7 @@ export const obtenerPRs = async (req, res) => {
 
 // ==================== ESTADÍSTICAS ENTRENADORES ====================
 
-// @desc    Obtener estadísticas de entrenamientos por entrenador (mes/año)
+// @desc    Obtener estadísticas de sesiones (reservas) por entrenador (mes/año)
 // @route   GET /api/entrenamiento/estadisticas/entrenadores
 // @access  Solo gerente
 export const obtenerEstadisticasEntrenadores = async (req, res) => {
@@ -621,17 +622,18 @@ export const obtenerEstadisticasEntrenadores = async (req, res) => {
     const entrenadores = await User.find({ rol: 'entrenador', activo: true }).select('_id nombre');
     const idsEntrenadores = entrenadores.map(e => e._id);
 
-    // Aggregation: desglose por entrenador y cliente
-    const resultados = await RegistroEntrenamiento.aggregate([
+    // Aggregation: desglose por entrenador y cliente usando Reservas
+    const resultados = await Reserva.aggregate([
       {
         $match: {
           fecha: { $gte: inicioMes, $lte: finMes },
-          registradoPor: { $in: idsEntrenadores }
+          entrenador: { $in: idsEntrenadores },
+          estado: { $in: ['completada', 'confirmada'] }
         }
       },
       {
         $group: {
-          _id: { entrenador: '$registradoPor', cliente: '$cliente' },
+          _id: { entrenador: '$entrenador', cliente: '$cliente' },
           cantidad: { $sum: 1 }
         }
       },
@@ -688,7 +690,7 @@ export const obtenerEstadisticasEntrenadores = async (req, res) => {
       { $sort: { totalEntrenamientos: -1 } }
     ]);
 
-    // Incluir entrenadores sin entrenamientos en el mes
+    // Incluir entrenadores sin reservas en el mes
     const idsConRegistros = resultados.map(r => r._id.toString());
     const sinRegistros = entrenadores
       .filter(e => !idsConRegistros.includes(e._id.toString()))
