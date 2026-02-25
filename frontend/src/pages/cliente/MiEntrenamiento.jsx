@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useClienteAuth } from '../../context/ClienteAuthContext';
 import { clientePortalAPI } from '../../services/api';
+import { ClipboardList, Dumbbell } from 'lucide-react';
 
 function MiEntrenamiento() {
   const { cliente } = useClienteAuth();
@@ -161,7 +162,7 @@ function MiEntrenamiento() {
           </div>
         ) : (
           <div style={styles.emptyState}>
-            <span style={styles.emptyIcon}>📋</span>
+            <span style={styles.emptyIcon}><ClipboardList size={48} /></span>
             <h3 style={styles.emptyTitle}>Sin rutina asignada</h3>
             <p style={styles.emptyText}>
               Tu entrenador te asignara una rutina de entrenamiento personalizada.
@@ -211,7 +212,7 @@ function MiEntrenamiento() {
 
         {historial.length === 0 ? (
           <div style={styles.emptyState}>
-            <span style={styles.emptyIcon}>🏋️</span>
+            <span style={styles.emptyIcon}><Dumbbell size={48} /></span>
             <h3 style={styles.emptyTitle}>Sin entrenamientos registrados</h3>
             <p style={styles.emptyText}>
               Tu entrenador registrara tus sesiones de entrenamiento aqui.
@@ -227,7 +228,7 @@ function MiEntrenamiento() {
                   </div>
                   <span style={{
                     ...styles.historialEstado,
-                    backgroundColor: registro.completado ? '#75b760' : '#ff9800'
+                    backgroundColor: registro.completado ? '#10b981' : '#ff9800'
                   }}>
                     {registro.completado ? 'Completado' : 'Parcial'}
                   </span>
@@ -306,12 +307,12 @@ const styles = {
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   subtitle: {
     fontSize: '14px',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   error: {
     padding: '14px',
@@ -331,7 +332,7 @@ const styles = {
     fontWeight: '600',
     color: '#1a1a2e',
     marginBottom: '16px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
 
   // Rutina
@@ -370,7 +371,7 @@ const styles = {
     borderRadius: '12px',
     fontSize: '12px',
     fontWeight: '600',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     whiteSpace: 'nowrap'
   },
@@ -544,7 +545,7 @@ const styles = {
   historialFecha: {
     fontSize: '15px',
     fontWeight: '600',
-    color: '#75b760'
+    color: '#10b981'
   },
   historialEstado: {
     padding: '3px 10px',
@@ -614,7 +615,7 @@ const styles = {
     borderRadius: '8px',
     fontSize: '13px',
     color: '#666',
-    borderLeft: '3px solid #75b760'
+    borderLeft: '3px solid #10b981'
   },
 
   // Empty states

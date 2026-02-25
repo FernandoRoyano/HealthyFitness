@@ -136,29 +136,33 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8fafc',
     padding: '20px'
   },
   card: {
     backgroundColor: 'white',
     padding: '40px',
     borderRadius: '8px',
-    boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+    boxShadow: '0 4px 6px -1px rgba(15,23,42,0.07), 0 2px 4px -2px rgba(15,23,42,0.05)',
     width: '100%',
-    maxWidth: '400px'
+    maxWidth: '420px',
+    border: '1px solid #e2e8f0'
   },
   title: {
     fontSize: '24px',
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: '10px',
-    textAlign: 'center'
+    fontWeight: '700',
+    color: '#0f172a',
+    marginBottom: '8px',
+    textAlign: 'center',
+    fontFamily: 'Inter, sans-serif'
   },
   subtitle: {
     fontSize: '18px',
-    color: '#666',
+    color: '#64748b',
     marginBottom: '30px',
-    textAlign: 'center'
+    textAlign: 'center',
+    fontFamily: 'Inter, sans-serif',
+    fontWeight: '400'
   },
   form: {
     display: 'flex',
@@ -168,51 +172,55 @@ const styles = {
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px'
+    gap: '6px'
   },
   label: {
     fontSize: '14px',
     fontWeight: '500',
-    color: '#333'
+    color: '#0f172a',
+    fontFamily: 'Inter, sans-serif'
   },
   input: {
     padding: '10px 12px',
     fontSize: '14px',
-    border: '1px solid #ddd',
-    borderRadius: '4px',
-    outline: 'none'
+    border: '1px solid #e2e8f0',
+    borderRadius: '6px',
+    outline: 'none',
+    fontFamily: 'Inter, sans-serif'
   },
   hint: {
     fontSize: '12px',
-    color: '#999'
+    color: '#94a3b8'
   },
   button: {
     padding: '12px',
-    fontSize: '16px',
-    fontWeight: '500',
+    fontSize: '15px',
+    fontWeight: '600',
     color: 'white',
-    backgroundColor: '#007bff',
+    backgroundColor: '#10b981',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    marginTop: '10px'
+    marginTop: '8px',
+    fontFamily: 'Inter, sans-serif'
   },
   error: {
     padding: '10px',
-    backgroundColor: '#fee',
-    color: '#c00',
-    borderRadius: '4px',
-    marginBottom: '20px',
-    fontSize: '14px'
+    backgroundColor: '#fef2f2',
+    color: '#dc2626',
+    borderRadius: '6px',
+    marginBottom: '16px',
+    fontSize: '14px',
+    border: '1px solid #fecaca'
   },
   loginLink: {
     marginTop: '20px',
     textAlign: 'center',
     fontSize: '14px',
-    color: '#666'
+    color: '#64748b'
   },
   link: {
-    color: '#007bff',
+    color: '#10b981',
     textDecoration: 'none',
     fontWeight: '500'
   }

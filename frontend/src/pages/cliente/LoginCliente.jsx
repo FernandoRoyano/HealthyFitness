@@ -129,10 +129,10 @@ const styles = {
   title: {
     fontSize: 'clamp(26px, 6vw, 36px)',
     fontWeight: '700',
-    color: '#75b760',
+    color: '#10b981',
     marginBottom: '8px',
     textAlign: 'center',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     letterSpacing: '-0.5px'
   },
   portalTag: {
@@ -141,7 +141,7 @@ const styles = {
     backgroundColor: '#1a1a2e',
     padding: '4px 16px',
     borderRadius: '20px',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     fontWeight: '500'
   },
   subtitle: {
@@ -149,7 +149,7 @@ const styles = {
     color: '#666666',
     marginBottom: '32px',
     textAlign: 'center',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     fontWeight: '400',
     marginTop: '24px'
   },
@@ -167,7 +167,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: '#333',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   input: {
     padding: '14px 16px',
@@ -183,13 +183,13 @@ const styles = {
     fontSize: '18px',
     fontWeight: '700',
     color: 'white',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
     borderRadius: '12px',
     cursor: 'pointer',
     marginTop: '8px',
     transition: 'all 0.3s ease',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     boxShadow: '0 4px 12px rgba(117, 183, 96, 0.3)'
   },
   error: {
@@ -205,7 +205,7 @@ const styles = {
     marginTop: '24px',
     padding: '16px',
     backgroundColor: '#f8fdf6',
-    borderLeft: '4px solid #75b760',
+    borderLeft: '4px solid #10b981',
     fontSize: '14px',
     color: '#555',
     lineHeight: '1.6',
@@ -218,7 +218,7 @@ const styles = {
   link: {
     color: '#1a1a2e',
     fontSize: '14px',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     textDecoration: 'none'
   }
 };

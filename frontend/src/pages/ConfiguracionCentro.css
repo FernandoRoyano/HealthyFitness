@@ -12,7 +12,7 @@
 
 .config-centro-header h1 {
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 600;
   color: #1f2937;
   margin: 0 0 8px 0;
 }
@@ -115,8 +115,8 @@
 .config-centro-field textarea:focus,
 .config-centro-field select:focus {
   outline: none;
-  border-color: #75b760;
-  box-shadow: 0 0 0 3px rgba(117, 183, 96, 0.1);
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .config-centro-field textarea {
@@ -178,7 +178,7 @@
 
 .btn-guardar {
   padding: 12px 32px;
-  background: linear-gradient(135deg, #75b760, #5fa047);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
   border: none;
   border-radius: 8px;
@@ -190,7 +190,7 @@
 
 .btn-guardar:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(117, 183, 96, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .btn-guardar:disabled {
@@ -216,8 +216,8 @@
 
 .config-centro-precio-input input:focus {
   outline: none;
-  border-color: #75b760;
-  box-shadow: 0 0 0 3px rgba(117, 183, 96, 0.1);
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
 .config-centro-precio-suffix {

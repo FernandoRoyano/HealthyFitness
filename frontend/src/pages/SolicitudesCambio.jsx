@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { solicitudesCambioAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Check, X } from 'lucide-react';
 
 function SolicitudesCambio() {
   const [solicitudes, setSolicitudes] = useState([]);
@@ -336,14 +337,14 @@ function SolicitudesCambio() {
                           disabled={procesando}
                           style={styles.buttonAprobar}
                         >
-                          {procesando ? 'Procesando...' : '✓ Aprobar'}
+                          {procesando ? 'Procesando...' : <><Check size={14} style={{ marginRight: '4px', display: 'inline' }} /> Aprobar</>}
                         </button>
                         <button
                           onClick={() => handleRechazar(solicitudSeleccionada._id)}
                           disabled={procesando}
                           style={styles.buttonRechazar}
                         >
-                          {procesando ? 'Procesando...' : '✗ Rechazar'}
+                          {procesando ? 'Procesando...' : <><X size={14} style={{ marginRight: '4px', display: 'inline' }} /> Rechazar</>}
                         </button>
                       </div>
                     </>
@@ -397,8 +398,8 @@ const styles = {
     transition: 'all 0.2s ease'
   },
   filterButtonActive: {
-    color: '#75b760',
-    borderColor: '#75b760',
+    color: '#10b981',
+    borderColor: '#10b981',
     backgroundColor: '#f8fdf6'
   },
   error: {
@@ -478,7 +479,7 @@ const styles = {
   },
   flechaCambio: {
     fontSize: '24px',
-    color: '#75b760',
+    color: '#10b981',
     fontWeight: 'bold'
   },
   motivoContainer: {
@@ -559,13 +560,13 @@ const styles = {
   cambioLabelModal: {
     display: 'block',
     fontSize: '14px',
-    color: '#75b760',
+    color: '#10b981',
     marginBottom: '10px',
     fontWeight: '600'
   },
   flechaCambioModal: {
     fontSize: '32px',
-    color: '#75b760',
+    color: '#10b981',
     fontWeight: 'bold'
   },
   accionesContainer: {

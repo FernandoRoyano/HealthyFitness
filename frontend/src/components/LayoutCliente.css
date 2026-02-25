@@ -2,13 +2,13 @@
 .layout-cliente-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f0f7ed;
+  background-color: var(--color-background-alt);
 }
 
 /* ==================== SIDEBAR CLIENTE ==================== */
 .cliente-sidebar {
   width: 260px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(180deg, var(--color-sidebar) 0%, #1e293b 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@
 
 .cliente-sidebar-header {
   padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cliente-sidebar-logo {
@@ -33,8 +33,8 @@
 }
 
 .cliente-sidebar-logo-img {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
 }
 
@@ -44,17 +44,17 @@
 }
 
 .cliente-logo-title {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  color: #75b760;
-  font-family: 'Niramit', sans-serif;
-  letter-spacing: -0.5px;
+  color: var(--color-primary);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.3px;
 }
 
 .cliente-logo-subtitle {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
-  font-family: 'Niramit', sans-serif;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Inter', sans-serif;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -69,33 +69,33 @@
 .cliente-sidebar-link {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  color: rgba(255, 255, 255, 0.7);
+  gap: 12px;
+  padding: 11px 16px;
+  color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
-  border-radius: 10px;
-  margin-bottom: 6px;
-  font-family: 'Niramit', sans-serif;
-  font-size: 15px;
+  border-radius: var(--radius-md);
+  margin-bottom: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .cliente-sidebar-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .cliente-sidebar-link.active {
-  background: linear-gradient(135deg, #75b760, #5fa047);
-  color: white;
-  box-shadow: 0 4px 12px rgba(117, 183, 96, 0.3);
+  background-color: rgba(16, 185, 129, 0.15);
+  color: var(--color-primary);
 }
 
 .cliente-sidebar-icon {
-  font-size: 20px;
-  width: 28px;
-  text-align: center;
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cliente-sidebar-label {
@@ -105,29 +105,30 @@
 /* Footer del sidebar cliente */
 .cliente-sidebar-footer {
   padding: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .cliente-sidebar-user {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  margin-bottom: 12px;
+  padding: 10px 12px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-md);
+  margin-bottom: 10px;
 }
 
 .cliente-user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #75b760, #5fa047);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  color: white;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .cliente-user-avatar img {
@@ -143,19 +144,19 @@
 }
 
 .cliente-user-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: white;
-  font-family: 'Niramit', sans-serif;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Inter', sans-serif;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .cliente-user-email {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  font-family: 'Niramit', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: 'Inter', sans-serif;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -163,22 +164,26 @@
 
 .cliente-sidebar-logout {
   width: 100%;
-  padding: 12px 16px;
+  padding: 9px 14px;
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-family: 'Niramit', sans-serif;
-  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   font-weight: 500;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .cliente-sidebar-logout:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Overlay para móvil */
@@ -204,9 +209,9 @@
 
 /* ==================== HEADER SUPERIOR CLIENTE ==================== */
 .cliente-top-header {
-  height: 60px;
+  height: 56px;
   background-color: white;
-  border-bottom: 1px solid #e4e4e9;
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -230,17 +235,17 @@
 
 .cliente-hamburger-line {
   width: 24px;
-  height: 3px;
-  background-color: #333;
-  border-radius: 3px;
+  height: 2px;
+  background-color: var(--color-text);
+  border-radius: 2px;
   transition: all 0.3s ease;
 }
 
 .cliente-header-title {
-  font-family: 'Niramit', sans-serif;
-  font-size: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text);
 }
 
 .cliente-header-actions {
@@ -250,15 +255,19 @@
 }
 
 .cliente-profile-btn {
-  font-size: 24px;
   text-decoration: none;
   padding: 8px;
-  border-radius: 50%;
-  transition: background-color 0.2s;
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+  color: var(--color-text-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .cliente-profile-btn:hover {
-  background-color: #f5f5f5;
+  background-color: var(--color-background-alt);
+  color: var(--color-text);
 }
 
 /* ==================== CONTENIDO PRINCIPAL CLIENTE ==================== */
@@ -314,7 +323,7 @@
   }
 
   .cliente-header-title {
-    font-size: 16px;
+    font-size: 15px;
   }
 }
 
@@ -329,7 +338,7 @@
   }
 
   .cliente-sidebar-link {
-    padding: 12px 14px;
-    font-size: 14px;
+    padding: 10px 14px;
+    font-size: 13px;
   }
 }

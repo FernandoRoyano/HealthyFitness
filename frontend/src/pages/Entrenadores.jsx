@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usersAPI, entrenamientoAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { User, Key } from 'lucide-react';
 import './Entrenadores.css';
 
 function Entrenadores() {
@@ -339,7 +340,7 @@ function Entrenadores() {
               <div style={styles.cardHeader}>
                 <div style={styles.cardTitleSection}>
                   <div style={styles.avatarSmall}>
-                    <span style={{ fontSize: '24px' }}>👤</span>
+                    <User size={24} />
                   </div>
                   <h3 style={styles.cardTitle}>{entrenador.nombre}</h3>
                 </div>
@@ -359,7 +360,7 @@ function Entrenadores() {
                         style={styles.buttonPassword}
                         title={esMiPerfil ? 'Cambiar mi contraseña' : 'Resetear contraseña'}
                       >
-                        🔑
+                        <Key size={16} />
                       </button>
                     )}
                   </div>
@@ -400,7 +401,7 @@ function Entrenadores() {
 
           <div style={styles.statsTotalBar}>
             <span>Total del mes: <strong>{totalEntrenamientosMes} {totalEntrenamientosMes === 1 ? 'sesión' : 'sesiones'}</strong></span>
-            <strong style={{ color: '#75b760' }}>{totalIngresosMes.toFixed(2)}€ en incentivos</strong>
+            <strong style={{ color: '#10b981' }}>{totalIngresosMes.toFixed(2)}€ en incentivos</strong>
           </div>
 
           {cargandoEstadisticas ? (
@@ -433,7 +434,7 @@ function Entrenadores() {
                       textAlign: 'center',
                       fontWeight: '700',
                       fontSize: '18px',
-                      color: item.totalEntrenamientos > 0 ? '#75b760' : '#999'
+                      color: item.totalEntrenamientos > 0 ? '#10b981' : '#999'
                     }}>
                       {item.totalEntrenamientos}
                     </span>
@@ -509,7 +510,7 @@ function Entrenadores() {
                     <img src={fotoPreview} alt="Preview" style={styles.fotoPreview} />
                   ) : (
                     <div style={styles.fotoPlaceholder}>
-                      <span style={{ fontSize: '40px' }}>👤</span>
+                      <User size={40} />
                     </div>
                   )}
                 </div>
@@ -1048,14 +1049,14 @@ const styles = {
   },
   // Estilos para destacar el perfil propio del entrenador
   cardMiPerfil: {
-    border: '2px solid #75b760',
+    border: '2px solid #10b981',
     position: 'relative'
   },
   miPerfilBadge: {
     position: 'absolute',
     top: '-10px',
     right: '15px',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: 'white',
     padding: '4px 12px',
     borderRadius: '12px',

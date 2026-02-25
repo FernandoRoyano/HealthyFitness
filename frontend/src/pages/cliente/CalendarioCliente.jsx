@@ -72,7 +72,7 @@ function CalendarioCliente() {
 
       <div style={styles.legend}>
         <div style={styles.legendItem}>
-          <div style={{...styles.legendColor, backgroundColor: '#75b760'}}></div>
+          <div style={{...styles.legendColor, backgroundColor: '#10b981'}}></div>
           <span>Sesión confirmada</span>
         </div>
         <div style={styles.legendItem}>
@@ -106,12 +106,12 @@ const styles = {
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   subtitle: {
     fontSize: '14px',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   error: {
     padding: '14px',

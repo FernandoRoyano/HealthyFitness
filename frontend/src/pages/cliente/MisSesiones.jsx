@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useClienteAuth } from '../../context/ClienteAuthContext';
+import { ClipboardList } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -112,7 +113,7 @@ function MisSesiones() {
         <div style={styles.loading}>Cargando sesiones...</div>
       ) : sesiones.length === 0 ? (
         <div style={styles.emptyState}>
-          <span style={styles.emptyIcon}>📋</span>
+          <span style={styles.emptyIcon}><ClipboardList size={48} /></span>
           <h3 style={styles.emptyTitle}>No hay sesiones</h3>
           <p style={styles.emptyText}>
             {filtro === 'proximas'
@@ -175,12 +176,12 @@ const styles = {
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   subtitle: {
     fontSize: '14px',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   filtros: {
     display: 'flex',
@@ -200,12 +201,12 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     transition: 'all 0.2s'
   },
   filtroBtnActivo: {
     backgroundColor: 'white',
-    color: '#75b760',
+    color: '#10b981',
     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
   },
   error: {
@@ -273,7 +274,7 @@ const styles = {
   sesionDia: {
     fontSize: '24px',
     fontWeight: '700',
-    color: '#75b760'
+    color: '#10b981'
   },
   sesionMes: {
     fontSize: '12px',

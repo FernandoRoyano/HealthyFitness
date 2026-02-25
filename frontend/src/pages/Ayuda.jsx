@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { Home, Users, Calendar, Dumbbell, Euro, Settings, Bell, LayoutDashboard, CalendarDays, ClipboardList, BarChart3, CreditCard } from 'lucide-react';
 import './Ayuda.css';
 
 const secciones = [
   {
-    icon: '🏠',
+    icon: <Home size={20} />,
     titulo: 'Inicio (Dashboard)',
     contenido: (
       <>
@@ -18,7 +19,7 @@ const secciones = [
     )
   },
   {
-    icon: '👥',
+    icon: <Users size={20} />,
     titulo: 'Clientes',
     contenido: (
       <>
@@ -47,7 +48,7 @@ const secciones = [
     )
   },
   {
-    icon: '📆',
+    icon: <Calendar size={20} />,
     titulo: 'Agenda',
     contenido: (
       <>
@@ -76,7 +77,7 @@ const secciones = [
     )
   },
   {
-    icon: '🏋️',
+    icon: <Dumbbell size={20} />,
     titulo: 'Equipo',
     contenido: (
       <>
@@ -110,7 +111,7 @@ const secciones = [
     )
   },
   {
-    icon: '💶',
+    icon: <Euro size={20} />,
     titulo: 'Finanzas',
     contenido: (
       <>
@@ -139,7 +140,7 @@ const secciones = [
     )
   },
   {
-    icon: '⚙️',
+    icon: <Settings size={20} />,
     titulo: 'Configuracion',
     contenido: (
       <>
@@ -154,7 +155,7 @@ const secciones = [
     )
   },
   {
-    icon: '🔔',
+    icon: <Bell size={20} />,
     titulo: 'Notificaciones',
     contenido: (
       <>
@@ -170,11 +171,11 @@ const secciones = [
 ];
 
 const seccionesCliente = [
-  { icon: '🏠', nombre: 'Mi Panel', descripcion: 'Dashboard personal: proximas sesiones y resumen de actividad.' },
-  { icon: '📆', nombre: 'Mi Calendario', descripcion: 'Calendario con las sesiones programadas.' },
-  { icon: '🏋️', nombre: 'Mis Sesiones', descripcion: 'Historial completo de sesiones realizadas y pendientes.' },
-  { icon: '📊', nombre: 'Mi Progreso', descripcion: 'Evolucion de mediciones corporales (peso, medidas, etc.) con graficas.' },
-  { icon: '💳', nombre: 'Mi Suscripcion', descripcion: 'Estado de la suscripcion actual, sesiones restantes y proxima renovacion.' },
+  { icon: <LayoutDashboard size={18} />, nombre: 'Mi Panel', descripcion: 'Dashboard personal: proximas sesiones y resumen de actividad.' },
+  { icon: <CalendarDays size={18} />, nombre: 'Mi Calendario', descripcion: 'Calendario con las sesiones programadas.' },
+  { icon: <Dumbbell size={18} />, nombre: 'Mis Sesiones', descripcion: 'Historial completo de sesiones realizadas y pendientes.' },
+  { icon: <BarChart3 size={18} />, nombre: 'Mi Progreso', descripcion: 'Evolucion de mediciones corporales (peso, medidas, etc.) con graficas.' },
+  { icon: <CreditCard size={18} />, nombre: 'Mi Suscripcion', descripcion: 'Estado de la suscripcion actual, sesiones restantes y proxima renovacion.' },
 ];
 
 function Ayuda() {

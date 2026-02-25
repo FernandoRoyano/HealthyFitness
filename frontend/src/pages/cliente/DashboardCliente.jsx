@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useClienteAuth } from '../../context/ClienteAuthContext';
 import { Link } from 'react-router-dom';
+import { Home, Calendar, Dumbbell, BarChart3, CreditCard } from 'lucide-react';
 
 function DashboardCliente() {
   const { cliente } = useClienteAuth();
@@ -31,31 +32,31 @@ function DashboardCliente() {
             Bienvenido/a a tu portal personal de HealthyFitness
           </p>
         </div>
-        <div style={styles.welcomeIcon}>👋</div>
+        <div style={styles.welcomeIcon}><Home size={64} /></div>
       </div>
 
       {/* Grid de accesos rápidos */}
       <div style={styles.quickAccessGrid}>
         <Link to="/cliente/calendario" style={styles.quickAccessCard}>
-          <span style={styles.quickAccessIcon}>📆</span>
+          <span style={styles.quickAccessIcon}><Calendar size={36} /></span>
           <span style={styles.quickAccessLabel}>Mi Calendario</span>
           <span style={styles.quickAccessDesc}>Ver mis próximas sesiones</span>
         </Link>
 
         <Link to="/cliente/sesiones" style={styles.quickAccessCard}>
-          <span style={styles.quickAccessIcon}>🏋️</span>
+          <span style={styles.quickAccessIcon}><Dumbbell size={36} /></span>
           <span style={styles.quickAccessLabel}>Mis Sesiones</span>
           <span style={styles.quickAccessDesc}>Historial de entrenamientos</span>
         </Link>
 
         <Link to="/cliente/progreso" style={styles.quickAccessCard}>
-          <span style={styles.quickAccessIcon}>📊</span>
+          <span style={styles.quickAccessIcon}><BarChart3 size={36} /></span>
           <span style={styles.quickAccessLabel}>Mi Progreso</span>
           <span style={styles.quickAccessDesc}>Seguimiento corporal</span>
         </Link>
 
         <Link to="/cliente/suscripcion" style={styles.quickAccessCard}>
-          <span style={styles.quickAccessIcon}>💳</span>
+          <span style={styles.quickAccessIcon}><CreditCard size={36} /></span>
           <span style={styles.quickAccessLabel}>Mi Suscripción</span>
           <span style={styles.quickAccessDesc}>Plan y facturas</span>
         </Link>
@@ -94,7 +95,7 @@ const styles = {
     color: '#666'
   },
   welcomeCard: {
-    background: 'linear-gradient(135deg, #75b760, #5fa047)',
+    background: 'linear-gradient(135deg, #10b981, #059669)',
     borderRadius: '16px',
     padding: '32px',
     color: 'white',
@@ -109,12 +110,12 @@ const styles = {
     fontSize: '28px',
     fontWeight: '700',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   welcomeSubtitle: {
     fontSize: '16px',
     opacity: 0.9,
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   welcomeIcon: {
     fontSize: '64px'
@@ -145,12 +146,12 @@ const styles = {
     fontSize: '18px',
     fontWeight: '600',
     color: '#1a1a2e',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   quickAccessDesc: {
     fontSize: '14px',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   infoCard: {
     backgroundColor: 'white',
@@ -164,7 +165,7 @@ const styles = {
     fontWeight: '600',
     color: '#1a1a2e',
     marginBottom: '12px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   infoText: {
     fontSize: '14px',
@@ -179,7 +180,7 @@ const styles = {
     padding: '12px',
     backgroundColor: '#f8fdf6',
     borderRadius: '8px',
-    borderLeft: '4px solid #75b760'
+    borderLeft: '4px solid #10b981'
   },
   trainerLabel: {
     fontSize: '14px',

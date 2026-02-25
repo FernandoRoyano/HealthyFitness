@@ -684,7 +684,7 @@ const styles = {
   selectEntrenador: {
     padding: '8px 12px',
     borderRadius: '6px',
-    border: '2px solid #75b760',
+    border: '2px solid #10b981',
     fontSize: '14px',
     minWidth: '180px',
     fontWeight: '500'
@@ -900,8 +900,8 @@ const styles = {
     transition: 'all 0.2s'
   },
   duracionBtnActivo: {
-    borderColor: '#75b760',
-    backgroundColor: '#75b760',
+    borderColor: '#10b981',
+    backgroundColor: '#10b981',
     color: '#fff'
   },
   modalActions: {

@@ -326,14 +326,14 @@ const RegistrarEntrenamiento = ({ clienteId, clienteNombre, onClose, onRegistrad
                       style={styles.diaBtn}
                       onClick={() => seleccionarDia(dia)}
                       onMouseEnter={e => {
-                        e.currentTarget.style.backgroundColor = '#75b760';
+                        e.currentTarget.style.backgroundColor = '#10b981';
                         e.currentTarget.style.color = '#fff';
-                        e.currentTarget.style.borderColor = '#75b760';
+                        e.currentTarget.style.borderColor = '#10b981';
                       }}
                       onMouseLeave={e => {
                         e.currentTarget.style.backgroundColor = '#f0fdf0';
                         e.currentTarget.style.color = '#1a1a2e';
-                        e.currentTarget.style.borderColor = '#75b760';
+                        e.currentTarget.style.borderColor = '#10b981';
                       }}
                     >
                       <span style={styles.diaNombre}>{dia.nombre}</span>
@@ -736,7 +736,7 @@ const styles = {
     width: '36px',
     height: '36px',
     border: '3px solid #e5e7eb',
-    borderTopColor: '#75b760',
+    borderTopColor: '#10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
     marginBottom: '16px'
@@ -765,7 +765,7 @@ const styles = {
     gap: '4px',
     padding: '14px 12px',
     backgroundColor: '#f0fdf0',
-    border: '2px solid #75b760',
+    border: '2px solid #10b981',
     borderRadius: '10px',
     cursor: 'pointer',
     transition: 'all 0.2s',
@@ -902,7 +902,7 @@ const styles = {
     width: '16px',
     height: '16px',
     cursor: 'pointer',
-    accentColor: '#75b760'
+    accentColor: '#10b981'
   },
   serieNoCompletada: {
     opacity: 0.5
@@ -951,7 +951,7 @@ const styles = {
   },
   btnAgregarEjercicio: {
     padding: '10px 20px',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
@@ -1108,7 +1108,7 @@ const styles = {
   },
   btnGuardar: {
     padding: '10px 24px',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',

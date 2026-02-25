@@ -142,9 +142,9 @@ function ProgresoEjercicio({ clienteId, ejercicioId, ejercicioNombre, onClose })
         <>
           {/* Tarjetas de resumen */}
           <div style={styles.tarjetasRow}>
-            <div style={{ ...styles.tarjeta, borderTop: '3px solid #75b760' }}>
+            <div style={{ ...styles.tarjeta, borderTop: '3px solid #10b981' }}>
               <span style={styles.tarjetaLabel}>PR (Récord Personal)</span>
-              <span style={{ ...styles.tarjetaValor, color: '#75b760' }}>
+              <span style={{ ...styles.tarjetaValor, color: '#10b981' }}>
                 {resumen.prValor} kg
               </span>
               <span style={styles.tarjetaDetalle}>
@@ -170,12 +170,12 @@ function ProgresoEjercicio({ clienteId, ejercicioId, ejercicioNombre, onClose })
 
             <div style={{
               ...styles.tarjeta,
-              borderTop: `3px solid ${resumen.tendencia === 'up' ? '#75b760' : resumen.tendencia === 'down' ? '#dc3545' : '#999'}`
+              borderTop: `3px solid ${resumen.tendencia === 'up' ? '#10b981' : resumen.tendencia === 'down' ? '#dc3545' : '#999'}`
             }}>
               <span style={styles.tarjetaLabel}>Tendencia</span>
               <span style={{
                 ...styles.tarjetaValor,
-                color: resumen.tendencia === 'up' ? '#75b760' : resumen.tendencia === 'down' ? '#dc3545' : '#999'
+                color: resumen.tendencia === 'up' ? '#10b981' : resumen.tendencia === 'down' ? '#dc3545' : '#999'
               }}>
                 {resumen.tendencia === 'up' ? '\u2191 Subiendo' : resumen.tendencia === 'down' ? '\u2193 Bajando' : '= Estable'}
               </span>
@@ -225,7 +225,7 @@ function ProgresoEjercicio({ clienteId, ejercicioId, ejercicioNombre, onClose })
                           style={{
                             ...styles.barra,
                             height: `${porcentaje}%`,
-                            backgroundColor: esPR ? '#75b760' : '#007bff',
+                            backgroundColor: esPR ? '#10b981' : '#007bff',
                             boxShadow: esPR ? '0 0 8px rgba(117, 183, 96, 0.5)' : 'none'
                           }}
                         >
@@ -387,7 +387,7 @@ const styles = {
     width: '36px',
     height: '36px',
     border: '3px solid #e5e7eb',
-    borderTopColor: '#75b760',
+    borderTopColor: '#10b981',
     borderRadius: '50%',
     animation: 'spin 0.8s linear infinite',
     marginBottom: '16px'
@@ -581,7 +581,7 @@ const styles = {
     fontSize: '9px',
     fontWeight: 700,
     color: '#fff',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     padding: '1px 5px',
     borderRadius: '3px',
     whiteSpace: 'nowrap'
@@ -640,7 +640,7 @@ const styles = {
     fontSize: '10px',
     fontWeight: 700,
     color: '#fff',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     padding: '1px 6px',
     borderRadius: '3px'
   }

@@ -37,7 +37,7 @@
   font-size: 14px;
   font-weight: 600;
   color: white;
-  background-color: #75b760;
+  background-color: #10b981;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -73,8 +73,8 @@
   text-align: center;
   padding: 20px;
   background: #f8f9fa;
-  border-radius: 10px;
-  border-left: 4px solid #75b760;
+  border-radius: 6px;
+  border-left: 4px solid #10b981;
 }
 
 .resumen-card.estival {
@@ -88,7 +88,7 @@
 .resumen-numero {
   font-size: 36px;
   font-weight: bold;
-  color: #75b760;
+  color: #10b981;
   line-height: 1;
 }
 
@@ -136,20 +136,20 @@
   color: #666;
   background-color: white;
   border: 2px solid #e0e0e0;
-  border-radius: 20px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .filtro-btn:hover {
-  border-color: #75b760;
-  color: #75b760;
+  border-color: #10b981;
+  color: #10b981;
 }
 
 .filtro-btn.activo {
-  color: #75b760;
-  border-color: #75b760;
-  background-color: #f8fdf6;
+  color: #10b981;
+  border-color: #10b981;
+  background-color: #f0fdf4;
 }
 
 .filtros-secundarios {
@@ -168,7 +168,7 @@
 
 .filtro-select:focus {
   outline: none;
-  border-color: #75b760;
+  border-color: #10b981;
 }
 
 /* Mensajes */
@@ -218,7 +218,7 @@
 }
 
 .vacaciones-tabla .fila-clickeable:hover {
-  background-color: #f8fdf6;
+  background-color: #f0fdf4;
 }
 
 .tabla-vacia {
@@ -248,7 +248,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #75b760;
+  background: #10b981;
   color: white;
   display: flex;
   align-items: center;
@@ -264,7 +264,7 @@
 }
 
 .periodo-separador {
-  color: #75b760;
+  color: #10b981;
   font-weight: bold;
 }
 
@@ -294,7 +294,7 @@
 .estado-badge {
   display: inline-block;
   padding: 6px 12px;
-  border-radius: 20px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   color: white;
@@ -470,7 +470,7 @@
 .form-input:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: #75b760;
+  border-color: #10b981;
 }
 
 .form-textarea {
@@ -512,7 +512,7 @@
 .preview-dias-numero {
   font-size: 32px;
   font-weight: bold;
-  color: #75b760;
+  color: #10b981;
 }
 
 .preview-dias-texto {
@@ -541,14 +541,14 @@
 
 .balance-flecha {
   font-size: 18px;
-  color: #75b760;
+  color: #10b981;
   font-weight: bold;
 }
 
 .balance-nuevo {
   font-size: 20px;
   font-weight: bold;
-  color: #75b760;
+  color: #10b981;
 }
 
 .balance-nuevo.negativo {
@@ -596,7 +596,7 @@
   display: flex;
   gap: 20px;
   padding: 15px;
-  background: #f8fdf6;
+  background: #f0fdf4;
   border-radius: 8px;
   margin-bottom: 20px;
   align-items: center;
@@ -611,7 +611,7 @@
 
 .preview-item strong {
   font-size: 24px;
-  color: #75b760;
+  color: #10b981;
 }
 
 .preview-item span {
@@ -648,7 +648,7 @@
   font-size: 14px;
   font-weight: 600;
   color: white;
-  background: #75b760;
+  background: #10b981;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -710,7 +710,7 @@
 .dias-grande {
   font-size: 28px;
   font-weight: bold;
-  color: #75b760;
+  color: #10b981;
 }
 
 /* Acciones */
@@ -1128,7 +1128,7 @@
     padding: 6px 2px;
     font-size: 10px;
     min-height: 36px;
-    border-radius: 16px;
+    border-radius: 6px;
   }
 
   /* Resumen compacto */
@@ -1162,7 +1162,7 @@
 
   .modal-content {
     margin: 0;
-    border-radius: 16px 16px 0 0;
+    border-radius: 8px 8px 0 0;
     max-height: 95vh;
     width: 100%;
   }
