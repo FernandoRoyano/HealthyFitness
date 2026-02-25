@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { solicitudesCambioAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Check, X, ClipboardList, Calendar, FileEdit, Clock } from 'lucide-react';
 
 function AprobacionesCambios() {
   const { usuario } = useAuth();
@@ -116,7 +117,7 @@ function AprobacionesCambios() {
             ...(filtroEstado === 'pendiente' && styles.botonFiltroActivo)
           }}
         >
-          ⏳ Pendientes
+          <Clock size={16} style={{ marginRight: '4px', display: 'inline' }} /> Pendientes
         </button>
         <button
           onClick={() => setFiltroEstado('aprobado')}
@@ -125,7 +126,7 @@ function AprobacionesCambios() {
             ...(filtroEstado === 'aprobado' && styles.botonFiltroActivo)
           }}
         >
-          ✅ Aprobadas
+          <Check size={16} style={{ marginRight: '4px', display: 'inline' }} /> Aprobadas
         </button>
         <button
           onClick={() => setFiltroEstado('rechazado')}
@@ -134,7 +135,7 @@ function AprobacionesCambios() {
             ...(filtroEstado === 'rechazado' && styles.botonFiltroActivo)
           }}
         >
-          ❌ Rechazadas
+          <X size={16} style={{ marginRight: '4px', display: 'inline' }} /> Rechazadas
         </button>
         <button
           onClick={() => setFiltroEstado('todas')}
@@ -143,7 +144,7 @@ function AprobacionesCambios() {
             ...(filtroEstado === 'todas' && styles.botonFiltroActivo)
           }}
         >
-          📋 Todas
+          <ClipboardList size={16} style={{ marginRight: '4px', display: 'inline' }} /> Todas
         </button>
       </div>
 
@@ -176,7 +177,7 @@ function AprobacionesCambios() {
 
               <div style={styles.comparacion}>
                 <div style={styles.datosColumna}>
-                  <h4 style={styles.columnaTitle}>📅 Horario Actual</h4>
+                  <h4 style={styles.columnaTitle}><Calendar size={16} style={{ marginRight: '4px', display: 'inline' }} /> Horario Actual</h4>
                   <div style={styles.datosGrupo}>
                     <div style={styles.datoItem}>
                       <span style={styles.datoLabel}>Fecha:</span>
@@ -204,7 +205,7 @@ function AprobacionesCambios() {
 
                 <div style={styles.datosColumna}>
                   <h4 style={{...styles.columnaTitle, color: '#007bff'}}>
-                    📝 Horario Propuesto
+                    <FileEdit size={16} style={{ marginRight: '4px', display: 'inline' }} /> Horario Propuesto
                   </h4>
                   <div style={{...styles.datosGrupo, backgroundColor: '#e7f3ff'}}>
                     <div style={styles.datoItem}>
@@ -270,13 +271,13 @@ function AprobacionesCambios() {
                     onClick={() => handleAprobar(solicitud._id)}
                     style={styles.buttonAprobar}
                   >
-                    ✅ Aprobar Cambio
+                    <Check size={16} style={{ marginRight: '4px', display: 'inline' }} /> Aprobar Cambio
                   </button>
                   <button
                     onClick={() => abrirModalRechazo(solicitud)}
                     style={styles.buttonRechazar}
                   >
-                    ❌ Rechazar
+                    <X size={16} style={{ marginRight: '4px', display: 'inline' }} /> Rechazar
                   </button>
                 </div>
               )}

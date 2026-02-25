@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { entrenamientoAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Camera } from 'lucide-react';
 
 const gruposMusculares = [
   'pecho', 'espalda', 'hombros', 'biceps', 'triceps',
@@ -12,16 +13,16 @@ const categorias = ['fuerza', 'cardio', 'estiramiento', 'funcional', 'peso_corpo
 const dificultades = ['principiante', 'intermedio', 'avanzado'];
 
 const coloresGrupoMuscular = {
-  pecho: '#e74c3c',
-  espalda: '#3498db',
-  hombros: '#e67e22',
-  biceps: '#9b59b6',
-  triceps: '#8e44ad',
-  piernas: '#2ecc71',
-  gluteos: '#1abc9c',
-  core: '#f39c12',
-  cardio: '#e91e63',
-  cuerpo_completo: '#607d8b'
+  pecho: '#dc6b6b',
+  espalda: '#6b9fd4',
+  hombros: '#d4956b',
+  biceps: '#9b7bb8',
+  triceps: '#8569a0',
+  piernas: '#5dba7d',
+  gluteos: '#4da89a',
+  core: '#d4a84b',
+  cardio: '#d45c7e',
+  cuerpo_completo: '#6b8294'
 };
 
 const etiquetasGrupoMuscular = {
@@ -52,9 +53,9 @@ const etiquetasDificultad = {
 };
 
 const coloresDificultad = {
-  principiante: '#2ecc71',
-  intermedio: '#f39c12',
-  avanzado: '#e74c3c'
+  principiante: '#10b981',
+  intermedio: '#f59e0b',
+  avanzado: '#ef4444'
 };
 
 const formularioVacio = {
@@ -343,7 +344,7 @@ function Ejercicios() {
       {ejerciciosFiltrados.length === 0 ? (
         <div style={styles.emptyState}>
           <div style={styles.emptyIcon}>
-            <span style={{ fontSize: '48px', opacity: 0.4 }}>&#127947;</span>
+            <span style={{ fontSize: '48px', opacity: 0.3 }}>&#127947;</span>
           </div>
           <p style={styles.emptyTitle}>
             {ejercicios.length === 0
@@ -630,7 +631,7 @@ function Ejercicios() {
                   </div>
                 ) : (
                   <div style={styles.imagenUploadZone}>
-                    <span style={{ fontSize: '28px' }}>📷</span>
+                    <Camera size={28} style={{ color: '#94a3b8' }} />
                     <span style={{ fontSize: '13px', color: '#666' }}>Selecciona una imagen (JPEG, PNG, WebP - max 5MB)</span>
                     <input
                       type="file"
@@ -689,8 +690,8 @@ const styles = {
   spinner: {
     width: '40px',
     height: '40px',
-    border: '4px solid #e0e0e0',
-    borderTop: '4px solid #75b760',
+    border: '4px solid #e2e8f0',
+    borderTop: '4px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite'
   },
@@ -747,7 +748,7 @@ const styles = {
     alignItems: 'flex-end',
     backgroundColor: 'white',
     padding: '20px',
-    borderRadius: '10px',
+    borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0,0,0,0.08)'
   },
   filtroGroup: {
@@ -805,7 +806,7 @@ const styles = {
   // Cards
   card: {
     backgroundColor: 'white',
-    borderRadius: '10px',
+    borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
     overflow: 'hidden',
     transition: 'box-shadow 0.2s ease',
@@ -868,7 +869,7 @@ const styles = {
   badge: {
     display: 'inline-block',
     padding: '4px 10px',
-    borderRadius: '20px',
+    borderRadius: '4px',
     fontSize: '12px',
     fontWeight: '600',
     letterSpacing: '0.3px'
@@ -876,7 +877,7 @@ const styles = {
   badgeSecundario: {
     display: 'inline-block',
     padding: '3px 9px',
-    borderRadius: '20px',
+    borderRadius: '4px',
     fontSize: '11px',
     fontWeight: '500',
     backgroundColor: 'transparent',
@@ -907,7 +908,7 @@ const styles = {
   dificultadBadge: {
     display: 'inline-block',
     padding: '3px 10px',
-    borderRadius: '12px',
+    borderRadius: '4px',
     fontSize: '12px',
     fontWeight: '600'
   },
@@ -938,7 +939,7 @@ const styles = {
     justifyContent: 'center',
     padding: '60px 20px',
     backgroundColor: 'white',
-    borderRadius: '10px',
+    borderRadius: '8px',
     boxShadow: '0 2px 10px rgba(0,0,0,0.08)'
   },
   emptyIcon: {
@@ -956,7 +957,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     color: 'white',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
     borderRadius: '6px',
     cursor: 'pointer'
@@ -988,7 +989,7 @@ const styles = {
   },
   modalContent: {
     backgroundColor: 'white',
-    borderRadius: '10px',
+    borderRadius: '8px',
     width: '100%',
     maxWidth: '700px',
     maxHeight: '90vh',
@@ -1059,7 +1060,7 @@ const styles = {
     width: '16px',
     height: '16px',
     cursor: 'pointer',
-    accentColor: '#75b760'
+    accentColor: '#10b981'
   },
   checkboxText: {
     fontSize: '13px',

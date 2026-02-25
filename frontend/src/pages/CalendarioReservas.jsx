@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { reservasAPI, usersAPI } from '../services/api';
+import { Sun, Moon, ClipboardList, Calendar, CalendarDays, Info, AlertTriangle } from 'lucide-react';
 
 // Formatear fecha local sin problemas de zona horaria
 const formatearFechaLocal = (fecha) => {
@@ -54,7 +55,7 @@ function CalendarioReservas() {
       setReservas(res.data);
       setError(''); // Limpiar error si la carga fue exitosa
     } catch (err) {
-      console.error('❌ Error al cargar reservas:', err);
+      console.error('Error al cargar reservas:', err);
       setError('Error al cargar reservas: ' + (err.response?.data?.mensaje || err.message));
     } finally {
       setCargando(false);
@@ -180,7 +181,7 @@ function CalendarioReservas() {
                 >
                   <strong>{hora}</strong>
                   <span style={styles.turnoLabel}>
-                    {esManana ? '☀️' : '🌙'}
+                    {esManana ? <Sun size={12} /> : <Moon size={12} />}
                   </span>
                 </div>
                 <div style={styles.celdaSesion}>
@@ -226,10 +227,10 @@ function CalendarioReservas() {
 
         <div style={styles.infoTurnos}>
           <span style={styles.turnoInfo}>
-            <span style={styles.turnoIcono}>☀️</span> Mañana (7-14h): ~2 entrenadores
+            <span style={styles.turnoIcono}><Sun size={18} /></span> Mañana (7-14h): ~2 entrenadores
           </span>
           <span style={styles.turnoInfo}>
-            <span style={styles.turnoIcono}>🌙</span> Tarde (14-22h): ~4 entrenadores
+            <span style={styles.turnoIcono}><Moon size={18} /></span> Tarde (14-22h): ~4 entrenadores
           </span>
         </div>
 
@@ -258,7 +259,7 @@ function CalendarioReservas() {
                 >
                   <strong>{hora}</strong>
                   <span style={styles.turnoLabel}>
-                    {esManana ? '☀️' : '🌙'}
+                    {esManana ? <Sun size={12} /> : <Moon size={12} />}
                   </span>
                 </div>
                 {entrenadores.map((entrenador) => {
@@ -313,10 +314,10 @@ function CalendarioReservas() {
 
         <div style={styles.infoTurnos}>
           <span style={styles.turnoInfo}>
-            <span style={styles.turnoIcono}>☀️</span> Mañana: ~2 entrenadores
+            <span style={styles.turnoIcono}><Sun size={18} /></span> Mañana: ~2 entrenadores
           </span>
           <span style={styles.turnoInfo}>
-            <span style={styles.turnoIcono}>🌙</span> Tarde: ~4 entrenadores
+            <span style={styles.turnoIcono}><Moon size={18} /></span> Tarde: ~4 entrenadores
           </span>
         </div>
 
@@ -397,13 +398,13 @@ function CalendarioReservas() {
 
       {!cargando && reservas.length > 0 && (
         <div style={styles.infoReservas}>
-          ℹ️ {reservas.length} reserva{reservas.length !== 1 ? 's' : ''} cargada{reservas.length !== 1 ? 's' : ''}
+          <Info size={16} style={{ marginRight: '4px', display: 'inline' }} /> {reservas.length} reserva{reservas.length !== 1 ? 's' : ''} cargada{reservas.length !== 1 ? 's' : ''}
         </div>
       )}
 
       {!cargando && reservas.length === 0 && !error && (
         <div style={styles.infoReservas}>
-          ⚠️ No hay reservas para mostrar
+          <AlertTriangle size={16} style={{ marginRight: '4px', display: 'inline' }} /> No hay reservas para mostrar
         </div>
       )}
 
@@ -416,7 +417,7 @@ function CalendarioReservas() {
               ...(vista === 'individual' && styles.botonVistaActivo)
             }}
           >
-            📋 Individual
+            <ClipboardList size={16} style={{ marginRight: '4px', display: 'inline' }} /> Individual
           </button>
           <button
             onClick={() => setVista('diaria')}
@@ -425,7 +426,7 @@ function CalendarioReservas() {
               ...(vista === 'diaria' && styles.botonVistaActivo)
             }}
           >
-            📅 Vista Diaria
+            <Calendar size={16} style={{ marginRight: '4px', display: 'inline' }} /> Vista Diaria
           </button>
           <button
             onClick={() => setVista('semanal')}
@@ -434,7 +435,7 @@ function CalendarioReservas() {
               ...(vista === 'semanal' && styles.botonVistaActivo)
             }}
           >
-            📆 Vista Semanal
+            <CalendarDays size={16} style={{ marginRight: '4px', display: 'inline' }} /> Vista Semanal
           </button>
         </div>
 

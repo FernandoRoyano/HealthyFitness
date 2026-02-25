@@ -10,6 +10,7 @@ import {
   clienteAuthAPI,
   entrenamientoAPI
 } from '../services/api';
+import { Pencil } from 'lucide-react';
 import RegistrarEntrenamiento from './RegistrarEntrenamiento';
 import ProgresoEjercicio from './ProgresoEjercicio';
 import ModalEditarRutina from './ModalEditarRutina';
@@ -770,7 +771,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                                   onClick={() => setEditandoAcumuladas(true)}
                                   title="Editar valor"
                                 >
-                                  ✎
+                                  <Pencil size={14} />
                                 </button>
                               </div>
                             )}
@@ -818,7 +819,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                                     onClick={() => setEditandoSaldo(true)}
                                     title="Ajustar saldo manualmente"
                                   >
-                                    ✎
+                                    <Pencil size={14} />
                                   </button>
                                 )}
                               </div>
@@ -1220,7 +1221,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                         padding: '16px',
                         backgroundColor: '#f0f9ee',
                         borderRadius: '10px',
-                        border: '1px solid #75b760'
+                        border: '1px solid #10b981'
                       }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                           <h4 style={{ margin: 0, color: '#1a1a2e', fontSize: '16px' }}>{rutinaActiva.nombre}</h4>
@@ -1230,7 +1231,7 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                               borderRadius: '12px',
                               fontSize: '12px',
                               fontWeight: 600,
-                              backgroundColor: '#75b760',
+                              backgroundColor: '#10b981',
                               color: '#fff'
                             }}>Activa</span>
                           </div>
@@ -1264,8 +1265,8 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                             style={{
                               padding: '6px 14px',
                               backgroundColor: '#fff',
-                              color: '#75b760',
-                              border: '1px solid #75b760',
+                              color: '#10b981',
+                              border: '1px solid #10b981',
                               borderRadius: '6px',
                               cursor: 'pointer',
                               fontSize: '13px',

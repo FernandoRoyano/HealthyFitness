@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { facturacionAPI, clientesAPI, productosAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { BarChart3, Banknote, Clock, FileText, Eye, Printer, Mail, Pencil, CreditCard, Send, Trash2, Check } from 'lucide-react';
 import CalendarioAsistencias from '../components/CalendarioAsistencias';
 import './Facturacion.css';
 
@@ -594,28 +595,28 @@ function Facturacion() {
       {resumenMes && (
         <div className="resumen-cards">
           <div className="resumen-card total-facturado">
-            <span className="resumen-icono">📊</span>
+            <span className="resumen-icono"><BarChart3 size={24} /></span>
             <div className="resumen-info">
               <span className="resumen-valor">{resumenMes.totalFacturado?.toFixed(2) || '0.00'}€</span>
               <span className="resumen-label">Total Facturado</span>
             </div>
           </div>
           <div className="resumen-card total-cobrado">
-            <span className="resumen-icono">💰</span>
+            <span className="resumen-icono"><Banknote size={24} /></span>
             <div className="resumen-info">
               <span className="resumen-valor">{resumenMes.totalCobrado?.toFixed(2) || '0.00'}€</span>
               <span className="resumen-label">Total Cobrado</span>
             </div>
           </div>
           <div className="resumen-card pendiente">
-            <span className="resumen-icono">⏳</span>
+            <span className="resumen-icono"><Clock size={24} /></span>
             <div className="resumen-info">
               <span className="resumen-valor">{resumenMes.pendienteCobro?.toFixed(2) || '0.00'}€</span>
               <span className="resumen-label">Pendiente de Cobro</span>
             </div>
           </div>
           <div className="resumen-card facturas-count">
-            <span className="resumen-icono">📄</span>
+            <span className="resumen-icono"><FileText size={24} /></span>
             <div className="resumen-info">
               <span className="resumen-valor">{resumenMes.totalFacturas || 0}</span>
               <span className="resumen-label">Facturas</span>
@@ -687,21 +688,21 @@ function Facturacion() {
                           onClick={() => verDetalleFactura(factura)}
                           title="Ver detalle"
                         >
-                          👁️
+                          <Eye size={16} />
                         </button>
                         <button
                           className="btn-accion btn-pdf"
                           onClick={() => handleDescargarPDF(factura)}
                           title="Descargar PDF"
                         >
-                          📄
+                          <FileText size={16} />
                         </button>
                         <button
                           className="btn-accion btn-imprimir"
                           onClick={() => handleImprimir(factura)}
                           title="Imprimir"
                         >
-                          🖨️
+                          <Printer size={16} />
                         </button>
                         {factura.cliente?.email && (
                           <button
@@ -709,7 +710,7 @@ function Facturacion() {
                             onClick={() => handleEnviarEmail(factura)}
                             title={`Enviar a ${factura.cliente.email}`}
                           >
-                            ✉️
+                            <Mail size={16} />
                           </button>
                         )}
                         {esGerente && factura.estado !== 'pagada' && factura.estado !== 'anulada' && (
@@ -719,14 +720,14 @@ function Facturacion() {
                               onClick={() => abrirModalEditarFactura(factura)}
                               title="Editar factura"
                             >
-                              ✏️
+                              <Pencil size={16} />
                             </button>
                             <button
                               className="btn-accion btn-pago"
                               onClick={() => abrirModalPago(factura)}
                               title="Registrar pago"
                             >
-                              💳
+                              <CreditCard size={16} />
                             </button>
                             {(factura.estado === 'generada' || factura.estado === 'borrador') && (
                               <button
@@ -734,7 +735,7 @@ function Facturacion() {
                                 onClick={() => handleEmitirFactura(factura._id)}
                                 title="Emitir factura"
                               >
-                                📤
+                                <Send size={16} />
                               </button>
                             )}
                             <button
@@ -742,7 +743,7 @@ function Facturacion() {
                               onClick={() => handleAnularFactura(factura)}
                               title="Anular/Eliminar factura"
                             >
-                              🗑️
+                              <Trash2 size={16} />
                             </button>
                           </>
                         )}
@@ -1013,20 +1014,20 @@ function Facturacion() {
                   className="btn-secundario btn-pdf-modal"
                   onClick={() => handleDescargarPDF(facturaDetalle)}
                 >
-                  📄 Descargar PDF
+                  <FileText size={16} style={{ marginRight: '4px', display: 'inline' }} /> Descargar PDF
                 </button>
                 <button
                   className="btn-secundario btn-imprimir-modal"
                   onClick={() => handleImprimir(facturaDetalle)}
                 >
-                  🖨️ Imprimir
+                  <Printer size={16} style={{ marginRight: '4px', display: 'inline' }} /> Imprimir
                 </button>
                 {facturaDetalle.cliente?.email && (
                   <button
                     className="btn-secundario btn-email-modal"
                     onClick={() => handleEnviarEmail(facturaDetalle)}
                   >
-                    ✉️ Enviar Email
+                    <Mail size={16} style={{ marginRight: '4px', display: 'inline' }} /> Enviar Email
                   </button>
                 )}
               </div>
@@ -1144,7 +1145,7 @@ function Facturacion() {
                 <div className={`info-suscripcion ${suscripcionCliente ? 'con-suscripcion' : 'sin-suscripcion'}`}>
                   {suscripcionCliente ? (
                     <>
-                      <span className="suscripcion-icono">✓</span>
+                      <span className="suscripcion-icono"><Check size={16} /></span>
                       <span>
                         <strong>{suscripcionCliente.producto?.nombre || 'Suscripción'}</strong>
                         {' - '}{suscripcionCliente.diasPorSemana} días/semana

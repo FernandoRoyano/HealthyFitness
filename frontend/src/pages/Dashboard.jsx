@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { dashboardAPI } from '../services/api';
+import { Users, Target, CalendarCheck, Inbox, Palmtree, Receipt, Briefcase, Dumbbell, Calendar, Table, GraduationCap, ArrowRight } from 'lucide-react';
 
 // Obtener saludo según la hora del día
 const obtenerSaludo = () => {
   const hora = new Date().getHours();
-  if (hora >= 5 && hora < 12) return { texto: 'Buenos días', icono: '🌅' };
-  if (hora >= 12 && hora < 19) return { texto: 'Buenas tardes', icono: '☀️' };
-  return { texto: 'Buenas noches', icono: '🌙' };
+  if (hora >= 5 && hora < 12) return 'Buenos días';
+  if (hora >= 12 && hora < 19) return 'Buenas tardes';
+  return 'Buenas noches';
 };
 
 // Obtener iniciales para el avatar
@@ -54,41 +55,41 @@ function Dashboard() {
 
   // Configuración de widgets según rol
   const widgetsGerente = [
-    { id: 'clientes', icon: '👥', label: 'Clientes Activos', value: stats?.clientesActivos, path: '/clientes', color: '#667eea' },
-    { id: 'leads', icon: '🎯', label: 'Leads Pendientes', value: stats?.leadsPendientes, path: '/leads', color: '#f59e0b' },
-    { id: 'reservas', icon: '📅', label: 'Reservas Hoy', value: stats?.reservasHoy, path: '/reservas', color: '#10b981' },
-    { id: 'solicitudes', icon: '📬', label: 'Solicitudes', value: stats?.solicitudesPendientes, path: '/solicitudes', color: '#3b82f6' },
-    { id: 'vacaciones', icon: '🏖️', label: 'Vacaciones', value: stats?.vacacionesPendientes, path: '/vacaciones', color: '#8b5cf6' },
-    { id: 'facturacion', icon: '💶', label: 'Facturación Mes', value: stats?.facturacionMes, path: '/facturacion', color: '#059669', formato: 'moneda' },
+    { id: 'clientes', Icon: Users, label: 'Clientes Activos', value: stats?.clientesActivos, path: '/clientes', color: '#667eea' },
+    { id: 'leads', Icon: Target, label: 'Leads Pendientes', value: stats?.leadsPendientes, path: '/leads', color: '#f59e0b' },
+    { id: 'reservas', Icon: CalendarCheck, label: 'Reservas Hoy', value: stats?.reservasHoy, path: '/reservas', color: '#10b981' },
+    { id: 'solicitudes', Icon: Inbox, label: 'Solicitudes', value: stats?.solicitudesPendientes, path: '/solicitudes', color: '#3b82f6' },
+    { id: 'vacaciones', Icon: Palmtree, label: 'Vacaciones', value: stats?.vacacionesPendientes, path: '/vacaciones', color: '#8b5cf6' },
+    { id: 'facturacion', Icon: Receipt, label: 'Facturación Mes', value: stats?.facturacionMes, path: '/facturacion', color: '#059669', formato: 'moneda' },
   ];
 
   const widgetsEntrenador = [
-    { id: 'misclientes', icon: '👥', label: 'Mis Clientes', value: stats?.misClientes, path: '/clientes', color: '#667eea' },
-    { id: 'leads', icon: '🎯', label: 'Leads Pendientes', value: stats?.leadsPendientes, path: '/leads', color: '#f59e0b' },
-    { id: 'reservas', icon: '📅', label: 'Mis Reservas Hoy', value: stats?.misReservasHoy, path: '/reservas', color: '#10b981' },
-    { id: 'vacaciones', icon: '🏖️', label: 'Días Vacaciones', value: stats?.diasVacacionesDisponibles, path: '/vacaciones', color: '#8b5cf6' },
+    { id: 'misclientes', Icon: Users, label: 'Mis Clientes', value: stats?.misClientes, path: '/clientes', color: '#667eea' },
+    { id: 'leads', Icon: Target, label: 'Leads Pendientes', value: stats?.leadsPendientes, path: '/leads', color: '#f59e0b' },
+    { id: 'reservas', Icon: CalendarCheck, label: 'Mis Reservas Hoy', value: stats?.misReservasHoy, path: '/reservas', color: '#10b981' },
+    { id: 'vacaciones', Icon: Palmtree, label: 'Días Vacaciones', value: stats?.diasVacacionesDisponibles, path: '/vacaciones', color: '#8b5cf6' },
   ];
 
   const widgets = usuario?.rol === 'gerente' ? widgetsGerente : widgetsEntrenador;
 
   // Configuración de tarjetas de acceso rápido según rol
   const tarjetasGerente = [
-    { id: 'clientes', path: '/clientes', icon: '👥', title: 'Clientes', desc: 'Gestiona la información de todos los clientes' },
-    { id: 'leads', path: '/leads', icon: '🎯', title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
-    { id: 'reservas', path: '/reservas', icon: '📅', title: 'Reservas', desc: 'Administra las reservas y horarios' },
-    { id: 'calendario-excel', path: '/calendario-reservas', icon: '📊', title: 'Calendario Excel', desc: 'Vista tipo Excel con todos los entrenadores' },
-    { id: 'calendarios', path: '/calendario-gerente', icon: '📆', title: 'Calendarios', desc: 'Vista de todos los entrenadores' },
-    { id: 'entrenadores', path: '/entrenadores', icon: '👨‍🏫', title: 'Entrenadores', desc: 'Gestiona los perfiles de entrenadores' },
-    { id: 'vacaciones', path: '/vacaciones', icon: '🏖️', title: 'Vacaciones', desc: 'Control de vacaciones del equipo' },
-    { id: 'facturacion', path: '/facturacion', icon: '💶', title: 'Facturación', desc: 'Gestión de facturas y pagos' },
+    { id: 'clientes', path: '/clientes', Icon: Users, title: 'Clientes', desc: 'Gestiona la información de todos los clientes' },
+    { id: 'leads', path: '/leads', Icon: Target, title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
+    { id: 'reservas', path: '/reservas', Icon: CalendarCheck, title: 'Reservas', desc: 'Administra las reservas y horarios' },
+    { id: 'calendario-excel', path: '/calendario-reservas', Icon: Table, title: 'Calendario Excel', desc: 'Vista tipo Excel con todos los entrenadores' },
+    { id: 'calendarios', path: '/calendario-gerente', Icon: Calendar, title: 'Calendarios', desc: 'Vista de todos los entrenadores' },
+    { id: 'entrenadores', path: '/entrenadores', Icon: GraduationCap, title: 'Entrenadores', desc: 'Gestiona los perfiles de entrenadores' },
+    { id: 'vacaciones', path: '/vacaciones', Icon: Palmtree, title: 'Vacaciones', desc: 'Control de vacaciones del equipo' },
+    { id: 'facturacion', path: '/facturacion', Icon: Receipt, title: 'Facturación', desc: 'Gestión de facturas y pagos' },
   ];
 
   const tarjetasEntrenador = [
-    { id: 'clientes', path: '/clientes', icon: '👥', title: 'Mis Clientes', desc: 'Gestiona la información de tus clientes asignados' },
-    { id: 'leads', path: '/leads', icon: '🎯', title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
-    { id: 'mi-calendario', path: '/calendario', icon: '📆', title: 'Mi Calendario', desc: 'Vista semanal de tus sesiones' },
-    { id: 'vacaciones', path: '/vacaciones', icon: '🏖️', title: 'Mis Vacaciones', desc: 'Solicitar y ver mis vacaciones' },
-    { id: 'facturacion', path: '/facturacion', icon: '💶', title: 'Mi Facturación', desc: 'Ver facturación de tus clientes' },
+    { id: 'clientes', path: '/clientes', Icon: Users, title: 'Mis Clientes', desc: 'Gestiona la información de tus clientes asignados' },
+    { id: 'leads', path: '/leads', Icon: Target, title: 'Leads', desc: 'Clientes potenciales y seguimiento' },
+    { id: 'mi-calendario', path: '/calendario', Icon: Calendar, title: 'Mi Calendario', desc: 'Vista semanal de tus sesiones' },
+    { id: 'vacaciones', path: '/vacaciones', Icon: Palmtree, title: 'Mis Vacaciones', desc: 'Solicitar y ver mis vacaciones' },
+    { id: 'facturacion', path: '/facturacion', Icon: Receipt, title: 'Mi Facturación', desc: 'Ver facturación de tus clientes' },
   ];
 
   const tarjetas = usuario?.rol === 'gerente' ? tarjetasGerente : tarjetasEntrenador;
@@ -97,34 +98,25 @@ function Dashboard() {
     <div style={styles.container}>
       {/* Sección de Bienvenida */}
       <div style={styles.welcomeSection}>
-        {/* Decoración de fondo */}
         <div style={styles.welcomeDecoration} />
-        <div style={styles.welcomeDecoration2} />
 
         <div style={styles.welcomeContent}>
-          {/* Avatar */}
           <div style={styles.avatarContainer}>
             <div style={styles.avatar}>
               {obtenerIniciales(usuario?.nombre)}
             </div>
           </div>
 
-          {/* Texto de bienvenida */}
           <div style={styles.welcomeText}>
-            <span style={styles.greeting}>
-              {saludo.icono} {saludo.texto}
-            </span>
+            <span style={styles.greeting}>{saludo}</span>
             <h1 style={styles.title}>{usuario?.nombre}</h1>
-            <p style={styles.subtitle}>Panel de Control - HealthyFitness</p>
+            <p style={styles.subtitle}>Panel de Control</p>
           </div>
         </div>
 
-        {/* Badge de rol */}
         {usuario?.rol && (
           <div style={styles.roleBadge}>
-            <span style={styles.roleIcon}>
-              {usuario.rol === 'gerente' ? '👔' : '💪'}
-            </span>
+            {usuario.rol === 'gerente' ? <Briefcase size={16} /> : <Dumbbell size={16} />}
             <span style={styles.roleText}>
               {usuario.rol === 'gerente' ? 'Gerente del Centro' : 'Entrenador Personal'}
             </span>
@@ -147,8 +139,8 @@ function Dashboard() {
               onMouseEnter={() => setHoveredWidget(widget.id)}
               onMouseLeave={() => setHoveredWidget(null)}
             >
-              <div style={{ ...styles.widgetIconBg, backgroundColor: `${widget.color}15` }}>
-                <span style={styles.widgetIcon}>{widget.icon}</span>
+              <div style={{ ...styles.widgetIconBg, backgroundColor: `${widget.color}12` }}>
+                <widget.Icon size={22} style={{ color: widget.color }} />
               </div>
               <div style={styles.widgetContent}>
                 <span style={{ ...styles.widgetValue, color: widget.color }}>
@@ -199,7 +191,7 @@ function Dashboard() {
             ))}
           </div>
           <Link to="/entrenadores" style={styles.entrenamientosLink}>
-            Ver detalle completo →
+            Ver detalle completo <ArrowRight size={14} style={{ verticalAlign: 'middle' }} />
           </Link>
         </div>
       )}
@@ -219,12 +211,13 @@ function Dashboard() {
               onMouseEnter={() => setHoveredCard(tarjeta.id)}
               onMouseLeave={() => setHoveredCard(null)}
             >
-              <div style={styles.cardDecoration} />
               <div style={{
                 ...styles.cardIconWrapper,
                 ...(hoveredCard === tarjeta.id ? styles.cardIconWrapperHover : {}),
               }}>
-                <span style={styles.cardIcon}>{tarjeta.icon}</span>
+                <tarjeta.Icon size={22} style={{
+                  color: hoveredCard === tarjeta.id ? 'white' : '#10b981'
+                }} />
               </div>
               <h3 style={{
                 ...styles.cardTitle,
@@ -237,7 +230,7 @@ function Dashboard() {
                 ...styles.cardArrow,
                 ...(hoveredCard === tarjeta.id ? styles.cardArrowVisible : {}),
               }}>
-                →
+                <ArrowRight size={16} />
               </div>
             </Link>
           ))}
@@ -248,21 +241,19 @@ function Dashboard() {
 }
 
 const styles = {
-  // Contenedor principal
   container: {
     padding: '24px 20px 40px',
     maxWidth: '1200px',
     margin: '0 auto',
-    minHeight: 'calc(100vh - 60px)',
+    minHeight: 'calc(100vh - 56px)',
   },
 
-  // Sección de bienvenida
   welcomeSection: {
-    background: 'linear-gradient(135deg, #75b760 0%, #5fa047 50%, #4a8a38 100%)',
-    borderRadius: '20px',
-    padding: '32px',
+    background: 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+    borderRadius: '12px',
+    padding: '28px 32px',
     marginBottom: '24px',
-    boxShadow: '0 10px 40px rgba(117, 183, 96, 0.3)',
+    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -273,17 +264,6 @@ const styles = {
     right: '-10%',
     width: '300px',
     height: '300px',
-    background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)',
-    borderRadius: '50%',
-    pointerEvents: 'none',
-  },
-
-  welcomeDecoration2: {
-    position: 'absolute',
-    bottom: '-30%',
-    left: '-5%',
-    width: '200px',
-    height: '200px',
     background: 'radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%)',
     borderRadius: '50%',
     pointerEvents: 'none',
@@ -292,144 +272,127 @@ const styles = {
   welcomeContent: {
     display: 'flex',
     alignItems: 'center',
-    gap: '24px',
+    gap: '20px',
     position: 'relative',
     zIndex: 1,
   },
 
-  // Avatar
   avatarContainer: {
     position: 'relative',
     flexShrink: 0,
   },
 
   avatar: {
-    width: '80px',
-    height: '80px',
+    width: '64px',
+    height: '64px',
     borderRadius: '50%',
-    background: 'rgba(255, 255, 255, 0.2)',
+    background: 'rgba(255, 255, 255, 0.18)',
     backdropFilter: 'blur(10px)',
-    border: '3px solid rgba(255, 255, 255, 0.4)',
+    border: '2px solid rgba(255, 255, 255, 0.3)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '28px',
+    fontSize: '22px',
     fontWeight: '700',
     color: 'white',
-    fontFamily: "'Niramit', sans-serif",
-    textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    fontFamily: "'Inter', sans-serif",
   },
 
-  // Texto de bienvenida
   welcomeText: {
     flex: 1,
   },
 
   greeting: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '16px',
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontFamily: "'Lora', serif",
-    marginBottom: '4px',
+    display: 'block',
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontFamily: "'Inter', sans-serif",
+    marginBottom: '2px',
     fontWeight: '500',
   },
 
   title: {
-    fontSize: '32px',
+    fontSize: '26px',
     fontWeight: '700',
     color: 'white',
-    marginBottom: '8px',
-    fontFamily: "'Niramit', sans-serif",
-    textShadow: '0 2px 10px rgba(0,0,0,0.15)',
-    letterSpacing: '-0.5px',
+    marginBottom: '4px',
+    fontFamily: "'Inter', sans-serif",
+    letterSpacing: '-0.3px',
     lineHeight: '1.2',
   },
 
   subtitle: {
-    fontSize: '15px',
-    color: 'rgba(255, 255, 255, 0.85)',
-    fontFamily: "'Lora', serif",
+    fontSize: '14px',
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontFamily: "'Inter', sans-serif",
     fontWeight: '400',
   },
 
-  // Badge de rol
   roleBadge: {
     display: 'inline-flex',
     alignItems: 'center',
-    gap: '10px',
+    gap: '8px',
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: '12px 20px',
-    borderRadius: '50px',
-    marginTop: '20px',
-    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+    padding: '8px 16px',
+    borderRadius: '6px',
+    marginTop: '16px',
     position: 'relative',
     zIndex: 1,
-  },
-
-  roleIcon: {
-    fontSize: '20px',
+    color: '#059669',
   },
 
   roleText: {
-    fontSize: '14px',
+    fontSize: '13px',
     fontWeight: '600',
-    color: '#5fa047',
-    fontFamily: "'Niramit', sans-serif",
-    letterSpacing: '0.3px',
+    color: '#059669',
+    fontFamily: "'Inter', sans-serif",
   },
 
-  // Sección de estadísticas
   statsSection: {
-    marginBottom: '32px',
+    marginBottom: '28px',
   },
 
   sectionTitle: {
-    fontSize: '18px',
+    fontSize: '16px',
     fontWeight: '600',
-    color: '#1a1a2e',
-    marginBottom: '16px',
-    fontFamily: "'Niramit', sans-serif",
+    color: '#0f172a',
+    marginBottom: '14px',
+    fontFamily: "'Inter', sans-serif",
   },
 
   widgetsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-    gap: '16px',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))',
+    gap: '14px',
   },
 
   widget: {
     backgroundColor: 'white',
-    borderRadius: '16px',
-    padding: '20px',
+    borderRadius: '8px',
+    padding: '18px',
     textDecoration: 'none',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '12px',
-    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-    border: '1px solid rgba(0,0,0,0.04)',
-    transition: 'all 0.3s ease',
+    gap: '10px',
+    boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
+    border: '1px solid #e2e8f0',
+    transition: 'all 0.15s ease',
     position: 'relative',
   },
 
   widgetHover: {
-    transform: 'translateY(-4px)',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(15,23,42,0.1)',
   },
 
   widgetIconBg: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '14px',
+    width: '48px',
+    height: '48px',
+    borderRadius: '8px',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  widgetIcon: {
-    fontSize: '28px',
   },
 
   widgetContent: {
@@ -438,134 +401,112 @@ const styles = {
 
   widgetValue: {
     display: 'block',
-    fontSize: '28px',
+    fontSize: '24px',
     fontWeight: '700',
-    fontFamily: "'Niramit', sans-serif",
+    fontFamily: "'Inter', sans-serif",
     lineHeight: '1',
   },
 
   widgetLabel: {
     display: 'block',
     fontSize: '12px',
-    color: '#6b7280',
+    color: '#64748b',
     marginTop: '4px',
-    fontFamily: "'Niramit', sans-serif",
+    fontFamily: "'Inter', sans-serif",
   },
 
   widgetBadge: {
     position: 'absolute',
-    top: '12px',
-    right: '12px',
-    width: '20px',
-    height: '20px',
-    borderRadius: '50%',
+    top: '10px',
+    right: '10px',
+    width: '18px',
+    height: '18px',
+    borderRadius: '4px',
     color: 'white',
-    fontSize: '12px',
+    fontSize: '11px',
     fontWeight: '700',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
-  // Sección de accesos rápidos
   quickAccessSection: {
     marginTop: '8px',
   },
 
-  // Grid de tarjetas
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-    gap: '20px',
+    gap: '16px',
   },
 
-  // Tarjetas
   card: {
     backgroundColor: 'white',
-    padding: '24px',
-    borderRadius: '16px',
-    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    padding: '22px',
+    borderRadius: '8px',
+    boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
     textDecoration: 'none',
     color: 'inherit',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    transition: 'all 0.15s ease',
     cursor: 'pointer',
     position: 'relative',
     overflow: 'hidden',
-    border: '1px solid rgba(0,0,0,0.04)',
+    border: '1px solid #e2e8f0',
     display: 'flex',
     flexDirection: 'column',
   },
 
   cardHover: {
-    transform: 'translateY(-6px)',
-    boxShadow: '0 16px 32px rgba(117, 183, 96, 0.2)',
-    borderColor: '#75b760',
-  },
-
-  cardDecoration: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: '100px',
-    height: '100px',
-    background: 'linear-gradient(135deg, rgba(117, 183, 96, 0.05) 0%, transparent 100%)',
-    borderRadius: '0 16px 0 100%',
-    transition: 'opacity 0.3s ease',
-    pointerEvents: 'none',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 12px rgba(15,23,42,0.1)',
+    borderColor: '#10b981',
   },
 
   cardIconWrapper: {
-    width: '56px',
-    height: '56px',
-    borderRadius: '14px',
-    background: 'linear-gradient(135deg, #f0f9ed 0%, #e3f2df 100%)',
+    width: '44px',
+    height: '44px',
+    borderRadius: '8px',
+    backgroundColor: '#f0fdf4',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: '16px',
-    transition: 'all 0.3s ease',
+    marginBottom: '14px',
+    transition: 'all 0.15s ease',
   },
 
   cardIconWrapperHover: {
-    background: 'linear-gradient(135deg, #75b760 0%, #5fa047 100%)',
-    transform: 'scale(1.1) rotate(5deg)',
-  },
-
-  cardIcon: {
-    fontSize: '28px',
-    transition: 'transform 0.3s ease',
+    backgroundColor: '#10b981',
   },
 
   cardTitle: {
-    fontSize: '18px',
-    fontWeight: '700',
-    color: '#1a1a2e',
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#0f172a',
     marginBottom: '6px',
-    fontFamily: "'Niramit', sans-serif",
-    transition: 'color 0.3s ease',
+    fontFamily: "'Inter', sans-serif",
+    transition: 'color 0.15s ease',
   },
 
   cardTitleHover: {
-    color: '#5fa047',
+    color: '#059669',
   },
 
   cardDescription: {
     fontSize: '13px',
-    color: '#666666',
+    color: '#64748b',
     lineHeight: '1.5',
     flex: 1,
-    fontFamily: "'Lora', serif",
+    fontFamily: "'Inter', sans-serif",
   },
 
   cardArrow: {
     position: 'absolute',
-    bottom: '20px',
-    right: '20px',
-    fontSize: '18px',
-    color: '#75b760',
+    bottom: '18px',
+    right: '18px',
+    color: '#10b981',
     opacity: 0,
-    transform: 'translateX(-10px)',
-    transition: 'all 0.3s ease',
+    transform: 'translateX(-8px)',
+    transition: 'all 0.15s ease',
   },
 
   cardArrowVisible: {
@@ -573,58 +514,57 @@ const styles = {
     transform: 'translateX(0)',
   },
 
-  // Sección de Entrenamientos del Mes
   entrenamientosSection: {
-    marginBottom: '32px',
+    marginBottom: '28px',
   },
 
   entrenamientosTitleRow: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '16px',
+    marginBottom: '14px',
   },
 
   entrenamientosTotalIngresos: {
-    fontSize: '15px',
-    fontWeight: '700',
-    color: '#75b760',
-    backgroundColor: '#f0f9ed',
-    padding: '6px 14px',
-    borderRadius: '20px',
-    fontFamily: "'Niramit', sans-serif",
+    fontSize: '13px',
+    fontWeight: '600',
+    color: '#059669',
+    backgroundColor: '#f0fdf4',
+    padding: '5px 12px',
+    borderRadius: '6px',
+    fontFamily: "'Inter', sans-serif",
   },
 
   entrenamientosGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '12px',
+    gap: '10px',
   },
 
   entrenamientoCard: {
     display: 'flex',
     alignItems: 'center',
-    gap: '14px',
+    gap: '12px',
     backgroundColor: 'white',
-    borderRadius: '12px',
-    padding: '16px 20px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    border: '1px solid rgba(0,0,0,0.04)',
+    borderRadius: '8px',
+    padding: '14px 18px',
+    boxShadow: '0 1px 2px rgba(15,23,42,0.05)',
+    border: '1px solid #e2e8f0',
   },
 
   entrenamientoAvatar: {
-    width: '42px',
-    height: '42px',
+    width: '38px',
+    height: '38px',
     borderRadius: '50%',
-    background: 'linear-gradient(135deg, #75b760, #5fa047)',
+    background: 'linear-gradient(135deg, #10b981, #059669)',
     color: 'white',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontWeight: '700',
-    fontSize: '18px',
+    fontSize: '16px',
     flexShrink: 0,
-    fontFamily: "'Niramit', sans-serif",
+    fontFamily: "'Inter', sans-serif",
   },
 
   entrenamientoInfo: {
@@ -637,33 +577,35 @@ const styles = {
   entrenamientoNombre: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#1a1a2e',
-    fontFamily: "'Niramit', sans-serif",
+    color: '#0f172a',
+    fontFamily: "'Inter', sans-serif",
   },
 
   entrenamientoTotal: {
     fontSize: '12px',
-    color: '#6b7280',
-    fontFamily: "'Niramit', sans-serif",
+    color: '#64748b',
+    fontFamily: "'Inter', sans-serif",
   },
 
   entrenamientoNumero: {
-    fontSize: '24px',
+    fontSize: '22px',
     fontWeight: '700',
-    color: '#75b760',
-    fontFamily: "'Niramit', sans-serif",
-    minWidth: '40px',
+    color: '#10b981',
+    fontFamily: "'Inter', sans-serif",
+    minWidth: '36px',
     textAlign: 'right',
   },
 
   entrenamientosLink: {
-    display: 'inline-block',
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
     marginTop: '12px',
     fontSize: '13px',
-    color: '#75b760',
+    color: '#10b981',
     fontWeight: '600',
     textDecoration: 'none',
-    fontFamily: "'Niramit', sans-serif",
+    fontFamily: "'Inter', sans-serif",
   },
 };
 

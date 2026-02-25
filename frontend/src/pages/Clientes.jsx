@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { clientesAPI, usersAPI, facturacionAPI, productosAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { Download, User, Mail, Phone, Target, FileText, FileSpreadsheet, Check } from 'lucide-react';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import FichaCliente from '../components/FichaCliente';
@@ -413,7 +414,7 @@ function Clientes() {
               onClick={() => setMostrarImportar(true)}
               style={styles.buttonSecondary}
             >
-              📥 Importar
+              <Download size={16} style={{ marginRight: '4px', display: 'inline' }} /> Importar
             </button>
           )}
           <button
@@ -442,7 +443,7 @@ function Clientes() {
                     <img src={fotoPreview} alt="Preview" style={styles.fotoPreview} />
                   ) : (
                     <div style={styles.fotoPlaceholder}>
-                      <span style={{ fontSize: '40px' }}>👤</span>
+                      <User size={40} />
                     </div>
                   )}
                 </div>
@@ -593,7 +594,7 @@ function Clientes() {
                   ) : suscripcionCliente ? (
                     <div className="membresia-info" style={styles.membresiaCard}>
                       <div style={styles.membresiaIcono}>
-                        <span style={{ fontSize: '24px' }}>✓</span>
+                        <Check size={24} />
                       </div>
                       <div style={styles.membresiaDetalles}>
                         <div style={styles.membresiaProducto}>{suscripcionCliente.producto?.nombre || 'Producto'}</div>
@@ -827,9 +828,9 @@ function Clientes() {
                   <div style={styles.importInfo}>
                     <h3 style={{ marginBottom: '10px', fontSize: '16px' }}>Formatos aceptados</h3>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                      <span style={styles.formatBadge}>📄 CSV</span>
-                      <span style={styles.formatBadge}>📊 Excel (.xlsx)</span>
-                      <span style={styles.formatBadge}>📊 Excel (.xls)</span>
+                      <span style={styles.formatBadge}><FileText size={14} style={{ marginRight: '4px', display: 'inline' }} /> CSV</span>
+                      <span style={styles.formatBadge}><FileSpreadsheet size={14} style={{ marginRight: '4px', display: 'inline' }} /> Excel (.xlsx)</span>
+                      <span style={styles.formatBadge}><FileSpreadsheet size={14} style={{ marginRight: '4px', display: 'inline' }} /> Excel (.xls)</span>
                     </div>
                     <p style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>
                       El archivo debe incluir al menos estas columnas (en cualquier orden):
@@ -916,7 +917,7 @@ function Clientes() {
                 <>
                   <div style={styles.resultadoImportacion}>
                     <h3 style={{ color: '#28a745', marginBottom: '15px' }}>
-                      ✓ Importación completada
+                      <Check size={16} style={{ marginRight: '4px', display: 'inline' }} /> Importación completada
                     </h3>
                     <p style={{ fontSize: '14px', marginBottom: '15px' }}>
                       {resultadoImportacion.mensaje}
@@ -930,7 +931,7 @@ function Clientes() {
                         <div style={styles.listaClientes}>
                           {resultadoImportacion.clientesImportados.map((cliente, idx) => (
                             <div key={idx} style={styles.clienteItem}>
-                              ✓ {cliente.nombre} {cliente.apellido} - {cliente.email}
+                              <Check size={14} style={{ marginRight: '4px', display: 'inline' }} /> {cliente.nombre} {cliente.apellido} - {cliente.email}
                             </div>
                           ))}
                         </div>
@@ -1034,16 +1035,16 @@ function Clientes() {
               </div>
               <div style={styles.clienteCardBody}>
                 <div style={styles.clienteInfo}>
-                  <span style={styles.clienteLabel}>📧 Email:</span>
+                  <span style={styles.clienteLabel}><Mail size={14} style={{ marginRight: '4px', display: 'inline' }} /> Email:</span>
                   <span style={styles.clienteValue}>{cliente.email}</span>
                 </div>
                 <div style={styles.clienteInfo}>
-                  <span style={styles.clienteLabel}>📱 Teléfono:</span>
+                  <span style={styles.clienteLabel}><Phone size={14} style={{ marginRight: '4px', display: 'inline' }} /> Teléfono:</span>
                   <span style={styles.clienteValue}>{cliente.telefono}</span>
                 </div>
                 {cliente.objetivos && (
                   <div style={styles.clienteInfo}>
-                    <span style={styles.clienteLabel}>🎯 Objetivos:</span>
+                    <span style={styles.clienteLabel}><Target size={14} style={{ marginRight: '4px', display: 'inline' }} /> Objetivos:</span>
                     <span style={styles.clienteValue}>{cliente.objetivos}</span>
                   </div>
                 )}
@@ -1140,7 +1141,7 @@ const styles = {
     padding: '6px 12px',
     fontSize: '12px',
     color: 'white',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
     borderRadius: '4px',
     cursor: 'pointer',
@@ -1368,7 +1369,7 @@ const styles = {
     color: '#1a1a1a'
   },
   entrenadorBadge: {
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: 'white',
     padding: '4px 10px',
     borderRadius: '20px',
@@ -1408,7 +1409,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     color: 'white',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer'

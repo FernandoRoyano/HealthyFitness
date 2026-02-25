@@ -36,7 +36,7 @@ const styles = {
     width: '40px',
     height: '40px',
     border: '3px solid #e4e4e9',
-    borderTop: '3px solid #75b760',
+    borderTop: '3px solid #10b981',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite'
   }

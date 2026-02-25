@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useClienteAuth } from '../../context/ClienteAuthContext';
+import { Scale, Ruler, BarChart3, Dumbbell, ClipboardList } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -94,7 +95,7 @@ function MiProgreso() {
       {/* Tarjetas de métricas principales */}
       <div style={styles.metricsGrid}>
         <div style={styles.metricCard}>
-          <span style={styles.metricIcon}>⚖️</span>
+          <span style={styles.metricIcon}><Scale size={32} /></span>
           <div style={styles.metricInfo}>
             <span style={styles.metricLabel}>Peso actual</span>
             <span style={styles.metricValue}>
@@ -104,7 +105,7 @@ function MiProgreso() {
         </div>
 
         <div style={styles.metricCard}>
-          <span style={styles.metricIcon}>📏</span>
+          <span style={styles.metricIcon}><Ruler size={32} /></span>
           <div style={styles.metricInfo}>
             <span style={styles.metricLabel}>Altura</span>
             <span style={styles.metricValue}>
@@ -114,7 +115,7 @@ function MiProgreso() {
         </div>
 
         <div style={styles.metricCard}>
-          <span style={styles.metricIcon}>📊</span>
+          <span style={styles.metricIcon}><BarChart3 size={32} /></span>
           <div style={styles.metricInfo}>
             <span style={styles.metricLabel}>IMC</span>
             <span style={styles.metricValue}>{imcActual || '-'}</span>
@@ -125,7 +126,7 @@ function MiProgreso() {
         </div>
 
         <div style={styles.metricCard}>
-          <span style={styles.metricIcon}>💪</span>
+          <span style={styles.metricIcon}><Dumbbell size={32} /></span>
           <div style={styles.metricInfo}>
             <span style={styles.metricLabel}>% Grasa corporal</span>
             <span style={styles.metricValue}>
@@ -141,7 +142,7 @@ function MiProgreso() {
 
         {mediciones.length === 0 ? (
           <div style={styles.emptyState}>
-            <span style={styles.emptyIcon}>📋</span>
+            <span style={styles.emptyIcon}><ClipboardList size={48} /></span>
             <h3 style={styles.emptyTitle}>Sin mediciones registradas</h3>
             <p style={styles.emptyText}>
               Tu entrenador registrará tus mediciones durante las sesiones de evaluación.
@@ -214,12 +215,12 @@ const styles = {
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   subtitle: {
     fontSize: '14px',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   error: {
     padding: '14px',
@@ -279,7 +280,7 @@ const styles = {
     fontWeight: '600',
     color: '#1a1a2e',
     marginBottom: '16px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   emptyState: {
     textAlign: 'center',
@@ -318,7 +319,7 @@ const styles = {
   historialFecha: {
     fontSize: '14px',
     fontWeight: '600',
-    color: '#75b760',
+    color: '#10b981',
     marginBottom: '12px'
   },
   historialData: {
@@ -347,7 +348,7 @@ const styles = {
     borderRadius: '8px',
     fontSize: '14px',
     color: '#666',
-    borderLeft: '3px solid #75b760'
+    borderLeft: '3px solid #10b981'
   }
 };
 

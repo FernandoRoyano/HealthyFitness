@@ -456,7 +456,7 @@ function ModalEditarRutina({ clienteId, clienteNombre, rutina, onClose, onGuarda
             <span style={styles.infoLabel}>Estado</span>
             <span style={{
               ...styles.infoBadge,
-              backgroundColor: r.activa ? '#75b760' : '#999'
+              backgroundColor: r.activa ? '#10b981' : '#999'
             }}>
               {r.activa ? 'Activa' : 'Inactiva'}
             </span>
@@ -819,13 +819,13 @@ const styles = {
     fontWeight: 700,
     color: '#1a1a2e',
     margin: 0,
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   headerSubtitle: {
     fontSize: '13px',
     color: '#6b7280',
     margin: '4px 0 0',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   headerActions: {
     display: 'flex',
@@ -834,7 +834,7 @@ const styles = {
   },
   btnEditar: {
     padding: '8px 16px',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',
@@ -926,7 +926,7 @@ const styles = {
     fontWeight: 600,
     color: '#1a1a2e',
     margin: '0 0 12px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   diasLista: {
     display: 'flex',
@@ -987,7 +987,7 @@ const styles = {
     width: '22px',
     height: '22px',
     borderRadius: '50%',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     display: 'flex',
     alignItems: 'center',
@@ -1160,7 +1160,7 @@ const styles = {
   },
   btnAgregarEj: {
     padding: '5px 12px',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     border: 'none',
     borderRadius: '6px',
@@ -1269,7 +1269,7 @@ const styles = {
   },
   btnGuardar: {
     padding: '10px 24px',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     border: 'none',
     borderRadius: '8px',

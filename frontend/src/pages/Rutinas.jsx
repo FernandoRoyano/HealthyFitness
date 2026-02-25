@@ -1302,7 +1302,7 @@ const styles = {
     fontSize: '14px'
   },
   nuevaRutinaButton: {
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff',
     border: 'none',
     padding: '12px 24px',
@@ -1369,7 +1369,7 @@ const styles = {
     transition: 'all 0.2s ease'
   },
   filtroTabActivo: {
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff'
   },
   busquedaInput: {
@@ -1816,8 +1816,8 @@ const styles = {
   },
   pasoButtonActivo: {
     backgroundColor: '#fff',
-    color: '#75b760',
-    borderBottom: '3px solid #75b760',
+    color: '#10b981',
+    borderBottom: '3px solid #10b981',
     fontWeight: '600'
   },
 
@@ -1899,7 +1899,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: '#fff',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer'
@@ -1923,7 +1923,7 @@ const styles = {
     fontSize: '14px',
     fontWeight: '500',
     color: '#fff',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer'

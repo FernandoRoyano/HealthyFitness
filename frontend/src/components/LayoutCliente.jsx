@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useClienteAuth } from '../context/ClienteAuthContext';
+import { Home, Calendar, Dumbbell, Zap, BarChart3, CreditCard, User, Settings, LogOut } from 'lucide-react';
 import './LayoutCliente.css';
 
 function LayoutCliente() {
@@ -26,12 +27,12 @@ function LayoutCliente() {
 
   // Menú simplificado para clientes
   const menuItems = [
-    { path: '/cliente/dashboard', label: 'Mi Panel', icon: '🏠' },
-    { path: '/cliente/calendario', label: 'Mi Calendario', icon: '📆' },
-    { path: '/cliente/sesiones', label: 'Mis Sesiones', icon: '🏋️' },
-    { path: '/cliente/entrenamiento', label: 'Mi Entrenamiento', icon: '💪' },
-    { path: '/cliente/progreso', label: 'Mi Progreso', icon: '📊' },
-    { path: '/cliente/suscripcion', label: 'Mi Suscripción', icon: '💳' },
+    { path: '/cliente/dashboard', label: 'Mi Panel', icon: Home },
+    { path: '/cliente/calendario', label: 'Mi Calendario', icon: Calendar },
+    { path: '/cliente/sesiones', label: 'Mis Sesiones', icon: Dumbbell },
+    { path: '/cliente/entrenamiento', label: 'Mi Entrenamiento', icon: Zap },
+    { path: '/cliente/progreso', label: 'Mi Progreso', icon: BarChart3 },
+    { path: '/cliente/suscripcion', label: 'Mi Suscripción', icon: CreditCard },
   ];
 
   // Obtener título de la página actual
@@ -68,7 +69,7 @@ function LayoutCliente() {
               className={`cliente-sidebar-link ${isActive(item.path) ? 'active' : ''}`}
               onClick={closeSidebar}
             >
-              <span className="cliente-sidebar-icon">{item.icon}</span>
+              <span className="cliente-sidebar-icon"><item.icon size={18} /></span>
               <span className="cliente-sidebar-label">{item.label}</span>
             </Link>
           ))}
@@ -80,7 +81,7 @@ function LayoutCliente() {
               {cliente?.foto ? (
                 <img src={cliente.foto} alt={cliente.nombre} />
               ) : (
-                <span>👤</span>
+                <User size={18} />
               )}
             </div>
             <div className="cliente-user-info">
@@ -89,7 +90,8 @@ function LayoutCliente() {
             </div>
           </div>
           <button onClick={handleLogout} className="cliente-sidebar-logout">
-            Cerrar Sesión
+            <LogOut size={16} />
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
@@ -114,7 +116,7 @@ function LayoutCliente() {
 
           <div className="cliente-header-actions">
             <Link to="/cliente/perfil" className="cliente-profile-btn" title="Mi Perfil">
-              ⚙️
+              <Settings size={20} />
             </Link>
           </div>
         </header>

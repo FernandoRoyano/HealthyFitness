@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useClienteAuth } from '../../context/ClienteAuthContext';
+import { ClipboardList, Download } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -186,7 +187,7 @@ function MiSuscripcion() {
           </>
         ) : (
           <div style={styles.noSuscripcion}>
-            <span style={styles.noSuscripcionIcon}>📋</span>
+            <span style={styles.noSuscripcionIcon}><ClipboardList size={48} /></span>
             <h3 style={styles.noSuscripcionTitle}>Sin suscripción activa</h3>
             <p style={styles.noSuscripcionText}>
               Contacta con el centro para contratar un plan de entrenamiento.
@@ -234,7 +235,7 @@ function MiSuscripcion() {
                     onClick={() => descargarFactura(factura._id)}
                     title="Descargar PDF"
                   >
-                    📥
+                    <Download size={20} />
                   </button>
                 </div>
               );
@@ -268,12 +269,12 @@ const styles = {
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   subtitle: {
     fontSize: '14px',
     color: '#666',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   error: {
     padding: '14px',
@@ -304,7 +305,7 @@ const styles = {
     fontWeight: '700',
     color: '#1a1a2e',
     marginBottom: '8px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   estadoBadge: {
     display: 'inline-block',
@@ -319,7 +320,7 @@ const styles = {
   precioValor: {
     fontSize: '32px',
     fontWeight: '700',
-    color: '#75b760'
+    color: '#10b981'
   },
   precioPeriodo: {
     fontSize: '16px',
@@ -373,7 +374,7 @@ const styles = {
     fontWeight: '600',
     color: '#1a1a2e',
     marginBottom: '16px',
-    fontFamily: 'Niramit, sans-serif'
+    fontFamily: 'Inter, sans-serif'
   },
   emptyFacturas: {
     textAlign: 'center',

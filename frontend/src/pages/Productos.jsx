@@ -1177,8 +1177,8 @@ const styles = {
     transition: 'all 0.2s ease'
   },
   diaButtonActivo: {
-    backgroundColor: '#75b760',
-    borderColor: '#75b760',
+    backgroundColor: '#10b981',
+    borderColor: '#10b981',
     color: '#fff'
   },
   diasResumen: {
@@ -1220,7 +1220,7 @@ const styles = {
     alignItems: 'center',
     marginTop: '15px',
     paddingTop: '15px',
-    borderTop: '3px solid #75b760',
+    borderTop: '3px solid #10b981',
     fontWeight: '600'
   },
   // Toggle modo calendario/manual
@@ -1244,7 +1244,7 @@ const styles = {
     transition: 'all 0.2s ease'
   },
   modoToggleBtnActivo: {
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     color: '#fff'
   },
   inputManual: {
@@ -1274,7 +1274,7 @@ const styles = {
     backgroundColor: '#f8f9fa',
     padding: '10px 12px',
     borderRadius: '6px',
-    borderLeft: '3px solid #75b760'
+    borderLeft: '3px solid #10b981'
   },
   // Estilos para mobile cards
   mobileCard: {

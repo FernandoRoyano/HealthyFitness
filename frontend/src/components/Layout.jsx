@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { solicitudesCambioAPI, notificacionesAPI, vacacionesAPI } from '../services/api';
 import NotificationCenter from './NotificationCenter';
+import { Home, Users, Calendar, Dumbbell, Zap, Receipt, Settings, HelpCircle, User, Bell, ChevronDown, ChevronRight, LogOut } from 'lucide-react';
 import './Layout.css';
 
 function Layout({ children }) {
@@ -98,10 +99,10 @@ function Layout({ children }) {
 
   // Menú items según rol - con submenús desplegables
   const menuGerente = [
-    { path: '/dashboard', label: 'Inicio', icon: '🏠' },
+    { path: '/dashboard', label: 'Inicio', icon: Home },
     {
       label: 'Clientes',
-      icon: '👥',
+      icon: Users,
       submenu: [
         { path: '/clientes', label: 'Clientes' },
         { path: '/leads', label: 'Leads' },
@@ -109,7 +110,7 @@ function Layout({ children }) {
     },
     {
       label: 'Agenda',
-      icon: '📆',
+      icon: Calendar,
       submenu: [
         { path: '/calendario-gerente', label: 'Agenda' },
         { path: '/plantillas', label: 'Horario Base' },
@@ -117,7 +118,7 @@ function Layout({ children }) {
     },
     {
       label: 'Equipo',
-      icon: '🏋️',
+      icon: Dumbbell,
       submenu: [
         { path: '/entrenadores', label: 'Entrenadores' },
         { path: '/solicitudes', label: 'Solicitudes', badge: solicitudesPendientes },
@@ -126,7 +127,7 @@ function Layout({ children }) {
     },
     {
       label: 'Entrenamiento',
-      icon: '💪',
+      icon: Zap,
       submenu: [
         { path: '/ejercicios', label: 'Ejercicios' },
         { path: '/rutinas', label: 'Rutinas' },
@@ -134,21 +135,21 @@ function Layout({ children }) {
     },
     {
       label: 'Finanzas',
-      icon: '💶',
+      icon: Receipt,
       submenu: [
         { path: '/facturacion', label: 'Facturación' },
         { path: '/productos', label: 'Tarifas' },
       ]
     },
-    { path: '/configuracion-centro', label: 'Configuración', icon: '⚙️' },
-    { path: '/ayuda', label: 'Ayuda', icon: '❓' },
+    { path: '/configuracion-centro', label: 'Configuración', icon: Settings },
+    { path: '/ayuda', label: 'Ayuda', icon: HelpCircle },
   ];
 
   const menuEntrenador = [
-    { path: '/dashboard', label: 'Inicio', icon: '🏠' },
+    { path: '/dashboard', label: 'Inicio', icon: Home },
     {
       label: 'Clientes',
-      icon: '👥',
+      icon: Users,
       submenu: [
         { path: '/clientes', label: 'Mis Clientes' },
         { path: '/leads', label: 'Leads' },
@@ -156,21 +157,21 @@ function Layout({ children }) {
     },
     {
       label: 'Agenda',
-      icon: '📆',
+      icon: Calendar,
       submenu: [
         { path: '/calendario', label: 'Mi Agenda' },
       ]
     },
     {
       label: 'Entrenamiento',
-      icon: '💪',
+      icon: Zap,
       submenu: [
         { path: '/rutinas', label: 'Rutinas' },
       ]
     },
     {
       label: 'Equipo',
-      icon: '🏋️',
+      icon: Dumbbell,
       submenu: [
         { path: '/entrenadores', label: 'Entrenadores' },
         { path: '/solicitudes', label: 'Solicitudes' },
@@ -179,13 +180,13 @@ function Layout({ children }) {
     },
     {
       label: 'Finanzas',
-      icon: '💶',
+      icon: Receipt,
       submenu: [
         { path: '/facturacion', label: 'Mi Facturación' },
         { path: '/productos', label: 'Tarifas' },
       ]
     },
-    { path: '/ayuda', label: 'Ayuda', icon: '❓' },
+    { path: '/ayuda', label: 'Ayuda', icon: HelpCircle },
   ];
 
   const allMenuItems = usuario?.rol === 'gerente'
@@ -247,9 +248,11 @@ function Layout({ children }) {
                   className={`sidebar-menu-header ${submenusAbiertos[item.label] ? 'abierto' : ''}`}
                   onClick={() => toggleSubmenu(item.label)}
                 >
-                  <span className="sidebar-icon">{item.icon}</span>
+                  <span className="sidebar-icon"><item.icon size={18} /></span>
                   <span className="sidebar-label">{item.label}</span>
-                  <span className="sidebar-chevron">{submenusAbiertos[item.label] ? '▼' : '▶'}</span>
+                  <span className="sidebar-chevron">
+                    {submenusAbiertos[item.label] ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  </span>
                 </button>
                 <div className={`sidebar-submenu ${submenusAbiertos[item.label] ? 'abierto' : ''}`}>
                   {item.submenu.map((subitem) => (
@@ -274,7 +277,7 @@ function Layout({ children }) {
                 className={`sidebar-link ${isActive(item.path) ? 'active' : ''}`}
                 onClick={closeSidebar}
               >
-                <span className="sidebar-icon">{item.icon}</span>
+                <span className="sidebar-icon"><item.icon size={18} /></span>
                 <span className="sidebar-label">{item.label}</span>
               </Link>
             )
@@ -283,11 +286,12 @@ function Layout({ children }) {
 
         <div className="sidebar-footer">
           <div className="sidebar-user">
-            <span className="sidebar-user-icon">👤</span>
+            <span className="sidebar-user-icon"><User size={18} /></span>
             <span className="sidebar-user-name">{usuario?.nombre}</span>
           </div>
           <button onClick={handleLogout} className="sidebar-logout">
-            Cerrar Sesión
+            <LogOut size={16} />
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
@@ -316,7 +320,7 @@ function Layout({ children }) {
               className="notification-btn"
               aria-label="Notificaciones"
             >
-              🔔
+              <Bell size={20} />
               {notificacionesNoLeidas > 0 && (
                 <span className="notification-badge">{notificacionesNoLeidas}</span>
               )}

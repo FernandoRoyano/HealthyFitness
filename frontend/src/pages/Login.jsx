@@ -92,92 +92,92 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fafafa',
+    backgroundColor: '#f8fafc',
     padding: '16px'
   },
   card: {
     backgroundColor: 'white',
-    padding: 'clamp(24px, 5vw, 50px) clamp(20px, 5vw, 40px)',
-    borderRadius: '12px',
-    boxShadow: '0px 0px 50px -10px rgba(0,0,0,0.15)',
+    padding: 'clamp(24px, 5vw, 48px) clamp(20px, 5vw, 40px)',
+    borderRadius: '8px',
+    boxShadow: '0 4px 6px -1px rgba(15,23,42,0.07), 0 2px 4px -2px rgba(15,23,42,0.05)',
     width: '100%',
     maxWidth: '420px',
-    border: '1px solid #e4e4e9'
+    border: '1px solid #e2e8f0'
   },
   title: {
-    fontSize: 'clamp(28px, 8vw, 42px)',
+    fontSize: 'clamp(24px, 6vw, 32px)',
     fontWeight: '700',
-    color: '#75b760',
+    color: '#0f172a',
     marginBottom: '8px',
     textAlign: 'center',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     letterSpacing: '-0.5px'
   },
   subtitle: {
-    fontSize: '20px',
-    color: '#666666',
-    marginBottom: '40px',
+    fontSize: '18px',
+    color: '#64748b',
+    marginBottom: '36px',
     textAlign: 'center',
-    fontFamily: 'Niramit, sans-serif',
+    fontFamily: 'Inter, sans-serif',
     fontWeight: '400'
   },
   form: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '24px'
+    gap: '22px'
   },
   formGroup: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '10px'
+    gap: '8px'
   },
   label: {
-    fontSize: '15px',
+    fontSize: '14px',
     fontWeight: '600',
-    color: '#000000',
-    fontFamily: 'Niramit, sans-serif'
+    color: '#0f172a',
+    fontFamily: 'Inter, sans-serif'
   },
   input: {
-    padding: '14px 16px',
-    fontSize: '16px',
-    border: '1px solid #e4e4e9',
-    borderRadius: '8px',
+    padding: '12px 14px',
+    fontSize: '15px',
+    border: '1px solid #e2e8f0',
+    borderRadius: '6px',
     outline: 'none',
-    transition: 'all 0.2s ease',
-    fontFamily: 'Lora, serif'
+    transition: 'all 0.15s ease',
+    fontFamily: 'Inter, sans-serif'
   },
   button: {
-    padding: '16px',
-    fontSize: '18px',
-    fontWeight: '700',
+    padding: '14px',
+    fontSize: '16px',
+    fontWeight: '600',
     color: 'white',
-    backgroundColor: '#75b760',
+    backgroundColor: '#10b981',
     border: 'none',
-    borderRadius: '9999px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    marginTop: '12px',
-    transition: 'all 0.3s ease',
-    fontFamily: 'Niramit, sans-serif',
-    boxShadow: '0 4px 12px rgba(117, 183, 96, 0.3)'
+    marginTop: '8px',
+    transition: 'all 0.15s ease',
+    fontFamily: 'Inter, sans-serif',
+    boxShadow: '0 1px 2px rgba(16, 185, 129, 0.2)'
   },
   error: {
-    padding: '14px',
-    backgroundColor: '#fee',
-    color: '#c00',
-    borderRadius: '8px',
-    marginBottom: '20px',
+    padding: '12px',
+    backgroundColor: '#fef2f2',
+    color: '#dc2626',
+    borderRadius: '6px',
+    marginBottom: '16px',
     fontSize: '14px',
-    border: '1px solid #fcc'
+    border: '1px solid #fecaca'
   },
   helpText: {
     marginTop: '24px',
-    padding: '16px',
-    backgroundColor: '#f8fdf6',
-    borderLeft: '4px solid #75b760',
-    fontSize: '14px',
-    color: '#555',
+    padding: '14px',
+    backgroundColor: '#f0fdf4',
+    borderLeft: '3px solid #10b981',
+    fontSize: '13px',
+    color: '#475569',
     lineHeight: '1.6',
-    borderRadius: '6px'
+    borderRadius: '4px'
   }
 };
 

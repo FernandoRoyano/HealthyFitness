@@ -158,7 +158,7 @@ const styles = {
   },
   markAllButton: {
     fontSize: '12px',
-    color: '#75b760',
+    color: '#10b981',
     background: 'none',
     border: 'none',
     cursor: 'pointer',
@@ -201,7 +201,7 @@ const styles = {
     width: '8px',
     height: '8px',
     borderRadius: '50%',
-    backgroundColor: '#75b760'
+    backgroundColor: '#10b981'
   },
   notificacionMensaje: {
     fontSize: '13px',
