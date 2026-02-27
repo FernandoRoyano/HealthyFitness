@@ -206,6 +206,19 @@ function Vacaciones() {
     }
   };
 
+  // Manejar eliminación permanente
+  const handleEliminar = async (id) => {
+    if (!window.confirm('¿Eliminar esta solicitud permanentemente? Esta accion no se puede deshacer.')) return;
+
+    try {
+      await vacacionesAPI.eliminar(id);
+      cargarDatos();
+      cerrarModal();
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al eliminar solicitud');
+    }
+  };
+
   const abrirModal = (vacacion) => {
     setSolicitudSeleccionada(vacacion);
     setMostrarModal(true);
@@ -740,6 +753,18 @@ function Vacaciones() {
                     className="btn-cancelar-solicitud"
                   >
                     Cancelar Vacaciones
+                  </button>
+                </div>
+              )}
+
+              {/* Acción para eliminar solicitudes canceladas o rechazadas */}
+              {esGerente && (solicitudSeleccionada.estado === 'cancelado' || solicitudSeleccionada.estado === 'rechazado') && (
+                <div className="acciones-container">
+                  <button
+                    onClick={() => handleEliminar(solicitudSeleccionada._id)}
+                    className="btn-eliminar-solicitud"
+                  >
+                    Eliminar Permanentemente
                   </button>
                 </div>
               )}
