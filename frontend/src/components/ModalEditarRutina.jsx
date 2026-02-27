@@ -92,6 +92,9 @@ function ModalEditarRutina({ clienteId, clienteNombre, rutina, onClose, onGuarda
   useEffect(() => {
     if (rutina?._id) {
       cargarRutinaCompleta(rutina._id);
+    } else {
+      // Creacion nueva: cargar ejercicios de la biblioteca inmediatamente
+      cargarEjerciciosLibreria();
     }
   }, [rutina]);
 

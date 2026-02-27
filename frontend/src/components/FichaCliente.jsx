@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useAuth } from '../context/AuthContext';
 import {
   clientesAPI,
@@ -93,6 +93,26 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   const [passwordPortal, setPasswordPortal] = useState('');
   const [cargandoPortal, setCargandoPortal] = useState(false);
 
+  // Estados para nueva factura
+  const [mostrarFormFactura, setMostrarFormFactura] = useState(false);
+  const [formFactura, setFormFactura] = useState({
+    mes: new Date().getMonth() + 1,
+    anio: new Date().getFullYear(),
+    sesiones: '',
+    precioUnitario: '',
+    descuento: '',
+    notas: '',
+    marcarPagada: false
+  });
+
+  // Estados para registrar pago
+  const [facturaPagoId, setFacturaPagoId] = useState(null);
+  const [formPago, setFormPago] = useState({
+    monto: '',
+    metodoPago: 'efectivo',
+    referencia: ''
+  });
+
   // Estados para entrenamiento
   const [rutinaActiva, setRutinaActiva] = useState(null);
   const [registrosEntrenamiento, setRegistrosEntrenamiento] = useState([]);
@@ -160,6 +180,109 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
       setFacturas(res.data);
     } catch (err) {
       setError('Error al cargar facturas');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const handleCrearFactura = async (e) => {
+    e.preventDefault();
+    setCargando(true);
+    setError('');
+
+    try {
+      const resFactura = await facturacionAPI.crearFacturaManual({
+        clienteId: cliente._id,
+        mes: formFactura.mes,
+        anio: formFactura.anio,
+        sesiones: parseInt(formFactura.sesiones),
+        precioUnitario: parseFloat(formFactura.precioUnitario),
+        descuento: formFactura.descuento ? parseFloat(formFactura.descuento) : 0,
+        notas: formFactura.notas
+      });
+
+      // Si marcar como pagada, registrar pago completo
+      if (formFactura.marcarPagada && resFactura.data?._id) {
+        const totalAPagar = resFactura.data.totalAPagar;
+        await facturacionAPI.registrarPago(resFactura.data._id, {
+          monto: totalAPagar,
+          metodoPago: 'efectivo',
+          referencia: 'Pago al crear factura'
+        });
+        setMensaje('Factura creada y pagada. Sesiones acreditadas al cliente.');
+      } else {
+        setMensaje('Factura creada correctamente');
+      }
+
+      setMostrarFormFactura(false);
+      setFormFactura({
+        mes: new Date().getMonth() + 1,
+        anio: new Date().getFullYear(),
+        sesiones: '',
+        precioUnitario: '',
+        descuento: '',
+        notas: '',
+        marcarPagada: false
+      });
+      // Recargar facturas y sesiones
+      const facturasRes = await facturacionAPI.obtenerFacturas({ clienteId: cliente._id });
+      setFacturas(facturasRes.data);
+      if (suscripcion) cargarSesionesInfo();
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al crear factura');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const abrirFormFactura = () => {
+    setFormFactura({
+      mes: new Date().getMonth() + 1,
+      anio: new Date().getFullYear(),
+      sesiones: '',
+      precioUnitario: suscripcion?.precioUnitarioFijado?.toString() || '',
+      descuento: '',
+      notas: '',
+      marcarPagada: false
+    });
+    setMostrarFormFactura(true);
+  };
+
+  const calcularTotalFactura = () => {
+    const sesiones = parseInt(formFactura.sesiones) || 0;
+    const precio = parseFloat(formFactura.precioUnitario) || 0;
+    const descuento = parseFloat(formFactura.descuento) || 0;
+    return (sesiones * precio - descuento).toFixed(2);
+  };
+
+  const abrirFormPago = (factura) => {
+    setFacturaPagoId(factura._id);
+    setFormPago({
+      monto: (factura.totalAPagar - factura.totalPagado).toFixed(2),
+      metodoPago: 'efectivo',
+      referencia: ''
+    });
+  };
+
+  const handleRegistrarPago = async (e) => {
+    e.preventDefault();
+    setCargando(true);
+    setError('');
+
+    try {
+      await facturacionAPI.registrarPago(facturaPagoId, {
+        monto: parseFloat(formPago.monto),
+        metodoPago: formPago.metodoPago,
+        referencia: formPago.referencia
+      });
+      setMensaje('Pago registrado correctamente');
+      setFacturaPagoId(null);
+      // Recargar facturas y sesiones
+      const facturasRes = await facturacionAPI.obtenerFacturas({ clienteId: cliente._id });
+      setFacturas(facturasRes.data);
+      if (suscripcion) cargarSesionesInfo();
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al registrar pago');
     } finally {
       setCargando(false);
     }
@@ -894,42 +1017,229 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
           {/* TAB: FACTURAS */}
           {tabActivo === 'facturas' && (
             <div className="ficha-cliente-seccion">
-              {cargando ? (
+              {esGerente && !mostrarFormFactura && (
+                <div style={{ marginBottom: '16px' }}>
+                  <button className="btn-primary" onClick={abrirFormFactura}>
+                    + Nueva Factura
+                  </button>
+                </div>
+              )}
+
+              {/* Formulario nueva factura */}
+              {mostrarFormFactura && (
+                <div className="ficha-cliente-form-factura">
+                  <h4 style={{ margin: '0 0 12px 0', color: '#1f2937' }}>Nueva Factura</h4>
+                  <form onSubmit={handleCrearFactura}>
+                    <div className="ficha-cliente-form-grid">
+                      <div className="ficha-cliente-form-group">
+                        <label>Mes</label>
+                        <select
+                          value={formFactura.mes}
+                          onChange={(e) => setFormFactura({ ...formFactura, mes: parseInt(e.target.value) })}
+                        >
+                          {['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].map((m, i) => (
+                            <option key={i + 1} value={i + 1}>{m}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="ficha-cliente-form-group">
+                        <label>Ano</label>
+                        <input
+                          type="number"
+                          value={formFactura.anio}
+                          onChange={(e) => setFormFactura({ ...formFactura, anio: parseInt(e.target.value) })}
+                          min="2024"
+                          max="2030"
+                        />
+                      </div>
+                      <div className="ficha-cliente-form-group">
+                        <label>N Sesiones *</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={formFactura.sesiones}
+                          onChange={(e) => setFormFactura({ ...formFactura, sesiones: e.target.value })}
+                          placeholder="Ej: 8"
+                          required
+                        />
+                      </div>
+                      <div className="ficha-cliente-form-group">
+                        <label>Precio/Sesion (EUR) *</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formFactura.precioUnitario}
+                          onChange={(e) => setFormFactura({ ...formFactura, precioUnitario: e.target.value })}
+                          placeholder="Ej: 25"
+                          required
+                        />
+                      </div>
+                      <div className="ficha-cliente-form-group">
+                        <label>Descuento (EUR)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={formFactura.descuento}
+                          onChange={(e) => setFormFactura({ ...formFactura, descuento: e.target.value })}
+                          placeholder="Opcional"
+                        />
+                      </div>
+                      <div className="ficha-cliente-form-group">
+                        <label>Notas</label>
+                        <input
+                          type="text"
+                          value={formFactura.notas}
+                          onChange={(e) => setFormFactura({ ...formFactura, notas: e.target.value })}
+                          placeholder="Opcional"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Preview del total */}
+                    <div style={{ padding: '10px 12px', background: '#f0fdf4', borderRadius: '8px', margin: '12px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#6b7280', fontSize: '14px' }}>
+                        {formFactura.sesiones || 0} sesiones x {formFactura.precioUnitario || 0} EUR
+                        {formFactura.descuento && ` - ${formFactura.descuento} EUR dto.`}
+                      </span>
+                      <span style={{ fontWeight: '700', color: '#10b981', fontSize: '18px' }}>
+                        {calcularTotalFactura()} EUR
+                      </span>
+                    </div>
+
+                    {/* Checkbox marcar como pagada */}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0 12px', cursor: 'pointer', fontSize: '14px', color: '#374151' }}>
+                      <input
+                        type="checkbox"
+                        checked={formFactura.marcarPagada}
+                        onChange={(e) => setFormFactura({ ...formFactura, marcarPagada: e.target.checked })}
+                        style={{ width: '16px', height: '16px', accentColor: '#10b981' }}
+                      />
+                      Marcar como pagada (acredita sesiones al cliente)
+                    </label>
+                    {formFactura.marcarPagada && !suscripcion && (
+                      <div style={{ padding: '8px 12px', background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '6px', marginBottom: '12px', fontSize: '13px', color: '#92400e' }}>
+                        Este cliente no tiene membresia activa. La factura se creara y pagara, pero las sesiones no se acreditaran al saldo hasta que se le asigne una membresia desde Facturacion.
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                      <button type="button" className="btn-secondary" onClick={() => setMostrarFormFactura(false)}>
+                        Cancelar
+                      </button>
+                      <button
+                        type="submit"
+                        className="btn-primary"
+                        disabled={cargando || !formFactura.sesiones || !formFactura.precioUnitario}
+                      >
+                        {cargando ? 'Creando...' : formFactura.marcarPagada ? 'Crear y Pagar' : 'Crear Factura'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              {cargando && !mostrarFormFactura ? (
                 <div className="ficha-cliente-cargando">Cargando facturas...</div>
               ) : facturas.length > 0 ? (
                 <div className="ficha-cliente-tabla-wrapper">
                   <table className="ficha-cliente-tabla">
                     <thead>
                       <tr>
-                        <th>Numero</th>
                         <th>Periodo</th>
+                        <th>Sesiones</th>
                         <th>Total</th>
                         <th>Pagado</th>
                         <th>Estado</th>
+                        {esGerente && <th>Acciones</th>}
                       </tr>
                     </thead>
                     <tbody>
                       {facturas.map(factura => (
-                        <tr key={factura._id}>
-                          <td>{factura.numeroFactura}</td>
-                          <td>{factura.mes}/{factura.anio}</td>
-                          <td>{formatearDinero(factura.totalAPagar)}</td>
-                          <td>{formatearDinero(factura.totalPagado)}</td>
-                          <td>
-                            <span className={`estado-badge ${factura.estado}`}>
-                              {factura.estado}
-                            </span>
-                          </td>
-                        </tr>
+                        <Fragment key={factura._id}>
+                          <tr>
+                            <td>{factura.mes}/{factura.anio}</td>
+                            <td>{factura.totalSesionesACobrar || factura.sesionesProgramadas || '-'}</td>
+                            <td>{formatearDinero(factura.totalAPagar)}</td>
+                            <td>{formatearDinero(factura.totalPagado)}</td>
+                            <td>
+                              <span className={`estado-badge ${factura.estado}`}>
+                                {factura.estado}
+                              </span>
+                            </td>
+                            {esGerente && (
+                              <td>
+                                {factura.estado !== 'pagada' && factura.estado !== 'anulada' && (
+                                  <button
+                                    className="btn-primary"
+                                    style={{ padding: '4px 10px', fontSize: '12px' }}
+                                    onClick={() => abrirFormPago(factura)}
+                                  >
+                                    Pagar
+                                  </button>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                          {/* Formulario inline de pago */}
+                          {facturaPagoId === factura._id && (
+                            <tr>
+                              <td colSpan={esGerente ? 6 : 5}>
+                                {!suscripcion && (
+                                  <div style={{ padding: '6px 10px', background: '#fef3c7', border: '1px solid #f59e0b', borderRadius: '4px', marginBottom: '6px', fontSize: '12px', color: '#92400e' }}>
+                                    Sin membresia: las sesiones no se acreditaran al saldo.
+                                  </div>
+                                )}
+                                <form onSubmit={handleRegistrarPago} style={{ display: 'flex', gap: '8px', alignItems: 'center', padding: '8px 0', flexWrap: 'wrap' }}>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    value={formPago.monto}
+                                    onChange={(e) => setFormPago({ ...formPago, monto: e.target.value })}
+                                    placeholder="Monto"
+                                    required
+                                    style={{ width: '90px', padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }}
+                                  />
+                                  <select
+                                    value={formPago.metodoPago}
+                                    onChange={(e) => setFormPago({ ...formPago, metodoPago: e.target.value })}
+                                    style={{ padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }}
+                                  >
+                                    <option value="efectivo">Efectivo</option>
+                                    <option value="transferencia">Transferencia</option>
+                                    <option value="domiciliacion">Domiciliacion</option>
+                                    <option value="tarjeta">Tarjeta</option>
+                                    <option value="otro">Otro</option>
+                                  </select>
+                                  <input
+                                    type="text"
+                                    value={formPago.referencia}
+                                    onChange={(e) => setFormPago({ ...formPago, referencia: e.target.value })}
+                                    placeholder="Referencia (opc.)"
+                                    style={{ width: '120px', padding: '6px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '13px' }}
+                                  />
+                                  <button type="submit" className="btn-primary" style={{ padding: '6px 12px', fontSize: '12px' }} disabled={cargando}>
+                                    {cargando ? '...' : 'Confirmar'}
+                                  </button>
+                                  <button type="button" className="btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => setFacturaPagoId(null)}>
+                                    X
+                                  </button>
+                                </form>
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
                       ))}
                     </tbody>
                   </table>
                 </div>
-              ) : (
+              ) : !mostrarFormFactura ? (
                 <div className="ficha-cliente-vacio">
                   <p>No hay facturas registradas para este cliente.</p>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 

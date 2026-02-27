@@ -103,8 +103,19 @@ const startServer = async () => {
   await connectDB();
   app.listen(PORT, () => {
     console.log(`Servidor ejecutándose en puerto ${PORT}`);
-    console.log('Rutas de clientes cargadas: /api/clientes');
-    console.log('Rutas de usuarios cargadas: /api/users');
+
+    // Keep-alive: ping cada 14 min para evitar que Render duerma el servidor
+    if (process.env.RENDER_EXTERNAL_URL) {
+      const url = process.env.RENDER_EXTERNAL_URL;
+      setInterval(async () => {
+        try {
+          await fetch(url);
+        } catch (err) {
+          // Silenciar errores de ping
+        }
+      }, 14 * 60 * 1000);
+      console.log(`Keep-alive activo: ping a ${url} cada 14 min`);
+    }
   });
 };
 
