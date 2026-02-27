@@ -10,7 +10,7 @@ import {
   clienteAuthAPI,
   entrenamientoAPI
 } from '../services/api';
-import { Pencil } from 'lucide-react';
+import { Pencil, User, CreditCard, CalendarDays, Receipt, ClipboardCheck, TrendingUp, Dumbbell, Globe } from 'lucide-react';
 import RegistrarEntrenamiento from './RegistrarEntrenamiento';
 import ProgresoEjercicio from './ProgresoEjercicio';
 import ModalEditarRutina from './ModalEditarRutina';
@@ -588,14 +588,14 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
   };
 
   const tabs = [
-    { id: 'datos', label: 'Datos' },
-    { id: 'membresia', label: 'Membresia' },
-    { id: 'reservas', label: 'Reservas' },
-    { id: 'facturas', label: 'Facturas' },
-    { id: 'asistencias', label: 'Asistencias' },
-    { id: 'seguimiento', label: 'Seguimiento' },
-    { id: 'entrenamiento', label: 'Entrenamiento' },
-    { id: 'portal', label: 'Portal' }
+    { id: 'datos', label: 'Datos', icon: User },
+    { id: 'membresia', label: 'Membresia', icon: CreditCard },
+    { id: 'reservas', label: 'Reservas', icon: CalendarDays },
+    { id: 'facturas', label: 'Facturas', icon: Receipt },
+    { id: 'asistencias', label: 'Asistencias', icon: ClipboardCheck },
+    { id: 'seguimiento', label: 'Seguimiento', icon: TrendingUp },
+    { id: 'entrenamiento', label: 'Entreno', icon: Dumbbell },
+    { id: 'portal', label: 'Portal', icon: Globe }
   ];
 
   return (
@@ -617,15 +617,19 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
 
         {/* Tabs */}
         <div className="ficha-cliente-tabs">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              className={`ficha-cliente-tab ${tabActivo === tab.id ? 'activo' : ''}`}
-              onClick={() => setTabActivo(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                className={`ficha-cliente-tab ${tabActivo === tab.id ? 'activo' : ''}`}
+                onClick={() => setTabActivo(tab.id)}
+              >
+                <Icon size={18} />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Mensajes */}

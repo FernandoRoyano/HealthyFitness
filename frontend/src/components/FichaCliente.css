@@ -89,36 +89,36 @@
 /* Tabs */
 .ficha-cliente-tabs {
   display: flex;
-  gap: 4px;
-  padding: 0 16px;
+  justify-content: space-around;
+  padding: 8px 8px 0;
   background: #f8fafc;
   border-bottom: 1px solid #e5e7eb;
-  overflow-x: auto;
 }
 
 .ficha-cliente-tab {
-  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 6px 10px;
   border: none;
   background: transparent;
-  color: #6b7280;
-  font-size: 14px;
+  color: #9ca3af;
+  font-size: 11px;
   font-weight: 500;
   cursor: pointer;
-  border-bottom: 3px solid transparent;
-  white-space: nowrap;
-  flex-shrink: 0;
+  border-bottom: 2px solid transparent;
   transition: all 0.2s;
+  min-width: 0;
 }
 
 .ficha-cliente-tab:hover {
   color: #374151;
-  background: #f3f4f6;
 }
 
 .ficha-cliente-tab.activo {
   color: #10b981;
   border-bottom-color: #10b981;
-  background: white;
 }
 
 /* Mensajes */
@@ -478,12 +478,12 @@
   }
 
   .ficha-cliente-tabs {
-    padding: 0 8px;
+    padding: 6px 4px 0;
   }
 
   .ficha-cliente-tab {
-    padding: 12px 14px;
-    font-size: 13px;
+    padding: 6px 4px 8px;
+    font-size: 10px;
   }
 
   .ficha-cliente-contenido {
