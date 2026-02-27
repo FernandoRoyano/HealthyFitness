@@ -308,6 +308,29 @@ export const cancelarSolicitud = async (req, res) => {
   }
 };
 
+// Eliminar solicitud permanentemente (solo canceladas o rechazadas)
+export const eliminarSolicitud = async (req, res) => {
+  try {
+    const vacacion = await Vacacion.findById(req.params.id);
+
+    if (!vacacion) {
+      return res.status(404).json({ mensaje: 'Solicitud no encontrada' });
+    }
+
+    if (vacacion.estado !== 'cancelado' && vacacion.estado !== 'rechazado') {
+      return res.status(400).json({
+        mensaje: 'Solo se pueden eliminar solicitudes canceladas o rechazadas'
+      });
+    }
+
+    await Vacacion.findByIdAndDelete(req.params.id);
+    res.json({ mensaje: 'Solicitud eliminada permanentemente' });
+  } catch (error) {
+    console.error('Error al eliminar solicitud:', error);
+    res.status(500).json({ mensaje: 'Error al eliminar solicitud' });
+  }
+};
+
 // ============================================
 // ENDPOINTS SOLO GERENTE
 // ============================================

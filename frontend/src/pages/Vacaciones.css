@@ -783,6 +783,23 @@
   color: white;
 }
 
+.btn-eliminar-solicitud {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  background: #dc3545;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-eliminar-solicitud:hover {
+  background: #b02a37;
+}
+
 /* Responsive */
 .desktop-only {
   display: block;

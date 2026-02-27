@@ -5,6 +5,7 @@ import {
   obtenerVacacionPorId,
   obtenerResumen,
   cancelarSolicitud,
+  eliminarSolicitud,
   aprobarSolicitud,
   rechazarSolicitud,
   obtenerResumenGlobal,
@@ -32,5 +33,6 @@ router.delete('/:id', cancelarSolicitud);
 // Rutas de gestión (solo gerente)
 router.put('/:id/aprobar', esGerente, aprobarSolicitud);
 router.put('/:id/rechazar', esGerente, rechazarSolicitud);
+router.delete('/:id/eliminar', esGerente, eliminarSolicitud);
 
 export default router;

@@ -179,7 +179,8 @@ export const vacacionesAPI = {
   crear: (datos) => api.post('/vacaciones', datos),
   aprobar: (id) => api.put(`/vacaciones/${id}/aprobar`),
   rechazar: (id, motivoRechazo) => api.put(`/vacaciones/${id}/rechazar`, { motivoRechazo }),
-  cancelar: (id) => api.delete(`/vacaciones/${id}`)
+  cancelar: (id) => api.delete(`/vacaciones/${id}`),
+  eliminar: (id) => api.delete(`/vacaciones/${id}/eliminar`)
 };
 
 export const facturacionAPI = {
