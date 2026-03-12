@@ -87,6 +87,15 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
 
   const [mostrarFormMedicion, setMostrarFormMedicion] = useState(false);
 
+  // Estados para formulario de membresía
+  const [mostrarFormMembresia, setMostrarFormMembresia] = useState(false);
+  const [formMembresia, setFormMembresia] = useState({
+    productoId: '',
+    diasPorSemana: 2,
+    diasEntrenamiento: [],
+    notas: ''
+  });
+
   // Estados para portal de cliente
   const [portalInfo, setPortalInfo] = useState(null);
   const [mostrarFormPortal, setMostrarFormPortal] = useState(false);
@@ -148,14 +157,19 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
 
   const cargarDatosIniciales = async () => {
     try {
-      const [entrenadoresRes, productosRes, suscripcionRes] = await Promise.all([
+      const [entrenadoresRes, productosRes, suscripcionRes, saldoRes] = await Promise.all([
         usersAPI.obtenerEntrenadores(),
         productosAPI.obtenerTodos(),
-        facturacionAPI.obtenerSuscripcionCliente(cliente._id).catch(() => ({ data: null }))
+        facturacionAPI.obtenerSuscripcionCliente(cliente._id).catch(() => ({ data: null })),
+        facturacionAPI.obtenerSaldoSesiones(cliente._id).catch(() => ({ data: { saldoSesiones: 0, tieneSuscripcion: false } }))
       ]);
       setEntrenadores(entrenadoresRes.data);
       setProductos(productosRes.data);
       setSuscripcion(suscripcionRes.data);
+      // Establecer saldo inicial para mostrar en header
+      if (saldoRes.data?.tieneSuscripcion) {
+        setSesionesInfo(prev => prev || { saldoSesiones: saldoRes.data.saldoSesiones });
+      }
     } catch (err) {
       console.error('Error cargando datos:', err);
     }
@@ -450,6 +464,37 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
     }
   };
 
+  const handleGuardarMembresia = async (e) => {
+    e.preventDefault();
+    setCargando(true);
+    setError('');
+
+    try {
+      await facturacionAPI.guardarSuscripcion(cliente._id, formMembresia);
+      setMensaje('Membresía asignada correctamente');
+      setMostrarFormMembresia(false);
+      // Recargar suscripción
+      const suscripcionRes = await facturacionAPI.obtenerSuscripcionCliente(cliente._id).catch(() => ({ data: null }));
+      setSuscripcion(suscripcionRes.data);
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) {
+      setError(err.response?.data?.mensaje || 'Error al asignar membresía');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const toggleDiaMembresiaEntrenamiento = (dia) => {
+    const dias = [...formMembresia.diasEntrenamiento];
+    const index = dias.indexOf(dia);
+    if (index > -1) {
+      dias.splice(index, 1);
+    } else if (dias.length < formMembresia.diasPorSemana) {
+      dias.push(dia);
+    }
+    setFormMembresia({ ...formMembresia, diasEntrenamiento: dias.sort() });
+  };
+
   const crearAccesoPortal = async (e) => {
     e.preventDefault();
     if (!passwordPortal || passwordPortal.length < 6) {
@@ -611,6 +656,16 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
               <h2 className="ficha-cliente-nombre">{cliente.nombre} {cliente.apellido}</h2>
               <p className="ficha-cliente-email">{cliente.email}</p>
             </div>
+            {suscripcion && sesionesInfo && (
+              <div
+                className="ficha-cliente-saldo-badge"
+                onClick={() => setTabActivo('membresia')}
+                title="Sesiones disponibles - Click para ver detalle"
+              >
+                <span className="saldo-numero">{sesionesInfo.saldoSesiones}</span>
+                <span className="saldo-texto">sesiones restantes</span>
+              </div>
+            )}
           </div>
           <button onClick={onClose} className="ficha-cliente-close">&times;</button>
         </div>
@@ -959,8 +1014,97 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
                 </div>
               ) : (
                 <div className="ficha-cliente-vacio">
-                  <p>Este cliente no tiene membresia activa.</p>
-                  <p>Puedes asignarle una desde el modulo de Facturacion.</p>
+                  <p>Este cliente no tiene membresía activa.</p>
+                  {!mostrarFormMembresia ? (
+                    <button
+                      className="btn-primary"
+                      onClick={() => {
+                        setFormMembresia({
+                          productoId: productos[0]?._id || '',
+                          diasPorSemana: 2,
+                          diasEntrenamiento: [],
+                          notas: ''
+                        });
+                        setMostrarFormMembresia(true);
+                      }}
+                      style={{ marginTop: '12px' }}
+                    >
+                      + Asignar Membresía
+                    </button>
+                  ) : (
+                    <form onSubmit={handleGuardarMembresia} className="ficha-cliente-form" style={{ marginTop: '16px', textAlign: 'left' }}>
+                      <div className="ficha-cliente-form-grid">
+                        <div className="ficha-cliente-form-group">
+                          <label>Producto / Tipo de Sesión</label>
+                          <select
+                            value={formMembresia.productoId}
+                            onChange={(e) => setFormMembresia({ ...formMembresia, productoId: e.target.value })}
+                            required
+                          >
+                            <option value="">Seleccionar producto...</option>
+                            {productos.map(p => (
+                              <option key={p._id} value={p._id}>{p.nombre}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="ficha-cliente-form-group">
+                          <label>Días por Semana</label>
+                          <select
+                            value={formMembresia.diasPorSemana}
+                            onChange={(e) => setFormMembresia({
+                              ...formMembresia,
+                              diasPorSemana: parseInt(e.target.value),
+                              diasEntrenamiento: formMembresia.diasEntrenamiento.slice(0, parseInt(e.target.value))
+                            })}
+                          >
+                            {[1, 2, 3, 4, 5].map(n => (
+                              <option key={n} value={n}>{n} día{n > 1 ? 's' : ''}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="ficha-cliente-form-group full-width">
+                          <label>Días de Entrenamiento (selecciona {formMembresia.diasPorSemana})</label>
+                          <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie'].map((dia, i) => (
+                              <button
+                                key={i}
+                                type="button"
+                                onClick={() => toggleDiaMembresiaEntrenamiento(i)}
+                                style={{
+                                  padding: '8px 14px',
+                                  borderRadius: '6px',
+                                  border: formMembresia.diasEntrenamiento.includes(i) ? '2px solid #10b981' : '2px solid #d1d5db',
+                                  backgroundColor: formMembresia.diasEntrenamiento.includes(i) ? '#d1fae5' : 'white',
+                                  color: formMembresia.diasEntrenamiento.includes(i) ? '#065f46' : '#6b7280',
+                                  fontWeight: formMembresia.diasEntrenamiento.includes(i) ? '600' : '400',
+                                  cursor: 'pointer',
+                                  fontSize: '13px'
+                                }}
+                              >
+                                {dia}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="ficha-cliente-form-group full-width">
+                          <label>Notas (opcional)</label>
+                          <textarea
+                            value={formMembresia.notas}
+                            onChange={(e) => setFormMembresia({ ...formMembresia, notas: e.target.value })}
+                            rows="2"
+                          />
+                        </div>
+                      </div>
+                      <div className="ficha-cliente-form-actions">
+                        <button type="button" className="btn-secondary" onClick={() => setMostrarFormMembresia(false)}>
+                          Cancelar
+                        </button>
+                        <button type="submit" className="btn-primary" disabled={cargando || !formMembresia.productoId}>
+                          {cargando ? 'Guardando...' : 'Guardar Membresía'}
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               )}
             </div>
@@ -969,6 +1113,26 @@ function FichaCliente({ cliente, onClose, onClienteActualizado }) {
           {/* TAB: RESERVAS */}
           {tabActivo === 'reservas' && (
             <div className="ficha-cliente-seccion">
+              {suscripcion && sesionesInfo && (
+                <div className="ficha-cliente-resumen-sesiones">
+                  <div className="resumen-sesiones-item">
+                    <span className="resumen-sesiones-numero">{sesionesInfo.saldoSesiones}</span>
+                    <span className="resumen-sesiones-label">Sesiones disponibles</span>
+                  </div>
+                  {sesionesInfo.contratadas !== undefined && (
+                    <>
+                      <div className="resumen-sesiones-item">
+                        <span className="resumen-sesiones-numero">{sesionesInfo.contratadas}</span>
+                        <span className="resumen-sesiones-label">Contratadas este mes</span>
+                      </div>
+                      <div className="resumen-sesiones-item">
+                        <span className="resumen-sesiones-numero">{sesionesInfo.usadasMes}</span>
+                        <span className="resumen-sesiones-label">Reservadas este mes</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
               {cargando ? (
                 <div className="ficha-cliente-cargando">Cargando reservas...</div>
               ) : reservas.length > 0 ? (

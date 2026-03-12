@@ -1,5 +1,6 @@
 import Reserva from '../models/Reserva.js';
 import SuscripcionCliente from '../models/SuscripcionCliente.js';
+import Asistencia from '../models/Asistencia.js';
 import { verificarVacacionesEnFecha } from '../utils/vacacionHelper.js';
 
 // Función auxiliar para verificar saldo de sesiones del cliente
@@ -129,6 +130,36 @@ const crearReservaUnica = async (datosReserva, opciones = {}) => {
     plantillaOrigen: datosReserva.plantillaOrigen,
     esPlanificada: datosReserva.esPlanificada
   });
+
+  // Crear asistencia pendiente automáticamente
+  if (datosReserva.cliente) {
+    try {
+      const fechaReserva = new Date(datosReserva.fecha);
+      fechaReserva.setHours(0, 0, 0, 0);
+
+      // Verificar si ya existe asistencia para esta fecha/hora/cliente
+      const asistenciaExistente = await Asistencia.findOne({
+        cliente: datosReserva.cliente,
+        fecha: fechaReserva,
+        horaInicio: datosReserva.horaInicio
+      });
+
+      if (!asistenciaExistente) {
+        await Asistencia.create({
+          reserva: reserva._id,
+          cliente: datosReserva.cliente,
+          entrenador: datosReserva.entrenador,
+          fecha: fechaReserva,
+          horaInicio: datosReserva.horaInicio,
+          estado: 'pendiente',
+          tipoSesion: datosReserva.tipoSesion === 'pareja' || datosReserva.tipoSesion === 'pareja-express' ? 'pareja' : 'personal'
+        });
+      }
+    } catch (err) {
+      console.error('Error al crear asistencia automática:', err.message);
+    }
+  }
+
   return { reserva, avisoSaldo };
 };
 
@@ -260,6 +291,35 @@ export const crearReserva = async (req, res) => {
       plantillaOrigen: req.body.plantillaOrigen,
       esPlanificada: req.body.esPlanificada
     });
+
+    // Crear asistencia pendiente automáticamente
+    if (cliente) {
+      try {
+        const fechaReserva = new Date(fecha);
+        fechaReserva.setHours(0, 0, 0, 0);
+
+        const asistenciaExistente = await Asistencia.findOne({
+          cliente,
+          fecha: fechaReserva,
+          horaInicio
+        });
+
+        if (!asistenciaExistente) {
+          await Asistencia.create({
+            reserva: reserva._id,
+            cliente,
+            entrenador,
+            fecha: fechaReserva,
+            horaInicio,
+            estado: 'pendiente',
+            tipoSesion: req.body.tipoSesion === 'pareja' || req.body.tipoSesion === 'pareja-express' ? 'pareja' : 'personal'
+          });
+        }
+      } catch (err) {
+        console.error('Error al crear asistencia automática:', err.message);
+      }
+    }
+
     const reservaCompleta = await Reserva.findById(reserva._id)
       .populate('cliente', 'nombre apellido email telefono')
       .populate('entrenador', 'nombre email');

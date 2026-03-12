@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { reservasAPI, usersAPI } from '../services/api';
-import { Sun, Moon, ClipboardList, Calendar, CalendarDays, Info, AlertTriangle } from 'lucide-react';
+import { Sun, Moon, ClipboardList, Calendar, CalendarDays, Info, AlertTriangle, UserCircle } from 'lucide-react';
+import FichaCliente from '../components/FichaCliente';
 
 // Formatear fecha local sin problemas de zona horaria
 const formatearFechaLocal = (fecha) => {
@@ -20,6 +21,7 @@ function CalendarioReservas() {
   );
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [clienteFicha, setClienteFicha] = useState(null);
 
   // Horarios de 7am a 22pm (7:00 - 22:00)
   const horarios = [];
@@ -187,7 +189,12 @@ function CalendarioReservas() {
                 <div style={styles.celdaSesion}>
                   {reservasHora.map((reserva) => (
                     <div key={reserva._id} style={styles.reservaCard}>
-                      <strong>
+                      <strong
+                        style={styles.clienteLink}
+                        onClick={() => setClienteFicha(reserva.cliente)}
+                        title="Ver ficha del cliente"
+                      >
+                        <UserCircle size={14} style={{ marginRight: '4px', display: 'inline', verticalAlign: 'middle' }} />
                         {reserva.cliente.nombre} {reserva.cliente.apellido}
                       </strong>
                       <div style={styles.reservaDetalle}>
@@ -274,7 +281,11 @@ function CalendarioReservas() {
                     >
                       {reservasHora.map((reserva) => (
                         <div key={reserva._id} style={styles.reservaCardCompacta}>
-                          <strong style={styles.clienteNombre}>
+                          <strong
+                            style={{ ...styles.clienteNombre, ...styles.clienteLink }}
+                            onClick={() => setClienteFicha(reserva.cliente)}
+                            title="Ver ficha del cliente"
+                          >
                             {reserva.cliente.nombre} {reserva.cliente.apellido}
                           </strong>
                           <div style={styles.reservaHorario}>
@@ -460,6 +471,14 @@ function CalendarioReservas() {
       {vista === 'individual' && renderVistaIndividual()}
       {vista === 'diaria' && renderVistaDiaria()}
       {vista === 'semanal' && renderVistaSemanal()}
+
+      {clienteFicha && (
+        <FichaCliente
+          cliente={clienteFicha}
+          onClose={() => setClienteFicha(null)}
+          onClienteActualizado={() => {}}
+        />
+      )}
     </div>
   );
 }
@@ -756,6 +775,12 @@ const styles = {
     borderRadius: '3px',
     textAlign: 'center',
     fontWeight: '600'
+  },
+  clienteLink: {
+    cursor: 'pointer',
+    color: '#007bff',
+    textDecoration: 'underline',
+    textDecorationStyle: 'dotted'
   }
 };
 

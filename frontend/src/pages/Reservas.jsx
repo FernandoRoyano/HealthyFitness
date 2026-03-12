@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { reservasAPI, clientesAPI, solicitudesCambioAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import FichaCliente from '../components/FichaCliente';
 
 function Reservas() {
   const { usuario } = useAuth();
@@ -22,6 +23,7 @@ function Reservas() {
     notas: '',
     duracion: 60
   });
+  const [clienteFicha, setClienteFicha] = useState(null);
   const [formularioSolicitud, setFormularioSolicitud] = useState({
     tipoCambio: 'puntual',
     fecha: '',
@@ -456,7 +458,11 @@ function Reservas() {
             <div key={reserva._id} style={styles.reservaCard}>
               <div style={styles.reservaHeader}>
                 <div>
-                  <h3 style={styles.reservaCliente}>
+                  <h3
+                    style={{ ...styles.reservaCliente, ...styles.clienteLink }}
+                    onClick={() => setClienteFicha(reserva.cliente)}
+                    title="Ver ficha del cliente"
+                  >
                     {reserva.cliente.nombre} {reserva.cliente.apellido}
                   </h3>
                   <p style={styles.reservaFecha}>{formatearFecha(reserva.fecha)}</p>
@@ -520,6 +526,14 @@ function Reservas() {
           ))
         )}
       </div>
+
+      {clienteFicha && (
+        <FichaCliente
+          cliente={clienteFicha}
+          onClose={() => setClienteFicha(null)}
+          onClienteActualizado={() => cargarDatos()}
+        />
+      )}
     </div>
   );
 }
@@ -743,6 +757,12 @@ const styles = {
     fontWeight: '600',
     marginBottom: '10px',
     color: '#333'
+  },
+  clienteLink: {
+    cursor: 'pointer',
+    color: '#007bff',
+    textDecoration: 'underline',
+    textDecorationStyle: 'dotted'
   }
 };
 
